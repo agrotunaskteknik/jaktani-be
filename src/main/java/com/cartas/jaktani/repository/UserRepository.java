@@ -1,4 +1,9 @@
 package com.cartas.jaktani.repository;
 
-public interface UserRepository {
+import com.cartas.jaktani.model.Users;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface UserRepository extends JpaRepository<Users, Integer> {
 }
