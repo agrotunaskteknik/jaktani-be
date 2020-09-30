@@ -12,10 +12,6 @@ public class UserWrapper {
         user.setType(userDto.getType());
         user.setPassword(userDto.getPassword());
         user.setEmail(userDto.getEmail());
-        user.setCreatedBy(userDto.getCreatedBy());
-        user.setCreatedTime(userDto.getCreatedTime());
-        user.setUpdatedBy(userDto.getUpdatedBy());
-        user.setUpdatedTime(userDto.getUpdatedTime());
         user.setStatus(userDto.getStatus());
         user.setGender(userDto.getGender());
         user.setMobilePhoneNumber(userDto.getMobilePhoneNumber());
@@ -31,10 +27,6 @@ public class UserWrapper {
         userDto.setType(user.getType());
         userDto.setPassword(user.getPassword());
         userDto.setEmail(user.getEmail());
-        userDto.setCreatedBy(user.getCreatedBy());
-        userDto.setCreatedTime(user.getCreatedTime());
-        userDto.setUpdatedBy(user.getUpdatedBy());
-        userDto.setUpdatedTime(user.getUpdatedTime());
         userDto.setStatus(user.getStatus());
         userDto.setGender(user.getGender());
         userDto.setMobilePhoneNumber(user.getMobilePhoneNumber());

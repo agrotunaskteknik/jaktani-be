@@ -1,7 +1,6 @@
 package com.cartas.jaktani.dto;
 
 import java.sql.Date;
-import java.sql.Timestamp;
 
 public class UserDto {
     public Integer id;

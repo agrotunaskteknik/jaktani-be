@@ -31,10 +31,11 @@ public class UserServiceImpl implements UserService {
             return null;
         }
         userDto.setType(USER_TYPE_DEFAULT);
-        userDto.setCreatedBy(USER_TYPE_DEFAULT);
-        userDto.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
         userDto.setStatus(USER_STATUS_ACTIVE);
-        Users user = userRepository.save(UserWrapper.wrapDtoToModel(userDto));
+        Users userSaved = UserWrapper.wrapDtoToModel(userDto);
+        userSaved.setCreatedBy(USER_TYPE_DEFAULT);
+        userSaved.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+        Users user = userRepository.save(userSaved);
 
         return UserWrapper.wrapModelToDto(user);
     }
@@ -76,12 +77,13 @@ public class UserServiceImpl implements UserService {
             return null;
         }
         inputUser.setId(userOptional.get().getId());
-        inputUser.setCreatedBy(userOptional.get().getCreatedBy());
-        inputUser.setCreatedTime(userOptional.get().getCreatedTime());
-        inputUser.setUpdatedBy(userOptional.get().getId());
-        inputUser.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
         inputUser.setStatus(userOptional.get().getStatus());
         inputUser.setType(userOptional.get().getType());
+        Users userSaved = UserWrapper.wrapDtoToModel(inputUser);
+        userSaved.setCreatedBy(userOptional.get().getCreatedBy());
+        userSaved.setCreatedTime(userOptional.get().getCreatedTime());
+        userSaved.setUpdatedBy(userOptional.get().getId());
+        userSaved.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
         Users user = userRepository.save(UserWrapper.wrapDtoToModel(inputUser));
 
         return UserWrapper.wrapModelToDto(user);
