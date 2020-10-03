@@ -5,8 +5,8 @@ import com.cartas.jaktani.model.Users;
 import com.cartas.jaktani.repository.UserRepository;
 import com.cartas.jaktani.repository.wrapper.UserWrapper;
 import com.cartas.jaktani.util.Utils;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,6 +24,9 @@ public class UserServiceImpl implements UserService {
     Integer USER_STATUS_DELETED = 0;
     Integer USER_STATUS_ACTIVE = 1;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public UserDto addUser(UserDto userDto) {
         if (null == userDto || userDto.getFullName().trim().equalsIgnoreCase("") || userDto.getUsername().trim().equalsIgnoreCase("")
@@ -35,6 +38,7 @@ public class UserServiceImpl implements UserService {
         Users userSaved = UserWrapper.wrapDtoToModel(userDto);
         userSaved.setCreatedBy(USER_TYPE_DEFAULT);
         userSaved.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+        userSaved.setPassword(passwordEncoder.encode(userDto.getPassword()));
         Users user = userRepository.save(userSaved);
 
         return UserWrapper.wrapModelToDto(user);
@@ -43,6 +47,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getUserByID(Long userID) {
         Optional<Users> user = userRepository.findById(Integer.valueOf(userID.toString()));
+        return user.map(UserWrapper::wrapModelToDto).orElse(null);
+    }
+
+    @Override
+    public UserDto getUserByUsername(String username) {
+        Optional<Users> user = userRepository.findByUsername(username);
         return user.map(UserWrapper::wrapModelToDto).orElse(null);
     }
 
@@ -73,6 +83,29 @@ public class UserServiceImpl implements UserService {
             return null;
         }
         if (null == inputUser || inputUser.getFullName().trim().equalsIgnoreCase("") || inputUser.getUsername().trim().equalsIgnoreCase("")
+                || inputUser.getPassword().trim().equalsIgnoreCase("") || inputUser.getEmail().trim().equalsIgnoreCase("")) {
+            return null;
+        }
+        inputUser.setId(userOptional.get().getId());
+        inputUser.setStatus(userOptional.get().getStatus());
+        inputUser.setType(userOptional.get().getType());
+        Users userSaved = UserWrapper.wrapDtoToModel(inputUser);
+        userSaved.setCreatedBy(userOptional.get().getCreatedBy());
+        userSaved.setCreatedTime(userOptional.get().getCreatedTime());
+        userSaved.setUpdatedBy(userOptional.get().getId());
+        userSaved.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+        Users user = userRepository.save(UserWrapper.wrapDtoToModel(inputUser));
+
+        return UserWrapper.wrapModelToDto(user);
+    }
+
+    @Override
+    public UserDto editPasswordByUserID(Long userID, UserDto inputUser) {
+        Optional<Users> userOptional = userRepository.findById(Integer.valueOf(userID.toString()));
+        if (!userOptional.isPresent()) {
+            return null;
+        }
+        if (null == inputUser || inputUser.getUsername().trim().equalsIgnoreCase("")
                 || inputUser.getPassword().trim().equalsIgnoreCase("") || inputUser.getEmail().trim().equalsIgnoreCase("")) {
             return null;
         }
