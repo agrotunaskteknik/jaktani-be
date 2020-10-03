@@ -47,14 +47,14 @@ public class JwtAuthenticationController {
         }
     }
 
-    @RequestMapping(value = "/authenticate/request_register_otp", method = RequestMethod.POST)
+    @RequestMapping(value = "/authentication/request_register_otp", method = RequestMethod.POST)
     public ResponseEntity<?> requestRegisterOTP(@RequestBody OTPRequest otpRequest) throws Exception {
         userDetailsService.requestOTPForRegister(otpRequest.getEmail(), otpRequest.getMobileNumber(), otpRequest.getUsername());
         return ResponseEntity.ok().body("Success Request OTP for register");
     }
 
     // can only save user if otp is correct
-    @RequestMapping(value = "/authenticate/register_user", method = RequestMethod.POST)
+    @RequestMapping(value = "/authentication/register", method = RequestMethod.POST)
     public ResponseEntity<?> saveUserPassword(@RequestBody UserDto userDto) throws Exception {
         OTP otp = userDetailsService.validateOTP(userDto);
         if (otp == null) {
@@ -67,14 +67,14 @@ public class JwtAuthenticationController {
         return ResponseEntity.ok().body(userSaved);
     }
 
-    @RequestMapping(value = "/authenticate/request_reset_password_otp", method = RequestMethod.POST)
+    @RequestMapping(value = "/authentication/request_reset_password_otp", method = RequestMethod.POST)
     public ResponseEntity<?> requestResetPasswordOTP(@RequestBody OTPRequest otpRequest) throws Exception {
         userDetailsService.requestOTPForForgotPassword(otpRequest.getEmail(), otpRequest.getMobileNumber(), otpRequest.getUsername());
         return ResponseEntity.ok().body("Success Request OTP for forgot password");
     }
 
     // can only reset password if otp is correct
-    @RequestMapping(value = "/authenticate/reset_password", method = RequestMethod.POST)
+    @RequestMapping(value = "/authentication/reset_password", method = RequestMethod.POST)
     public ResponseEntity<?> resetPassword(@RequestBody UserDto userDto) throws Exception {
         OTP otp = userDetailsService.validateOTP(userDto);
         if (otp == null) {
@@ -87,7 +87,7 @@ public class JwtAuthenticationController {
         return ResponseEntity.ok().body(userSaved);
     }
 
-    @RequestMapping(value = "/authenticate/login", method = RequestMethod.POST)
+    @RequestMapping(value = "/authentication/login", method = RequestMethod.POST)
     public ResponseEntity<?> login(@RequestBody UserDto authenticationRequest) throws Exception {
         authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword());
         final UserDetails userDetails = userDetailsService

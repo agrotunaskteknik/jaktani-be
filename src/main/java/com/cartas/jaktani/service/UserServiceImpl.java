@@ -94,7 +94,9 @@ public class UserServiceImpl implements UserService {
         userSaved.setCreatedTime(userOptional.get().getCreatedTime());
         userSaved.setUpdatedBy(userOptional.get().getId());
         userSaved.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
-        Users user = userRepository.save(UserWrapper.wrapDtoToModel(inputUser));
+        userSaved.setPassword(userOptional.get().getPassword());
+        userSaved.setFullName(userOptional.get().getFullName());
+        Users user = userRepository.save(userSaved);
 
         return UserWrapper.wrapModelToDto(user);
     }
@@ -117,7 +119,9 @@ public class UserServiceImpl implements UserService {
         userSaved.setCreatedTime(userOptional.get().getCreatedTime());
         userSaved.setUpdatedBy(userOptional.get().getId());
         userSaved.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
-        Users user = userRepository.save(UserWrapper.wrapDtoToModel(inputUser));
+        userSaved.setPassword(passwordEncoder.encode(inputUser.getPassword()));
+        userSaved.setFullName(userOptional.get().getFullName());
+        Users user = userRepository.save(userSaved);
 
         return UserWrapper.wrapModelToDto(user);
     }

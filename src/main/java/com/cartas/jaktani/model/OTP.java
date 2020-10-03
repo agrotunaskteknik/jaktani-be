@@ -16,7 +16,7 @@ public class OTP {
     private Timestamp requestTime;
     private String otpCode;
 
-    @Column(name = "username", nullable = false)
+    @Column(name = "username")
     public String getUsername() {
         return username;
     }
@@ -25,7 +25,7 @@ public class OTP {
         this.username = username;
     }
 
-    @Column(name = "email", nullable = false)
+    @Column(name = "email")
     public String getEmail() {
         return email;
     }
@@ -34,7 +34,7 @@ public class OTP {
         this.email = email;
     }
 
-    @Column(name = "mobile_phone_number", nullable = false)
+    @Column(name = "mobile_phone_number")
     public String getMobilePhoneNumber() {
         return mobilePhoneNumber;
     }
@@ -53,7 +53,7 @@ public class OTP {
         this.id = id;
     }
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id")
     public Integer getUserID() {
         return userID;
     }
@@ -62,7 +62,7 @@ public class OTP {
         this.userID = userID;
     }
 
-    @Column(name = "device_id", nullable = false)
+    @Column(name = "device_id")
     public String getDeviceID() {
         return deviceID;
     }
@@ -71,7 +71,7 @@ public class OTP {
         this.deviceID = deviceID;
     }
 
-    @Column(name = "created_time", nullable = false)
+    @Column(name = "created_time")
     public Timestamp getCreatedTime() {
         return createdTime;
     }
@@ -80,7 +80,7 @@ public class OTP {
         this.createdTime = createdTime;
     }
 
-    @Column(name = "request_time", nullable = false)
+    @Column(name = "request_time")
     public Timestamp getRequestTime() {
         return requestTime;
     }
@@ -89,7 +89,7 @@ public class OTP {
         this.requestTime = requestTime;
     }
 
-    @Column(name = "otp_code", nullable = false)
+    @Column(name = "otp_code")
     public String getOtpCode() {
         return otpCode;
     }

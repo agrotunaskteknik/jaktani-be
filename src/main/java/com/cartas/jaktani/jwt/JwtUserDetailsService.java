@@ -7,6 +7,7 @@ import com.cartas.jaktani.model.OTP;
 import com.cartas.jaktani.model.Users;
 import com.cartas.jaktani.repository.OTPRepository;
 import com.cartas.jaktani.repository.UserRepository;
+import com.cartas.jaktani.util.Utils;
 import net.bytebuddy.utility.RandomString;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,7 @@ public class JwtUserDetailsService implements UserDetailsService {
                 throw new ResourceNotFoundException("User with username and email already exist!");
             }
             generateOTPAndSentToEmail(email, mobilePhoneNumber, username, 0);
+            return;
         }
         throw new ResourceNotFoundException("empty field");
     }
@@ -61,6 +63,7 @@ public class JwtUserDetailsService implements UserDetailsService {
             }
             Users userModel = user.get();
             generateOTPAndSentToEmail(userModel.getEmail(), userModel.getMobilePhoneNumber(), userModel.getUsername(), userModel.getId());
+            return;
         }
         throw new ResourceNotFoundException("empty field");
     }
@@ -74,8 +77,15 @@ public class JwtUserDetailsService implements UserDetailsService {
         otp.setEmail(email);
         otp.setUsername(username);
         otp.setMobilePhoneNumber(mobilePhoneNumber);
+        otp.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+        otp.setRequestTime(otp.getCreatedTime());
         Optional<OTP> otpOptional = otpRepository.findByUsernameOrEmailOrMobilePhoneNumber(username, email, mobilePhoneNumber);
-        otpOptional.ifPresent(value -> otp.setId(value.getId()));
+        if(otpOptional.isPresent()){
+            otp.setId(otpOptional.get().getId());
+            otp.setCreatedTime(otpOptional.get().getCreatedTime());
+            otp.setRequestTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+        }
+
         otpRepository.save(otp);
         SendMail.sentOTPToEmail(email, otpGen);
 
@@ -86,7 +96,7 @@ public class JwtUserDetailsService implements UserDetailsService {
                 || userDto.getOTP().equalsIgnoreCase("")) {
             throw new ResourceNotFoundException("empty field");
         }
-        Optional<OTP> otp = otpRepository.findByOTPCode(userDto.getOTP());
+        Optional<OTP> otp = otpRepository.findByOtpCode(userDto.getOTP());
         if (!otp.isPresent()) {
             throw new ResourceNotFoundException("otp not found");
 
