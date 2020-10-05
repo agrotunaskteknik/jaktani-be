@@ -13,6 +13,15 @@ public class UserDto {
     public Integer gender;
     public String mobilePhoneNumber;
     public Date birthDate;
+    public String OTP;
+
+    public String getOTP() {
+        return OTP;
+    }
+
+    public void setOTP(String OTP) {
+        this.OTP = OTP;
+    }
 
     public UserDto() {
     }
@@ -110,6 +119,7 @@ public class UserDto {
         sb.append(", gender=").append(gender);
         sb.append(", mobilePhoneNumber='").append(mobilePhoneNumber).append('\'');
         sb.append(", birthDate=").append(birthDate);
+        sb.append(", OTP='").append(OTP).append('\'');
         sb.append('}');
         return sb.toString();
     }

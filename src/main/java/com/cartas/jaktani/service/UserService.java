@@ -7,7 +7,9 @@ import java.util.List;
 public interface UserService {
     UserDto addUser(UserDto userDto);
     UserDto getUserByID(Long userID);
+    UserDto getUserByUsername(String username);
     List<UserDto> getUsers();
     UserDto deleteUserByID(Long userID);
     UserDto editUserByID(Long userID, UserDto inputUser);
+    UserDto editPasswordByUserID(Long userID, UserDto inputUser);
 }
