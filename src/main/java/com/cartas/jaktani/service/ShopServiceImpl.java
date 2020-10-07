@@ -51,7 +51,7 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     public Object getShopByName(String name) {
-        Optional<Shop> shop = repository.findByName(name);
+        Optional<Shop> shop = repository.findFirstByNameAndStatusIsNot(name, STATUS_DELETED);
         if(!shop.isPresent()) {
        	    response.setResponseCode("FAILED");
             response.setResponseMessage("Data not found");
@@ -93,10 +93,10 @@ public class ShopServiceImpl implements ShopService {
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
     	}
     	
-    	Optional<Shop> isExistShop = repository.findByName(shop.getName());
+    	Optional<Shop> isExistShop = repository.findFirstByNameAndStatusIsNot(shop.getName(), STATUS_DELETED);
     	if(isExistShop.isPresent()) {
     		response.setResponseCode("FAILED");
-            response.setResponseMessage("Shope name alrady exist");
+            response.setResponseMessage("Shop name alrady exist");
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
     	}
     	

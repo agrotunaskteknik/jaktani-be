@@ -9,7 +9,6 @@ import java.sql.Timestamp;
 
 @Entity
 @Table(name = "shop")
-@Where(clause = "status = 0")
 public class Shop {
     public Integer id;
     private Integer userID;

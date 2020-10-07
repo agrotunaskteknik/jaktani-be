@@ -8,6 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface ShopRepository extends JpaRepository<Shop, Integer> {
-    Optional<Shop> findByName(String name);
+    Optional<Shop> findFirstByNameAndStatusIsNot(String name, Integer status);
     Optional<Shop> findById(Integer id);
 }
