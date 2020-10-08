@@ -1,15 +1,12 @@
 package com.cartas.jaktani.service;
 
 import com.cartas.jaktani.dto.ShopDto;
-import com.cartas.jaktani.dto.UserDto;
 import com.cartas.jaktani.model.Shop;
-import com.cartas.jaktani.model.Users;
 import com.cartas.jaktani.repository.ShopRepository;
-import com.cartas.jaktani.repository.UserRepository;
-import com.cartas.jaktani.repository.wrapper.UserWrapper;
 import com.cartas.jaktani.util.BaseResponse;
 import com.cartas.jaktani.util.JSONUtil;
 import com.cartas.jaktani.util.Utils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,9 +30,6 @@ public class ShopServiceImpl implements ShopService {
     
     @Autowired
     private ShopRepository repository;
-    
-    @Autowired
-    private PasswordEncoder passwordEncoder;
 
     @Override
     public Object getShopByID(Integer id) {
@@ -46,7 +40,7 @@ public class ShopServiceImpl implements ShopService {
              return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
         }
         
-        return new ResponseEntity<String>(JSONUtil.createJSON(shop), HttpStatus.OK);
+        return new ResponseEntity<String>(JSONUtil.createJSON(shop.get()), HttpStatus.OK);
     }
 
     @Override
@@ -79,9 +73,19 @@ public class ShopServiceImpl implements ShopService {
             response.setResponseMessage("Data not found");
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
     	}
-    	shop.get().setStatus(STATUS_DELETED);
-    	repository.save(shop.get());
-    	return new ResponseEntity<String>(JSONUtil.createJSON(shop.get()), HttpStatus.OK);
+    	
+    	try {
+    		shop.get().setStatus(STATUS_DELETED);
+        	repository.save(shop.get());
+		} catch (Exception e) {
+			response.setResponseCode("ERROR");
+            response.setResponseMessage("Error "+e.getMessage());
+            return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
+		}
+    	
+    	response.setResponseCode("SUCCESS");
+        response.setResponseMessage("Delete Success");
+        return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.OK);
     }
     
     @Override
@@ -113,8 +117,50 @@ public class ShopServiceImpl implements ShopService {
             response.setResponseMessage("Error "+e.getMessage());
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
 		}
+    	response.setResponseCode("SUCCESS");
+        response.setResponseMessage("Add Success");
+        return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.OK);
+    }
+    
+    @Override
+    public Object editShop(ShopDto shop) {
+    	Shop entity = new Shop();
+    	if(!validateRequest(shop, EDIT_TYPE) && shop.getId()!=null) {
+    		response.setResponseCode("FAILED");
+            response.setResponseMessage("Data is not valid");
+            return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
+    	}
     	
-    	return new ResponseEntity<String>(JSONUtil.createJSON(entity), HttpStatus.OK);
+    	Optional<Shop> shopById  = repository.findByIdAndStatusIsNot(shop.getId(), STATUS_DELETED);
+    	if(!shopById.isPresent()) {
+    		response.setResponseCode("FAILED");
+            response.setResponseMessage("Shop is not exist");
+            return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
+    	}
+    	
+    	Optional<Shop> isExistShop = repository.findFirstByNameAndIdIsNotAndStatusIsNot(shop.getName(), shop.getId(), STATUS_DELETED);
+    	if(isExistShop.isPresent()) {
+    		response.setResponseCode("FAILED");
+            response.setResponseMessage("Shop name alrady exist");
+            return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
+    	}
+    	
+    	try {
+    		entity = shopById.get();
+    		entity.setName(shop.getName());
+    		entity.setDescription(shop.getName());
+    		entity.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+    		entity.setUpdatedBy(shop.getUpdatedBy());
+    		repository.save(entity);
+		} catch (Exception e) {
+			response.setResponseCode("ERROR");
+            response.setResponseMessage("Error "+e.getMessage());
+            return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
+		}
+    	
+    	response.setResponseCode("SUCCESS");
+        response.setResponseMessage("Edit Success");
+        return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.OK);
     }
     
     private Boolean validateRequest(ShopDto shop, Integer type) {

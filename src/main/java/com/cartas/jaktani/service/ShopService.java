@@ -8,5 +8,5 @@ public interface ShopService {
 	Object getAllShops();
     Object deleteShopByID(Integer id);
     Object addShop(ShopDto shop);
-    
+    Object editShop(ShopDto shop);
 }

@@ -28,19 +28,15 @@ public class ShopController {
 
 	
 	@PostMapping(path = "/add") 
-	public Object addUser(@RequestBody ShopDto shop) { 
+	public Object addShop(@RequestBody ShopDto shop) { 
 		return shopService.addShop(shop); 
 	}
 	 
 
-	/*
-	 * @PostMapping(path = "/edit/{id}") public ResponseEntity<UserDto>
-	 * editUserByID(@PathVariable(name = "id") Long id, @RequestBody UserDto
-	 * userDto) throws ResourceNotFoundException { UserDto user =
-	 * userService.editUserByID(id, userDto); if (null == user) { throw new
-	 * ResourceNotFoundException("User not found for this id :: " + id); } return
-	 * ResponseEntity.ok().body(user); }
-	 */
+	@PostMapping(path = "/edit/{id}") 
+	public Object editShop(@RequestBody ShopDto shop) { 
+		return shopService.editShop(shop); 
+	}
 
     @PostMapping(path = "/delete/{id}")
     public Object deleteShopByID(@PathVariable(name = "id") Integer id) throws ResourceNotFoundException {
