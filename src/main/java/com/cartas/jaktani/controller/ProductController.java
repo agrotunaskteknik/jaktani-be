@@ -38,5 +38,10 @@ public class ProductController {
     public Object deleteProductByID(@PathVariable(name = "id") Integer id) throws ResourceNotFoundException {
         return productService.deleteProductByID(id);
     }
+    
+    @GetMapping(path = "/allByShopId/{shopId}")
+    public Object getAllProductByShopId(@PathVariable(name = "shopId") Integer shopId) {
+        return productService.getAllProducts();
+    }
 
 }

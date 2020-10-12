@@ -1,8 +1,8 @@
 package com.cartas.jaktani.service;
 
-import com.cartas.jaktani.dto.ShopDto;
-import com.cartas.jaktani.model.Shop;
-import com.cartas.jaktani.repository.ShopRepository;
+import com.cartas.jaktani.dto.SubCategoryDto;
+import com.cartas.jaktani.model.SubCategory;
+import com.cartas.jaktani.repository.SubCategoryRepository;
 import com.cartas.jaktani.util.BaseResponse;
 import com.cartas.jaktani.util.JSONUtil;
 import com.cartas.jaktani.util.Utils;
@@ -10,16 +10,14 @@ import com.cartas.jaktani.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public class ShopServiceImpl implements ShopService {
+public class SubCategoryServiceImpl implements SubCategoryService {
 	Integer STATUS_DEFAULT = 1;
     Integer STATUS_DELETED = 0;
     Integer STATUS_ACTIVE = 1;
@@ -29,54 +27,43 @@ public class ShopServiceImpl implements ShopService {
     BaseResponse response = new BaseResponse();
     
     @Autowired
-    private ShopRepository repository;
+    private SubCategoryRepository repository;
 
     @Override
-    public Object getShopByID(Integer id) {
-        Optional<Shop> shop = repository.findByIdAndStatusIsNot(id,STATUS_DELETED);
-        if(!shop.isPresent()) {
+    public Object getSubCategoryByID(Integer id) {
+        Optional<SubCategory> subCategory = repository.findByIdAndStatusIsNot(id,STATUS_DELETED);
+        if(!subCategory.isPresent()) {
         	 response.setResponseCode("FAILED");
              response.setResponseMessage("Data not found");
              return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
         }
         
-        return new ResponseEntity<String>(JSONUtil.createJSON(shop.get()), HttpStatus.OK);
+        return new ResponseEntity<String>(JSONUtil.createJSON(subCategory.get()), HttpStatus.OK);
     }
 
-    @Override
-    public Object getShopByName(String name) {
-        Optional<Shop> shop = repository.findFirstByNameAndStatusIsNot(name, STATUS_DELETED);
-        if(!shop.isPresent()) {
-       	    response.setResponseCode("FAILED");
-            response.setResponseMessage("Data not found");
-            return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
-       }
-        
-       return new ResponseEntity<String>(JSONUtil.createJSON(shop), HttpStatus.OK);
-    }
 
     @Override
-    public Object getAllShops() {
-        List<Shop> shops= repository.findAllShopByAndStatusIsNot(STATUS_DELETED);
-        List<Shop> shopList = new ArrayList<>();
-        if(shops!=null) {
-        	shopList = shops;
+    public Object getAllSubCategorys() {
+        List<SubCategory> subCategorys= repository.findAllSubCategoryByAndStatusIsNot(STATUS_DELETED);
+        List<SubCategory> subCategoryList = new ArrayList<>();
+        if(subCategorys!=null) {
+        	subCategoryList = subCategorys;
         }
-        return new ResponseEntity<String>(JSONUtil.createJSON(shopList), HttpStatus.OK);
+        return new ResponseEntity<String>(JSONUtil.createJSON(subCategoryList), HttpStatus.OK);
     }
 
     @Override
-    public Object deleteShopByID(Integer id) {
-    	Optional<Shop> shop = repository.findById(id);
-    	if(!shop.isPresent()) {
+    public Object deleteSubCategoryByID(Integer id) {
+    	Optional<SubCategory> subCategory = repository.findById(id);
+    	if(!subCategory.isPresent()) {
     		response.setResponseCode("FAILED");
             response.setResponseMessage("Data not found");
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
     	}
     	
     	try {
-    		shop.get().setStatus(STATUS_DELETED);
-        	repository.save(shop.get());
+    		subCategory.get().setStatus(STATUS_DELETED);
+        	repository.save(subCategory.get());
 		} catch (Exception e) {
 			response.setResponseCode("ERROR");
             response.setResponseMessage("Error "+e.getMessage());
@@ -89,28 +76,25 @@ public class ShopServiceImpl implements ShopService {
     }
     
     @Override
-    public Object addShop(ShopDto shop) {
-    	Shop entity = new Shop();
-    	if(!validateRequest(shop, ADD_TYPE)) {
+    public Object addSubCategory(SubCategoryDto subCategory) {
+    	SubCategory entity = new SubCategory();
+    	if(!validateRequest(subCategory, ADD_TYPE)) {
     		response.setResponseCode("FAILED");
             response.setResponseMessage("Data is not valid");
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
     	}
     	
-    	Optional<Shop> isExistShop = repository.findFirstByNameAndStatusIsNot(shop.getName(), STATUS_DELETED);
-    	if(isExistShop.isPresent()) {
+    	Optional<SubCategory> isExistSubCategory = repository.findFirstByNameAndCategoryIdAndStatusIsNot(subCategory.getName(), subCategory.getCategoryId(), STATUS_DELETED);
+    	if(isExistSubCategory.isPresent()) {
     		response.setResponseCode("FAILED");
-            response.setResponseMessage("Shop name alrady exist");
+            response.setResponseMessage("SubCategory name alrady exist");
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
     	}
     	
     	try {
-    		entity.setName(shop.getName());
-    		entity.setDescription(shop.getName());
-    		entity.setUserID(shop.getId());
+    		entity.setName(subCategory.getName());
     		entity.setStatus(STATUS_DEFAULT);
     		entity.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
-    		entity.setPriority(2);
     		repository.save(entity);
 		} catch (Exception e) {
 			response.setResponseCode("ERROR");
@@ -123,34 +107,32 @@ public class ShopServiceImpl implements ShopService {
     }
     
     @Override
-    public Object editShop(ShopDto shop) {
-    	Shop entity = new Shop();
-    	if(!validateRequest(shop, EDIT_TYPE) && shop.getId()!=null) {
+    public Object editSubCategory(SubCategoryDto subCategory) {
+    	SubCategory entity = new SubCategory();
+    	if(!validateRequest(subCategory, EDIT_TYPE) && subCategory.getId()!=null) {
     		response.setResponseCode("FAILED");
             response.setResponseMessage("Data is not valid");
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
     	}
     	
-    	Optional<Shop> shopById  = repository.findByIdAndStatusIsNot(shop.getId(), STATUS_DELETED);
-    	if(!shopById.isPresent()) {
+    	Optional<SubCategory> subCategoryById  = repository.findByIdAndStatusIsNot(subCategory.getId(), STATUS_DELETED);
+    	if(!subCategoryById.isPresent()) {
     		response.setResponseCode("FAILED");
-            response.setResponseMessage("Shop is not exist");
+            response.setResponseMessage("SubCategory is not exist");
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
     	}
     	
-    	Optional<Shop> isExistShop = repository.findFirstByNameAndIdIsNotAndStatusIsNot(shop.getName(), shop.getId(), STATUS_DELETED);
-    	if(isExistShop.isPresent()) {
+    	Optional<SubCategory> isExistSubCategory = repository.findFirstByNameAndCategoryIdAndIdIsNotAndStatusIsNot(subCategory.getName(), subCategory.getCategoryId(), subCategory.getId(), STATUS_DELETED);
+    	if(isExistSubCategory.isPresent()) {
     		response.setResponseCode("FAILED");
-            response.setResponseMessage("Shop name alrady exist");
+            response.setResponseMessage("SubCategory name alrady exist");
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
     	}
     	
     	try {
-    		entity = shopById.get();
-    		entity.setName(shop.getName());
-    		entity.setDescription(shop.getName());
-    		entity.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
-    		entity.setUpdatedBy(shop.getUpdatedBy());
+    		entity = subCategoryById.get();
+    		entity.setName(subCategory.getName());
+    		entity.setCategoryId(subCategory.getCategoryId());
     		repository.save(entity);
 		} catch (Exception e) {
 			response.setResponseCode("ERROR");
@@ -163,15 +145,23 @@ public class ShopServiceImpl implements ShopService {
         return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.OK);
     }
     
-    private Boolean validateRequest(ShopDto shop, Integer type) {
-    	if(shop.getName()==null && shop.getName()=="" 
-    	    && shop.getDescription()==null  && shop.getDescription()=="" 
-    		&& shop.getUserID()==null) {
+    @Override
+    public List<SubCategory> getAllByCategoryId(Integer categoryId) {
+        List<SubCategory> subCategorys= repository.findAllSubCategoryByCategoryIdAndStatusIsNot(categoryId, STATUS_DELETED);
+        List<SubCategory> subCategoryList = new ArrayList<>();
+        if(subCategorys!=null) {
+        	subCategoryList = subCategorys;
+        }
+        return subCategoryList;
+    }
+    
+    private Boolean validateRequest(SubCategoryDto subCategory, Integer type) {
+    	if(subCategory.getName()==null && subCategory.getName()=="") {
     		return false;
     	}
     		
     	if(type == EDIT_TYPE) {
-    		if(shop.getId()==null) {
+    		if(subCategory.getId()==null) {
     			return false;
     		}
     	}

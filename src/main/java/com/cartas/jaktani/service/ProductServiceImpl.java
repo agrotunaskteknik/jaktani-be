@@ -2,7 +2,6 @@ package com.cartas.jaktani.service;
 
 import com.cartas.jaktani.dto.ProductDto;
 import com.cartas.jaktani.model.Product;
-import com.cartas.jaktani.model.Shop;
 import com.cartas.jaktani.repository.ProductRepository;
 import com.cartas.jaktani.util.BaseResponse;
 import com.cartas.jaktani.util.JSONUtil;
@@ -31,7 +30,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Object getProductByID(Integer id) {
-        Optional<Product> product = repository.findById(id);
+        Optional<Product> product = repository.findByIdAndStatusIsNot(id,STATUS_DELETED);
         if(!product.isPresent()) {
         	 response.setResponseCode("FAILED");
              response.setResponseMessage("Data not found");
@@ -53,7 +52,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Object getAllProducts() {
-        List<Product> products= repository.findAll();
+        List<Product> products= repository.findAllProductByAndStatusIsNot(STATUS_DELETED);
         List<Product> productList = new ArrayList<>();
         if(products!=null) {
         	productList = products;
@@ -113,8 +112,8 @@ public class ProductServiceImpl implements ProductService {
     		entity.setBrand(product.getBrand());
     		entity.setPrice(product.getPrice());
     		entity.setDiscount(product.getDiscount());
-    		entity.setSize(entity.getSize());
-    		entity.setYoutubeLink(entity.getYoutubeLink());
+    		entity.setSize(product.getSize());
+    		entity.setYoutubeLink(product.getYoutubeLink());
     		repository.save(entity);
 		} catch (Exception e) {
 			response.setResponseCode("ERROR");
@@ -162,8 +161,8 @@ public class ProductServiceImpl implements ProductService {
     		entity.setBrand(product.getBrand());
     		entity.setPrice(product.getPrice());
     		entity.setDiscount(product.getDiscount());
-    		entity.setSize(entity.getSize());
-    		entity.setYoutubeLink(entity.getYoutubeLink());
+    		entity.setSize(product.getSize());
+    		entity.setYoutubeLink(product.getYoutubeLink());
     		repository.save(entity);
 		} catch (Exception e) {
 			response.setResponseCode("ERROR");
@@ -173,6 +172,16 @@ public class ProductServiceImpl implements ProductService {
     	response.setResponseCode("SUCCESS");
         response.setResponseMessage("Add Success");
         return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.OK);
+    }
+    
+    @Override
+    public Object getAllProductByShopId(Integer shopId) {
+        List<Product> products= repository.findAllProductByShopIdAndStatusIsNot(shopId, STATUS_DELETED);
+        List<Product> productList = new ArrayList<>();
+        if(products!=null) {
+        	productList = products;
+        }
+        return new ResponseEntity<String>(JSONUtil.createJSON(productList), HttpStatus.OK);
     }
     
     private Boolean validateRequest(ProductDto product, Integer type) {
