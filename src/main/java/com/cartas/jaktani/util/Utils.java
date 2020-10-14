@@ -11,6 +11,4 @@ public class Utils {
     public static Timestamp getTimeStamp(Long time){
         return new Timestamp(time);
     }
-
-    // test update git
 }
