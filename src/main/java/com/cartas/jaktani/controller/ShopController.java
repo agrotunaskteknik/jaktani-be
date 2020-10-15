@@ -13,12 +13,12 @@ public class ShopController {
     @Autowired
     ShopService shopService;
 
-    @GetMapping(path = "/authentication/id/{id}")
+    @GetMapping(path = "/id/{id}")
     public Object getShopByID(@PathVariable(name = "id") Integer id) throws ResourceNotFoundException {
         return shopService.getShopByID(id);
     }
 
-    @GetMapping(path = "/authentication/all")
+    @GetMapping(path = "/all")
     public Object getAllShop() {
         return shopService.getAllShops();
     }
@@ -29,7 +29,7 @@ public class ShopController {
 	}
 	 
 
-	@PostMapping(path = "/edit/{id}") 
+	@PostMapping(path = "/edit") 
 	public Object editShop(@RequestBody ShopDto shop) { 
 		return shopService.editShop(shop); 
 	}

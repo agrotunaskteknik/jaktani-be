@@ -17,7 +17,7 @@ public class SubCategoryController {
         return subCategoryService.getSubCategoryByID(id);
     }
 
-    @GetMapping(path = "/authentication/all")
+    @GetMapping(path = "/all")
     public Object getAllSubCategory() {
         return subCategoryService.getAllSubCategorys();
     }
@@ -29,7 +29,7 @@ public class SubCategoryController {
 	}
 	 
 
-	@PostMapping(path = "/edit/{id}") 
+	@PostMapping(path = "/edit") 
 	public Object editSubCategory(@RequestBody SubCategoryDto subCategory) { 
 		return subCategoryService.editSubCategory(subCategory); 
 	}

@@ -17,19 +17,17 @@ public class CategoryController {
         return categoryService.getCategoryByID(id);
     }
 
-    @GetMapping(path = "/authentication/all")
+    @GetMapping(path = "/all")
     public Object getAllCategory() {
         return categoryService.getAllCategorys();
     }
-
 	
 	@PostMapping(path = "/add") 
 	public Object addCategory(@RequestBody CategoryDto category) { 
 		return categoryService.addCategory(category); 
 	}
-	 
 
-	@PostMapping(path = "/edit/{id}") 
+	@PostMapping(path = "/edit") 
 	public Object editCategory(@RequestBody CategoryDto category) { 
 		return categoryService.editCategory(category); 
 	}
@@ -39,7 +37,7 @@ public class CategoryController {
         return categoryService.deleteCategoryByID(id);
     }
     
-    @GetMapping(path = "/authentication/allWithSubCategoryByID/{id}")
+    @GetMapping(path = "allWithSubCategoryByID/{id}")
     public Object getAllWithSubCategoryByID(@PathVariable(name = "id") Integer id) throws ResourceNotFoundException {
         return categoryService.getAllWithSubCategoryById(id);
     }

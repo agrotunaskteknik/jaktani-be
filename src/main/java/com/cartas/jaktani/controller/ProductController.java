@@ -29,7 +29,7 @@ public class ProductController {
 	}
 	 
 
-	@PostMapping(path = "/edit/{id}") 
+	@PostMapping(path = "/edit") 
 	public Object editProduct(@RequestBody ProductDto product) { 
 		return productService.editProduct(product); 
 	}
