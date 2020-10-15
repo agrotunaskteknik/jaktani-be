@@ -10,10 +10,8 @@ import com.cartas.jaktani.util.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -67,7 +65,7 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     public Object deleteShopByID(Integer id) {
-    	Optional<Shop> shop = repository.findById(id);
+    	Optional<Shop> shop = repository.findByIdAndStatusIsNot(id,STATUS_DELETED);
     	if(!shop.isPresent()) {
     		response.setResponseCode("FAILED");
             response.setResponseMessage("Data not found");
@@ -107,7 +105,7 @@ public class ShopServiceImpl implements ShopService {
     	try {
     		entity.setName(shop.getName());
     		entity.setDescription(shop.getName());
-    		entity.setUserID(shop.getId());
+    		entity.setUserID(shop.getUserID());
     		entity.setStatus(STATUS_DEFAULT);
     		entity.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
     		entity.setPriority(2);
