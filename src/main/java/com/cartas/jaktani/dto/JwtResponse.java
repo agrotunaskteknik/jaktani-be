@@ -1,30 +1,40 @@
 package com.cartas.jaktani.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 
 public class JwtResponse implements Serializable {
     private static final long serialVersionUID = -8091879091924046844L;
-    private final String jwttoken;
+    private String accessToken;
     private Long lastRequest;
     private Long expiredAt;
     private String refreshToken;
 
-
-    public JwtResponse(String jwttoken) {
-        this.jwttoken = jwttoken;
+    public JwtResponse() {
     }
 
-    public JwtResponse(String jwttoken, Long lastRequest, Long expiredAt, String refreshToken) {
-        this.jwttoken = jwttoken;
+    public JwtResponse(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    public JwtResponse(String accessToken, Long lastRequest, Long expiredAt, String refreshToken) {
+        this.accessToken = accessToken;
         this.lastRequest = lastRequest;
         this.expiredAt = expiredAt;
         this.refreshToken = refreshToken;
     }
 
-    public String getToken() {
-        return this.jwttoken;
+    @JsonProperty("access_token")
+    public String getAccessToken() {
+        return this.accessToken;
     }
 
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    @JsonProperty("last_request")
     public Long getLastRequest() {
         return lastRequest;
     }
@@ -33,6 +43,7 @@ public class JwtResponse implements Serializable {
         this.lastRequest = lastRequest;
     }
 
+    @JsonProperty("expired_at")
     public Long getExpiredAt() {
         return expiredAt;
     }
@@ -41,6 +52,7 @@ public class JwtResponse implements Serializable {
         this.expiredAt = expiredAt;
     }
 
+    @JsonProperty("refresh_token")
     public String getRefreshToken() {
         return refreshToken;
     }
