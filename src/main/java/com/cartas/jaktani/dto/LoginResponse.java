@@ -1,5 +1,6 @@
 package com.cartas.jaktani.dto;
 
+
 public class LoginResponse extends CommonResponse {
     private UserDto user;
     private JwtResponse token;

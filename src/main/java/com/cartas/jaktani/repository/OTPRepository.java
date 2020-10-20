@@ -10,5 +10,6 @@ public interface OTPRepository  extends JpaRepository<OTP, Integer> {
     Optional<OTP> findByOtpCode(String otpCode);
     Optional<OTP> findByUserID(Integer UserID);
     Optional<OTP> findByUsernameOrEmailOrMobilePhoneNumber(String username, String email, String mobilePhoneNumber);
+    Optional<OTP> findByEmail(String email);
 
 }
