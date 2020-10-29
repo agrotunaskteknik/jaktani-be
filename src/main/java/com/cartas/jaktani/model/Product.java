@@ -4,6 +4,7 @@ import javax.persistence.*;
 
 import org.hibernate.annotations.Where;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 
@@ -38,6 +39,23 @@ public class Product {
     
     @Column(name = "sold")
     private Integer sold;
+    
+    @Column(name = "min_order")
+    private Integer minOrder;
+    
+    @Column(name = "max_order")
+    private Integer maxOrder;
+    
+    //jenis satuan (kg, m, dll)
+    @Column(name = "unit_type")
+    private Integer unitType;
+    
+    //nilai satuan
+    @Column(name = "unit_value")
+    private BigDecimal unitValue;
+    
+    @Column(name = "type_id")
+    private Integer typeId;
     
     @Column(name = "category_id")
     private Integer categoryId;
@@ -171,6 +189,38 @@ public class Product {
 	public void setYoutubeLink(String youtubeLink) {
 		this.youtubeLink = youtubeLink;
 	}
+	public Integer getMinOrder() {
+		return minOrder;
+	}
+	public void setMinOrder(Integer minOrder) {
+		this.minOrder = minOrder;
+	}
+	public Integer getMaxOrder() {
+		return maxOrder;
+	}
+	public void setMaxOrder(Integer maxOrder) {
+		this.maxOrder = maxOrder;
+	}
+	public Integer getUnitType() {
+		return unitType;
+	}
+	public void setUnitType(Integer unitType) {
+		this.unitType = unitType;
+	}
+	public BigDecimal getUnitValue() {
+		return unitValue;
+	}
+	public void setUnitValue(BigDecimal unitValue) {
+		this.unitValue = unitValue;
+	}
+	public Integer getTypeId() {
+		return typeId;
+	}
+	public void setTypeId(Integer typeId) {
+		this.typeId = typeId;
+	}
+	
+	
 	
     
 }

@@ -106,6 +106,11 @@ public class ProductServiceImpl implements ProductService {
     		entity.setStatus(STATUS_DEFAULT);
     		entity.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
     		entity.setStock(product.getStock());
+    		entity.setMinOrder(product.getMinOrder());
+    		entity.setMaxOrder(product.getMaxOrder());
+    		entity.setUnitType(product.getUnitType());
+    		entity.setUnitValue(product.getUnitValue());
+    		entity.setTypeId(product.getTypeId());
     		entity.setSold(product.getSold());
     		entity.setCategoryId(product.getCategoryId());
     		entity.setSubCategoryId(product.getSubCategoryId());
@@ -156,6 +161,11 @@ public class ProductServiceImpl implements ProductService {
     		entity.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
     		entity.setStock(product.getStock());
     		entity.setSold(product.getSold());
+    		entity.setMinOrder(product.getMinOrder());
+    		entity.setMaxOrder(product.getMaxOrder());
+    		entity.setUnitType(product.getUnitType());
+    		entity.setUnitValue(product.getUnitValue());
+    		entity.setTypeId(product.getTypeId());
     		entity.setCategoryId(product.getCategoryId());
     		entity.setSubCategoryId(product.getSubCategoryId());
     		entity.setBrand(product.getBrand());

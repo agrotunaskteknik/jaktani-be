@@ -1,6 +1,5 @@
 package com.cartas.jaktani.dto;
 
-import java.sql.Timestamp;
 import java.util.List;
 
 public class CategoryDto {
@@ -8,6 +7,7 @@ public class CategoryDto {
 	public String name;
     public Integer status;
     public List<SubCategoryDto> subCategoryDto;
+    public DocumentDto documentDto;
 
 	public Integer getId() {
 		return id;
@@ -39,6 +39,14 @@ public class CategoryDto {
 
 	public void setSubCategoryDto(List<SubCategoryDto> subCategoryDto) {
 		this.subCategoryDto = subCategoryDto;
+	}
+
+	public DocumentDto getDocumentDto() {
+		return documentDto;
+	}
+
+	public void setDocumentDto(DocumentDto documentDto) {
+		this.documentDto = documentDto;
 	}
 	
 }

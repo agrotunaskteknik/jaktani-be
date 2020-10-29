@@ -24,10 +24,12 @@ public class DocumentServiceImpl implements DocumentService {
     Integer ADD_TYPE = 1;
     Integer EDIT_TYPE = 2;
     
-    Integer SHOP_DOC_TYPE = 1;
+    Integer SHOP_LOGO_DOC_TYPE = 1;
     Integer PRODUCT_DOC_TYPE = 2;
     Integer USER_DOC_TYPE = 3;
     Integer BANNER_DOC_TYPE = 4;
+    Integer CATEGORY_DOC_TYPE = 5;
+    Integer SUB_CATEGORY_DOC_TYPE = 6;
     
     BaseResponse response = new BaseResponse();
     

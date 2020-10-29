@@ -1,5 +1,8 @@
 package com.cartas.jaktani.dto;
+import java.math.BigDecimal;
 import java.math.BigInteger;
+
+import javax.persistence.Column;
 
 public class ProductDto {
 	public Integer id;
@@ -9,6 +12,11 @@ public class ProductDto {
     public Integer status;
     private Integer stock;
     private Integer sold;
+    private Integer minOrder;
+    private Integer maxOrder;
+    private Integer unitType; //jenis satuan (kg, m, dll)
+    private BigDecimal unitValue; //nilai satuans
+    private Integer typeId;
     private Integer categoryId;
     private Integer subCategoryId;
 	public String brand;
@@ -114,6 +122,36 @@ public class ProductDto {
 	}
 	public void setYoutubeLink(String youtubeLink) {
 		this.youtubeLink = youtubeLink;
+	}
+	public Integer getMinOrder() {
+		return minOrder;
+	}
+	public void setMinOrder(Integer minOrder) {
+		this.minOrder = minOrder;
+	}
+	public Integer getMaxOrder() {
+		return maxOrder;
+	}
+	public void setMaxOrder(Integer maxOrder) {
+		this.maxOrder = maxOrder;
+	}
+	public Integer getUnitType() {
+		return unitType;
+	}
+	public void setUnitType(Integer unitType) {
+		this.unitType = unitType;
+	}
+	public BigDecimal getUnitValue() {
+		return unitValue;
+	}
+	public void setUnitValue(BigDecimal unitValue) {
+		this.unitValue = unitValue;
+	}
+	public Integer getTypeId() {
+		return typeId;
+	}
+	public void setTypeId(Integer typeId) {
+		this.typeId = typeId;
 	}
     
     
