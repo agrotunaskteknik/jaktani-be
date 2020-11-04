@@ -1,5 +1,7 @@
 package com.cartas.jaktani.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.io.Serializable;
 
 public class OTPRequest implements Serializable {
@@ -20,6 +22,7 @@ public class OTPRequest implements Serializable {
         this.setMobileNumber(mobileNumber);
     }
 
+    @JsonProperty("username")
     public String getUsername() {
         return this.username;
     }
@@ -28,6 +31,7 @@ public class OTPRequest implements Serializable {
         this.username = username;
     }
 
+    @JsonProperty("email")
     public String getEmail() {
         return this.email;
     }
@@ -36,6 +40,7 @@ public class OTPRequest implements Serializable {
         this.email = password;
     }
 
+    @JsonProperty("mobile_phone_number")
     public String getMobileNumber() {
         return mobileNumber;
     }
@@ -43,4 +48,5 @@ public class OTPRequest implements Serializable {
     public void setMobileNumber(String mobileNumber) {
         this.mobileNumber = mobileNumber;
     }
+
 }

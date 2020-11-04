@@ -1,5 +1,8 @@
 package com.cartas.jaktani.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.sql.Date;
 
 public class UserDto {
@@ -13,19 +16,20 @@ public class UserDto {
     public Integer gender;
     public String mobilePhoneNumber;
     public Date birthDate;
-    public String OTP;
+    public String otp;
 
-    public String getOTP() {
-        return OTP;
+    public String getOtp() {
+        return otp;
     }
 
-    public void setOTP(String OTP) {
-        this.OTP = OTP;
+    public void setOtp(String otp) {
+        this.otp = otp;
     }
 
     public UserDto() {
     }
 
+    @JsonProperty("id")
     public Integer getId() {
         return id;
     }
@@ -34,6 +38,7 @@ public class UserDto {
         this.id = id;
     }
 
+    @JsonProperty("full_name")
     public String getFullName() {
         return fullName;
     }
@@ -42,6 +47,7 @@ public class UserDto {
         this.fullName = fullName;
     }
 
+    @JsonProperty("username")
     public String getUsername() {
         return username;
     }
@@ -50,6 +56,7 @@ public class UserDto {
         this.username = username;
     }
 
+    @JsonProperty("type")
     public Integer getType() {
         return type;
     }
@@ -58,6 +65,7 @@ public class UserDto {
         this.type = type;
     }
 
+    @JsonProperty("password")
     public String getPassword() {
         return password;
     }
@@ -66,6 +74,7 @@ public class UserDto {
         this.password = password;
     }
 
+    @JsonProperty("email")
     public String getEmail() {
         return email;
     }
@@ -74,6 +83,7 @@ public class UserDto {
         this.email = email;
     }
 
+    @JsonProperty("status")
     public Integer getStatus() {
         return status;
     }
@@ -82,6 +92,7 @@ public class UserDto {
         this.status = status;
     }
 
+    @JsonProperty("gender")
     public Integer getGender() {
         return gender;
     }
@@ -90,6 +101,7 @@ public class UserDto {
         this.gender = gender;
     }
 
+    @JsonProperty("mobile_phone_number")
     public String getMobilePhoneNumber() {
         return mobilePhoneNumber;
     }
@@ -98,6 +110,8 @@ public class UserDto {
         this.mobilePhoneNumber = mobilePhoneNumber;
     }
 
+    @JsonProperty("birth_date")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     public Date getBirthDate() {
         return birthDate;
     }
@@ -119,7 +133,7 @@ public class UserDto {
         sb.append(", gender=").append(gender);
         sb.append(", mobilePhoneNumber='").append(mobilePhoneNumber).append('\'');
         sb.append(", birthDate=").append(birthDate);
-        sb.append(", OTP='").append(OTP).append('\'');
+        sb.append(", otp='").append(otp).append('\'');
         sb.append('}');
         return sb.toString();
     }

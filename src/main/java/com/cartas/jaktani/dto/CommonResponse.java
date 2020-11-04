@@ -1,5 +1,7 @@
 package com.cartas.jaktani.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class CommonResponse {
     private String errorMessage;
     private String status;
@@ -14,6 +16,7 @@ public class CommonResponse {
         this.message = message;
     }
 
+    @JsonProperty("error_message")
     public String getErrorMessage() {
         return errorMessage;
     }
@@ -22,6 +25,7 @@ public class CommonResponse {
         this.errorMessage = errorMessage;
     }
 
+    @JsonProperty("status")
     public String getStatus() {
         return status;
     }
@@ -30,6 +34,7 @@ public class CommonResponse {
         this.status = status;
     }
 
+    @JsonProperty("message")
     public String getMessage() {
         return message;
     }
