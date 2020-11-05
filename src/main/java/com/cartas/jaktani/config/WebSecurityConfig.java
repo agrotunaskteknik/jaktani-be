@@ -52,6 +52,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 // dont authenticate this particular request
                 .authorizeRequests().antMatchers("/authenticate").permitAll()
                 .antMatchers("/authentication/**").permitAll()
+                // dont authenticate swaggers sources
+                .antMatchers("/swagger-ui**").permitAll()
+                .antMatchers("/webjars/**").permitAll()
+                .antMatchers("/swagger-resources/**").permitAll()
+                .antMatchers("/v2/**").permitAll()
+                
                 // all other requests need to be authenticated
                         .anyRequest().authenticated().and()
                 // make sure we use stateless session; session won't be used to
