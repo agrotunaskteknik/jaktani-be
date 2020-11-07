@@ -1,6 +1,7 @@
 package com.cartas.jaktani.dto;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.List;
 
 import javax.persistence.Column;
 
@@ -16,7 +17,7 @@ public class ProductDto {
     private Integer maxOrder;
     private Integer unitType; //jenis satuan (kg, m, dll)
     private BigDecimal unitValue; //nilai satuans
-    private Integer typeId;
+    private List<TypeDto> typeList;
     private Integer categoryId;
     private Integer subCategoryId;
 	public String brand;
@@ -24,6 +25,7 @@ public class ProductDto {
     private Integer discount;
 	public String size;
 	public String youtubeLink;
+	public List<DocumentDto> documentList;
 
 
 	public Integer getId() {
@@ -147,12 +149,17 @@ public class ProductDto {
 	public void setUnitValue(BigDecimal unitValue) {
 		this.unitValue = unitValue;
 	}
-	public Integer getTypeId() {
-		return typeId;
+	public List<TypeDto> getTypeList() {
+		return typeList;
 	}
-	public void setTypeId(Integer typeId) {
-		this.typeId = typeId;
+	public void setTypeList(List<TypeDto> typeList) {
+		this.typeList = typeList;
 	}
-    
+	public List<DocumentDto> getDocumentList() {
+		return documentList;
+	}
+	public void setDocumentList(List<DocumentDto> documentList) {
+		this.documentList = documentList;
+	}
     
 }
