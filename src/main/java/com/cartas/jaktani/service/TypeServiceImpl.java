@@ -84,7 +84,7 @@ public class TypeServiceImpl implements TypeService {
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
     	}
     	
-    	Optional<Type> isExistType = repository.findFirstByNameAndStatusIsNot(type.getName(), STATUS_DELETED);
+    	Optional<Type> isExistType = repository.findFirstByNameAndCategoryIdAndStatusIsNot(type.getName(), type.getCategoryId(), STATUS_DELETED);
     	if(isExistType.isPresent()) {
     		response.setResponseCode("FAILED");
             response.setResponseMessage("Type name alrady exist");
@@ -94,6 +94,7 @@ public class TypeServiceImpl implements TypeService {
     	try {
     		entity.setName(type.getName());
     		entity.setStatus(STATUS_DEFAULT);
+    		entity.setCategoryId(type.getCategoryId());
     		entity.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
     		repository.save(entity);
 		} catch (Exception e) {
@@ -122,7 +123,7 @@ public class TypeServiceImpl implements TypeService {
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
     	}
     	
-    	Optional<Type> isExistType = repository.findFirstByNameAndIdIsNotAndStatusIsNot(type.getName(), type.getId(), STATUS_DELETED);
+    	Optional<Type> isExistType = repository.findFirstByNameAndCategoryIdAndIdIsNotAndStatusIsNot(type.getName(), type.getCategoryId(), type.getId(), STATUS_DELETED);
     	if(isExistType.isPresent()) {
     		response.setResponseCode("FAILED");
             response.setResponseMessage("Type name alrady exist");
@@ -144,9 +145,8 @@ public class TypeServiceImpl implements TypeService {
         return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.OK);
     }
     
-    
     private Boolean validateRequest(TypeDto type, Integer action) {
-    	if(type.getName()==null && type.getName()=="") {
+    	if(type.getName()==null && type.getCategoryId()!=null && type.getName()=="") {
     		return false;
     	}
     		

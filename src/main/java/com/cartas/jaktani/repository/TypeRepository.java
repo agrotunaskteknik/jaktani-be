@@ -11,6 +11,6 @@ import java.util.Optional;
 public interface TypeRepository extends JpaRepository<Type, Integer> {
 	List<Type> findAllTypeByAndStatusIsNot(Integer status);
 	Optional<Type> findByIdAndStatusIsNot(Integer id, Integer status);
-	Optional<Type> findFirstByNameAndStatusIsNot(String name, Integer status);
-	Optional<Type> findFirstByNameAndIdIsNotAndStatusIsNot(String name, Integer id, Integer status);
+	Optional<Type> findFirstByNameAndCategoryIdAndIdIsNotAndStatusIsNot(String name, Integer cetegoryId, Integer id, Integer status);
+	Optional<Type> findFirstByNameAndCategoryIdAndStatusIsNot(String name, Integer cetegoryId, Integer status);
 }
