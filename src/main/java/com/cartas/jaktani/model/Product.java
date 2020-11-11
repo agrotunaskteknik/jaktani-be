@@ -54,9 +54,6 @@ public class Product {
     @Column(name = "unit_value")
     private BigDecimal unitValue;
     
-    @Column(name = "type_id")
-    private Integer typeId;
-    
     @Column(name = "category_id")
     private Integer categoryId;
     
@@ -213,14 +210,5 @@ public class Product {
 	public void setUnitValue(BigDecimal unitValue) {
 		this.unitValue = unitValue;
 	}
-	public Integer getTypeId() {
-		return typeId;
-	}
-	public void setTypeId(Integer typeId) {
-		this.typeId = typeId;
-	}
-	
-	
-	
     
 }

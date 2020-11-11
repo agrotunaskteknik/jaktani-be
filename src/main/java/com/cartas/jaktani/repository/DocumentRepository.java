@@ -12,7 +12,9 @@ import java.util.Optional;
 public interface DocumentRepository extends JpaRepository<Document, Integer> {
 	Optional<Document> findByIdAndStatusIsNot(Integer id, Integer status);
 	Optional<Document> findByRefferenceIdAndTypeAndStatusIsNot(Integer refferenceId, Integer type, Integer status);
+	List<Document> findAllByRefferenceIdAndTypeAndStatusIsNot(Integer refferenceId, Integer type, Integer status);
 	List<Document> findAllByRefferenceIdAndTypeAndStatusIsNotOrderByOrderNumberAsc(Integer refferenceId, Integer type, Integer status);
 	List<Document> findAllByRefferenceIdAndTypeAndCodeAndStatusIsNotOrderByOrderNumberAsc(Integer refferenceId, Integer type, Integer code, Integer status);
 	List<Document> findAllByTypeAndStatusIsNotOrderByOrderNumberAsc(Integer type, Integer status);
+	Document findFirstByRefferenceIdAndTypeAndOrderNumberAndStatusIsNot(Integer refferenceId, Integer type, Integer orderNumber, Integer status);
 }

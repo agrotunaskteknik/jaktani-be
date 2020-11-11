@@ -20,6 +20,9 @@ public class Type {
     
     @Column(name = "created_time")
     public Timestamp createdTime;
+    
+    @Column(name = "category_id")
+    public Integer categoryId;
 
 	public Integer getId() {
 		return id;
@@ -51,6 +54,14 @@ public class Type {
 
 	public void setCreatedTime(Timestamp createdTime) {
 		this.createdTime = createdTime;
+	}
+
+	public Integer getCategoryId() {
+		return categoryId;
+	}
+
+	public void setCategoryId(Integer categoryId) {
+		this.categoryId = categoryId;
 	}
 	
 }
