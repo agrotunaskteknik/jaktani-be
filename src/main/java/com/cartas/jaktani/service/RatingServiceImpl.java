@@ -140,8 +140,8 @@ public class RatingServiceImpl implements RatingService {
     }
     
     private Boolean validateRequest(RatingDto rating, Integer type) {
-    	if(rating.getProductId()==null && rating.getCreatedBy()==null
-    	    && rating.getScore()==null && rating.getShopId()==null) {
+    	if(rating.getProductId()==null || rating.getCreatedBy()==null
+    		||rating.getScore()==null || rating.getShopId()==null) {
     		return false;
     	}
     		

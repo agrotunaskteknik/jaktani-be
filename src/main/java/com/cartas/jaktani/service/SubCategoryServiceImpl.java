@@ -156,7 +156,7 @@ public class SubCategoryServiceImpl implements SubCategoryService {
     }
     
     private Boolean validateRequest(SubCategoryDto subCategory, Integer type) {
-    	if(subCategory.getName()==null && subCategory.getName()=="") {
+    	if(subCategory.getName()==null || subCategory.getName()=="") {
     		return false;
     	}
     		

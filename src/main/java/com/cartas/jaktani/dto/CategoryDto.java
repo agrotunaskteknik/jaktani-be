@@ -7,6 +7,7 @@ public class CategoryDto {
 	public String name;
     public Integer status;
     public List<SubCategoryDto> subCategoryDto;
+    public List<TypeDto> typeList;
     public DocumentDto documentDto;
 
 	public Integer getId() {
@@ -48,5 +49,14 @@ public class CategoryDto {
 	public void setDocumentDto(DocumentDto documentDto) {
 		this.documentDto = documentDto;
 	}
+
+	public List<TypeDto> getTypeList() {
+		return typeList;
+	}
+
+	public void setTypeList(List<TypeDto> typeList) {
+		this.typeList = typeList;
+	}
+	
 	
 }

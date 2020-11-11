@@ -175,7 +175,7 @@ public class DocumentServiceImpl implements DocumentService {
     }
     
     private Boolean validateRequest(DocumentDto document, Integer type) {
-    	if(document.getName()==null && document.getName()=="" && document.getType()!=null) {
+    	if(document.getName()==null || document.getName()=="" || document.getType()!=null) {
     		return false;
     	}
     		
