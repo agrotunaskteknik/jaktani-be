@@ -145,7 +145,6 @@ public class CategoryServiceImpl implements CategoryService {
     public Object getAllCategorys() {
     	List<Category> categorys= repository.findAllCategoryByAndStatusIsNot(STATUS_DELETED);
         List<CategoryDto> categoryDtoList = new ArrayList<>();
-        List<TypeDto> typeList = new ArrayList<>();
         if(categorys!=null) {
         	for(Category category: categorys) {
         		CategoryDto categoryDto = new CategoryDto();
@@ -153,6 +152,7 @@ public class CategoryServiceImpl implements CategoryService {
         		categoryDto.setId(category.getId());
         		List<Type> allTypes = typeRepository.findAllByCategoryIdAndStatusIsNot(category.getId(), STATUS_DELETED);
         		if(allTypes!=null) {
+        	        List<TypeDto> typeList = new ArrayList<>();
         			for(Type type: allTypes) {
             			TypeDto typeDto = new TypeDto();
             			typeDto.setId(type.getId());
@@ -161,9 +161,8 @@ public class CategoryServiceImpl implements CategoryService {
             			typeDto.setStatus(type.getStatus());
             			typeList.add(typeDto);
             		}
+        			categoryDto.setTypeList(typeList);
         		}
-        		
-        		categoryDto.setTypeList(typeList);
         		categoryDtoList.add(categoryDto);
         	}
         }
