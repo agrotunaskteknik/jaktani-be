@@ -162,9 +162,9 @@ public class ShopServiceImpl implements ShopService {
     }
     
     private Boolean validateRequest(ShopDto shop, Integer type) {
-    	if(shop.getName()==null && shop.getName()=="" 
-    	    && shop.getDescription()==null  && shop.getDescription()=="" 
-    		&& shop.getUserID()==null) {
+    	if(shop.getName()==null || shop.getName()=="" 
+    		|| shop.getDescription()==null  || shop.getDescription()=="" 
+    		|| shop.getUserID()==null) {
     		return false;
     	}
     		

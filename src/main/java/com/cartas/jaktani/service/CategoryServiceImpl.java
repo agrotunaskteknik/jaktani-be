@@ -3,11 +3,14 @@ package com.cartas.jaktani.service;
 import com.cartas.jaktani.dto.CategoryDto;
 import com.cartas.jaktani.dto.DocumentDto;
 import com.cartas.jaktani.dto.SubCategoryDto;
+import com.cartas.jaktani.dto.TypeDto;
 import com.cartas.jaktani.model.Category;
 import com.cartas.jaktani.model.Document;
 import com.cartas.jaktani.model.SubCategory;
+import com.cartas.jaktani.model.Type;
 import com.cartas.jaktani.repository.CategoryRepository;
 import com.cartas.jaktani.repository.DocumentRepository;
+import com.cartas.jaktani.repository.TypeRepository;
 import com.cartas.jaktani.util.BaseResponse;
 import com.cartas.jaktani.util.JSONUtil;
 import com.cartas.jaktani.util.Utils;
@@ -38,9 +41,10 @@ public class CategoryServiceImpl implements CategoryService {
     
     @Autowired private CategoryRepository repository;
     @Autowired private DocumentRepository documentRepository;
+    @Autowired private TypeRepository typeRepository;
 
     @Override
-    public Object getCategoryByID(Integer id) {
+    public Object getCategoryByIDWithDocument(Integer id) {
         Optional<Category> findCategory = repository.findByIdAndStatusIsNot(id,STATUS_DELETED);
         if(!findCategory.isPresent()) {
         	 response.setResponseCode("FAILED");
@@ -72,10 +76,40 @@ public class CategoryServiceImpl implements CategoryService {
         
         return new ResponseEntity<String>(JSONUtil.createJSON(categoryDto), HttpStatus.OK);
     }
+    
+    @Override
+    public Object getCategoryByID(Integer id) {
+        Optional<Category> findCategory = repository.findByIdAndStatusIsNot(id,STATUS_DELETED);
+        if(!findCategory.isPresent()) {
+        	 response.setResponseCode("FAILED");
+             response.setResponseMessage("Data not found");
+             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
+        }
+        Category category = findCategory.get();
+        CategoryDto categoryDto = new CategoryDto();
+		categoryDto.setName(category.getName());
+		categoryDto.setId(category.getId());
+		
+        List<TypeDto> typeList = new ArrayList<>();
+		List<Type> allTypes = typeRepository.findAllByCategoryIdAndStatusIsNot(category.getId(), STATUS_DELETED);
+		if(allTypes!=null) {
+			for(Type type: allTypes) {
+    			TypeDto typeDto = new TypeDto();
+    			typeDto.setId(type.getId());
+    			typeDto.setName(type.getName());
+    			typeDto.setCategoryId(type.getCategoryId());
+    			typeDto.setStatus(type.getStatus());
+    			typeList.add(typeDto);
+    		}
+		}
+		
+		categoryDto.setTypeList(typeList);
+        return new ResponseEntity<String>(JSONUtil.createJSON(categoryDto), HttpStatus.OK);
+    }
 
 
     @Override
-    public Object getAllCategorys() {
+    public Object getAllCategorysWithDocument() {
     	List<Category> categorys= repository.findAllCategoryByAndStatusIsNot(STATUS_DELETED);
         List<CategoryDto> categoryDtoList = new ArrayList<>();
         if(categorys!=null) {
@@ -101,6 +135,35 @@ public class CategoryServiceImpl implements CategoryService {
         			categoryDto.setDocumentDto(documentDto);
 
         		}
+        		categoryDtoList.add(categoryDto);
+        	}
+        }
+        return new ResponseEntity<String>(JSONUtil.createJSON(categoryDtoList), HttpStatus.OK);
+    }
+    
+    @Override
+    public Object getAllCategorys() {
+    	List<Category> categorys= repository.findAllCategoryByAndStatusIsNot(STATUS_DELETED);
+        List<CategoryDto> categoryDtoList = new ArrayList<>();
+        List<TypeDto> typeList = new ArrayList<>();
+        if(categorys!=null) {
+        	for(Category category: categorys) {
+        		CategoryDto categoryDto = new CategoryDto();
+        		categoryDto.setName(category.getName());
+        		categoryDto.setId(category.getId());
+        		List<Type> allTypes = typeRepository.findAllByCategoryIdAndStatusIsNot(category.getId(), STATUS_DELETED);
+        		if(allTypes!=null) {
+        			for(Type type: allTypes) {
+            			TypeDto typeDto = new TypeDto();
+            			typeDto.setId(type.getId());
+            			typeDto.setName(type.getName());
+            			typeDto.setCategoryId(type.getCategoryId());
+            			typeDto.setStatus(type.getStatus());
+            			typeList.add(typeDto);
+            		}
+        		}
+        		
+        		categoryDto.setTypeList(typeList);
         		categoryDtoList.add(categoryDto);
         	}
         }
@@ -259,7 +322,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
     
     private Boolean validateRequest(CategoryDto category, Integer type) {
-    	if(category.getName()==null && category.getName()=="") {
+    	if(category.getName()==null || category.getName()=="") {
     		return false;
     	}
     		

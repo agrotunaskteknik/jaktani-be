@@ -122,8 +122,7 @@ public class CommentServiceImpl implements CommentService {
     }
     
     private Boolean validateRequest(CommentDto comment, Integer type) {
-    	if(comment.getProductId()==null && comment.getShopId()==null
-    	    && comment.getComment()==null  && comment.getComment()=="") {
+    	if(comment.getProductId()==null || comment.getShopId()==null || comment.getComment()==null  || comment.getComment()=="") {
     		return false;
     	}
     		

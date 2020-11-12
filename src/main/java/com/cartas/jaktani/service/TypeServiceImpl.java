@@ -146,7 +146,7 @@ public class TypeServiceImpl implements TypeService {
     }
     
     private Boolean validateRequest(TypeDto type, Integer action) {
-    	if(type.getName()==null && type.getCategoryId()!=null && type.getName()=="") {
+    	if(type.getName()==null || type.getCategoryId()==null || type.getName()=="") {
     		return false;
     	}
     		

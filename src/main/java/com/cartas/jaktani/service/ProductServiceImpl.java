@@ -219,9 +219,9 @@ public class ProductServiceImpl implements ProductService {
     }
     
     private Boolean validateRequest(ProductDto product, Integer type) {
-    	if(product.getName()==null && product.getName()=="" 
-    	    && product.getDescription()==null  && product.getDescription()=="" 
-    		&& product.getShopId()==null) {
+    	if(product.getName()==null || product.getName()=="" 
+    		|| product.getDescription()==null  || product.getDescription()=="" 
+    	    || product.getShopId()==null) {
     		return false;
     	}
     		
