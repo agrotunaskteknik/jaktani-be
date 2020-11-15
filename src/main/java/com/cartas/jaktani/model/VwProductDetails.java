@@ -4,6 +4,7 @@ import javax.persistence.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.util.List;
 
 
@@ -52,6 +53,12 @@ public class VwProductDetails {
     
     @Column(name = "youtube_link")
 	public String youtubeLink;
+    
+    @Column(name = "condition")
+    private Integer condition;
+    
+    @Column(name = "created_time")
+    public Timestamp createdTime;
     
     //jenis satuan (kg, m, dll)
     @Column(name = "unit_type")
@@ -319,6 +326,22 @@ public class VwProductDetails {
 
 	public void setDocumentList(List<Document> documentList) {
 		this.documentList = documentList;
+	}
+
+	public Integer getCondition() {
+		return condition;
+	}
+
+	public void setCondition(Integer condition) {
+		this.condition = condition;
+	}
+
+	public Timestamp getCreatedTime() {
+		return createdTime;
+	}
+
+	public void setCreatedTime(Timestamp createdTime) {
+		this.createdTime = createdTime;
 	}
 	
 }

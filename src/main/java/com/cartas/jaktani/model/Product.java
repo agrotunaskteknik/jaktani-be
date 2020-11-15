@@ -75,6 +75,9 @@ public class Product {
     @Column(name = "youtube_link")
 	public String youtubeLink;
     
+    @Column(name = "condition")
+    private Integer condition;
+    
 	public Integer getId() {
 		return id;
 	}
@@ -209,6 +212,12 @@ public class Product {
 	}
 	public void setUnitValue(BigDecimal unitValue) {
 		this.unitValue = unitValue;
+	}
+	public Integer getCondition() {
+		return condition;
+	}
+	public void setCondition(Integer condition) {
+		this.condition = condition;
 	}
     
 }

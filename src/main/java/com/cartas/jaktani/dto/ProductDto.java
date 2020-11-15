@@ -26,6 +26,7 @@ public class ProductDto {
 	public String size;
 	public String youtubeLink;
 	public List<DocumentDto> documentList;
+	public Integer condition;
 
 
 	public Integer getId() {
@@ -160,6 +161,12 @@ public class ProductDto {
 	}
 	public void setDocumentList(List<DocumentDto> documentList) {
 		this.documentList = documentList;
+	}
+	public Integer getCondition() {
+		return condition;
+	}
+	public void setCondition(Integer condition) {
+		this.condition = condition;
 	}
     
 }

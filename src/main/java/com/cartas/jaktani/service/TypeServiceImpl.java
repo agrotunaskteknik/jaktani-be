@@ -157,5 +157,20 @@ public class TypeServiceImpl implements TypeService {
     	}
     	return true;
     }
+    
+    @Override
+    public Object getAllTypesByCategoryId(Integer categoryId) {
+	   if(categoryId==null) {
+			response.setResponseCode("FAILED");
+	        response.setResponseMessage("categoryId is null");
+	        return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
+	   }
+       List<Type> typeList = new ArrayList<Type>();
+       List<Type> allTypes = repository.findAllByCategoryIdAndStatusIsNot(categoryId,STATUS_DELETED);
+       if(allTypes!=null) {
+    	   typeList = allTypes;
+       }
+       return new ResponseEntity<String>(JSONUtil.createJSON(typeList), HttpStatus.OK);
+    }
 
 }

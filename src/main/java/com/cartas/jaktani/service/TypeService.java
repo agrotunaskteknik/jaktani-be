@@ -8,4 +8,5 @@ public interface TypeService {
     Object deleteTypeByID(Integer id);
     Object addType(TypeDto categoryDto);
     Object editType(TypeDto categoryDto);
+    Object getAllTypesByCategoryId(Integer categoryId);
 }
