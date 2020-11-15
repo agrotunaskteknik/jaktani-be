@@ -13,7 +13,7 @@ public class AuthenticationController {
     @Autowired
     VwProductDetailsService vwProductDetailsService;
 
-    @PostMapping(path = "/searchAllProduct/{id}")
+    @PostMapping(path = "/searchAllProduct")
     public Object searchAllProduct(@RequestBody ParamRequestDto paramRequestDto){
         return vwProductDetailsService.searchAllProduct(paramRequestDto);
     }
