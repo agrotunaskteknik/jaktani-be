@@ -138,9 +138,10 @@ public class ProductServiceImpl implements ProductService {
     		entity.setDiscount(product.getDiscount());
     		entity.setSize(product.getSize());
     		entity.setYoutubeLink(product.getYoutubeLink());
+    		entity.setCondition(product.getCondition());
     		repository.save(entity);
-    		saveProductType(product.getTypeList(), product.getId());
-    		saveProductDocument(product.getDocumentList(), product.getId());
+    		saveProductType(product.getTypeList(), entity.getId());
+    		saveProductDocument(product.getDocumentList(), entity.getId());
 		} catch (Exception e) {
 			response.setResponseCode("ERROR");
             response.setResponseMessage("Error "+e.getMessage());
@@ -194,9 +195,10 @@ public class ProductServiceImpl implements ProductService {
     		entity.setDiscount(product.getDiscount());
     		entity.setSize(product.getSize());
     		entity.setYoutubeLink(product.getYoutubeLink());
+    		entity.setCondition(product.getCondition());
     		repository.save(entity);
-    		saveProductType(product.getTypeList(), product.getId());
-    		saveProductDocument(product.getDocumentList(), product.getId());
+    		saveProductType(product.getTypeList(), entity.getId());
+    		saveProductDocument(product.getDocumentList(), entity.getId());
 		} catch (Exception e) {
 			response.setResponseCode("ERROR");
             response.setResponseMessage("Error "+e.getMessage());

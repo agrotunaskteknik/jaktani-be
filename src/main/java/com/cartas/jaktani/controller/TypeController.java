@@ -37,4 +37,8 @@ public class TypeController {
         return typeService.deleteTypeByID(id);
     }
 
+    @GetMapping(path = "/allByCategoryId/{categoryId}")
+    public Object getAllTypeByCategoryID(@PathVariable(name = "categoryId") Integer categoryId) throws ResourceNotFoundException {
+        return typeService.getAllTypesByCategoryId(categoryId);
+    }
 }
