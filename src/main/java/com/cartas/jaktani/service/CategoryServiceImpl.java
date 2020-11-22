@@ -168,6 +168,21 @@ public class CategoryServiceImpl implements CategoryService {
         }
         return new ResponseEntity<String>(JSONUtil.createJSON(categoryDtoList), HttpStatus.OK);
     }
+    
+    @Override
+    public Object getAllCategoryName() {
+    	List<Category> categorys= repository.findAllCategoryByAndStatusIsNot(STATUS_DELETED);
+        List<CategoryDto> categoryDtoList = new ArrayList<>();
+        if(categorys!=null) {
+        	for(Category category: categorys) {
+        		CategoryDto categoryDto = new CategoryDto();
+        		categoryDto.setName(category.getName());
+        		categoryDto.setId(category.getId());
+        		categoryDtoList.add(categoryDto);
+        	}
+        }
+        return new ResponseEntity<String>(JSONUtil.createJSON(categoryDtoList), HttpStatus.OK);
+    }
 
     @Override
     public Object deleteCategoryByID(Integer id) {

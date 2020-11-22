@@ -22,6 +22,7 @@ import java.util.List;
 @Service
 public class VwProductDetailsServiceImpl implements VwProductDetailsService {
     Integer PRODUCT_DOC_TYPE = 2;
+    Integer PRODUCT_DOC_ORDER_NO_FRONT = 1;
     Integer STATUS_DELETED = 0;
     
     BaseResponse response = new BaseResponse();
@@ -96,7 +97,19 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
      	Pageable pageable = PageRequest.of(paramRequestDto.getPageNumber(), paramRequestDto.getPageSize());
      	try {
      		List<VwProductDetails> findProductDetails = null;
-     		if(keySearch!=null) {
+     		if(paramRequestDto.getShopId()!=null && paramRequestDto.getCategoryId()!=null && keySearch!=null) {
+     			findProductDetails = repository.findAllByShopIdAndCategoryIdAndKeySearch(pageable, paramRequestDto.getShopId(), paramRequestDto.getCategoryId(), keySearch);
+     		}else if(paramRequestDto.getCategoryId()!=null && keySearch!=null) {
+     			findProductDetails = repository.findAllByCategoryIdAndKeySearch(pageable, paramRequestDto.getCategoryId(), keySearch);
+     		}else if(paramRequestDto.getShopId()!=null && keySearch!=null) {
+     			findProductDetails = repository.findAllByShopIdAndKeySearch(pageable, paramRequestDto.getShopId(), keySearch);
+     		}else if(paramRequestDto.getShopId()!=null && paramRequestDto.getCategoryId()!=null) {
+     			findProductDetails = repository.findAllByShopIdAndCategoryId(pageable, paramRequestDto.getShopId(), paramRequestDto.getCategoryId());
+     		}else if(paramRequestDto.getShopId()!=null) {
+     			findProductDetails = repository.findAllByShopId(pageable, paramRequestDto.getShopId());
+     		}else if(paramRequestDto.getCategoryId()!=null) {
+     			findProductDetails = repository.findAllByCategoryId(pageable, paramRequestDto.getCategoryId());
+     		}else if(keySearch!=null) {
      			findProductDetails = repository.findAllWithKeySearch(pageable, keySearch);
      		}else {
      			findProductDetails = repository.findAllWithPaging(pageable);
@@ -104,8 +117,12 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
             
             if(findProductDetails!=null && findProductDetails.size()>0) {
             	for(VwProductDetails productDetails :findProductDetails) {
+            		List<Document> documentList = new ArrayList<Document>();
             		List<ProductType> productTypeList = productTypeRepo.findAllByProductIdAndStatusIsNot(productDetails.getProductId(), STATUS_DELETED);
-               	    List<Document> documentList = documentRepo.findAllByRefferenceIdAndTypeAndStatusIsNot(productDetails.getProductId(), PRODUCT_DOC_TYPE, STATUS_DELETED);
+               	    Document documentFront = documentRepo.findFirstByRefferenceIdAndTypeAndOrderNumberAndStatusIsNot(productDetails.getProductId(), PRODUCT_DOC_TYPE, PRODUCT_DOC_ORDER_NO_FRONT, STATUS_DELETED);
+               	    if(documentFront!=null) {
+               	    	documentList.add(documentFront);
+               	    }
                     productDetails.setProductTypeList(productTypeList);
                     productDetails.setDocumentList(documentList);
                     productDetailsList.add(productDetails);
