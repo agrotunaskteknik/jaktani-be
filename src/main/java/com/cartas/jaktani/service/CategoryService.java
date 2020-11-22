@@ -7,6 +7,7 @@ public interface CategoryService {
 	Object getCategoryByID(Integer id);
 	Object getAllCategorysWithDocument();
 	Object getAllCategorys();
+	Object getAllCategoryName();
     Object deleteCategoryByID(Integer id);
     Object addCategory(CategoryDto categoryDto);
     Object editCategory(CategoryDto categoryDto);
