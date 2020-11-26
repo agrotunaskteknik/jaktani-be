@@ -1,6 +1,5 @@
 package com.cartas.jaktani.controller;
 
-import com.cartas.jaktani.dto.CategoryDto;
 import com.cartas.jaktani.dto.ParamRequestDto;
 import com.cartas.jaktani.service.CategoryService;
 import com.cartas.jaktani.service.VwProductDetailsService;

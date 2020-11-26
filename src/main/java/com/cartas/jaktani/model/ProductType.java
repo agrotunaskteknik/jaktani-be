@@ -15,6 +15,12 @@ public class ProductType {
     private Integer typeId;
 	@Column(name = "status")
     private Integer status;
+	
+	@Transient
+    private Integer categoryId;
+	
+	@Transient
+    private String name;
 
 	@Id
     @GeneratedValue(strategy = GenerationType.TABLE)
@@ -41,6 +47,18 @@ public class ProductType {
 	}
 	public void setStatus(Integer status) {
 		this.status = status;
+	}
+	public Integer getCategoryId() {
+		return categoryId;
+	}
+	public void setCategoryId(Integer categoryId) {
+		this.categoryId = categoryId;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
 	}
 	
 	

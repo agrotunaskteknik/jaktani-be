@@ -20,8 +20,6 @@ public class Shop {
     public String description;
     public Integer priority;
 
-	
-
 	@Id
     @GeneratedValue(strategy = GenerationType.TABLE)
 	public Integer getId() {
