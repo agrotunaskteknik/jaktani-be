@@ -99,6 +99,9 @@ public class VwProductDetails {
 	public String subCategoryName;
     
     @Transient
+    String youtubeId;
+    
+    @Transient
     List<ProductType> productTypeList;
     
     @Transient
@@ -342,6 +345,14 @@ public class VwProductDetails {
 
 	public void setCreatedTime(Timestamp createdTime) {
 		this.createdTime = createdTime;
+	}
+
+	public String getYoutubeId() {
+		return youtubeId;
+	}
+
+	public void setYoutubeId(String youtubeId) {
+		this.youtubeId = youtubeId;
 	}
 	
 }

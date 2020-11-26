@@ -36,13 +36,14 @@ class Result {
       }
  
       
-     
+      YouTubeHelper youTubeHelper= new YouTubeHelper();
+      String strUrl = youTubeHelper.extractVideoIdFromUrl("https://www.youtube.com/watch?v=ocWzjdJyIBw&ab_channel=Korantemaa");
+      System.out.println(strUrl);
 
     }
     
  
     
-   
 
 }
 
