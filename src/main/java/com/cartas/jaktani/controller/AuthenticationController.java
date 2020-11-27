@@ -19,7 +19,7 @@ public class AuthenticationController {
     }
     
     @GetMapping(path = "/findProductById/{productId}")
-    public Object findProductById(@RequestParam Integer productId) {
+    public Object findProductById(@PathVariable(name = "productId") Integer productId) {
         return vwProductDetailsService.findByProductId(productId);
     }
     
