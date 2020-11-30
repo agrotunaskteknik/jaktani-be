@@ -21,16 +21,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 import javax.transaction.Transactional;
 
 @Service
@@ -322,8 +328,10 @@ public class ProductServiceImpl implements ProductService {
                 }
             }
             try {
+                String rawBase64 = documentDto.getContentData();
+                String base64ReplaceNewline = rawBase64.replaceAll("\n", "");
                 byte[] decodedImg = Base64.getDecoder()
-                        .decode(documentDto.getContentData().getBytes(StandardCharsets.UTF_8));
+                        .decode(base64ReplaceNewline.getBytes(StandardCharsets.UTF_8));
                 Files.write(destinationFile, decodedImg);
             } catch (Exception ex) {
                 logger.debug(ex.getMessage());
@@ -335,6 +343,14 @@ public class ProductServiceImpl implements ProductService {
             savedPhoto.setImageFilePath(destinationFile.toString());
             savedPhoto.setUrlPath(imageFileName);
             savedPhoto.setStatus(STATUS_ACTIVE);
+            savedPhoto.setOrderNumber(documentDto.getOrderNumber());
+            try {
+                String compressImagePath = compressImage(pathFolder, imageFileName, 0.05f);
+                savedPhoto.setUrlPathHome(compressImagePath);
+                savedPhoto.setImageFilePathHome(pathFolder+compressImagePath);
+            } catch (Exception ex) {
+                logger.debug("error : " + ex.getMessage());
+            }
             photoRepository.save(savedPhoto);
         }
         for (Photo photo : photoList) {
@@ -381,6 +397,37 @@ public class ProductServiceImpl implements ProductService {
             }
         }
         return new ArrayList<>();
+    }
+
+    String compressImage(String fileParentPath, String filePath, Float compressQuality) throws IOException {
+        File input = new File(fileParentPath + filePath);
+        BufferedImage image = ImageIO.read(input);
+
+
+        String outputFileCompress = "home_";
+        File compressedImageFile = new File(fileParentPath + outputFileCompress + filePath);
+        OutputStream os = new FileOutputStream(compressedImageFile);
+
+        Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
+        ImageWriter writer = (ImageWriter) writers.next();
+
+        ImageOutputStream ios = ImageIO.createImageOutputStream(os);
+        writer.setOutput(ios);
+
+        ImageWriteParam param = writer.getDefaultWriteParam();
+
+        if (compressQuality == null || compressQuality == 0) {
+            compressQuality = 0.05f;
+        }
+
+        param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+        param.setCompressionQuality(compressQuality);  // Change the quality value you prefer
+        writer.write(null, new IIOImage(image, null, null), param);
+
+        os.close();
+        ios.close();
+        writer.dispose();
+        return outputFileCompress + filePath;
     }
 
 }

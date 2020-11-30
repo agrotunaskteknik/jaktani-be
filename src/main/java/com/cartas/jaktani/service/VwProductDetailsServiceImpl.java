@@ -52,8 +52,11 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
             if (productDetails != null) {
                 List<ProductType> productTypeList = new ArrayList<>();
                 List<ProductType> allProductType = productTypeRepo.findAllByProductIdAndStatusIsNot(productId, STATUS_DELETED);
-                List<Document> documentList = documentRepo.findAllByRefferenceIdAndTypeAndStatusIsNot(productId, PRODUCT_DOC_TYPE, STATUS_DELETED);
+//                List<Document> documentList = documentRepo.findAllByRefferenceIdAndTypeAndStatusIsNot(productId, PRODUCT_DOC_TYPE, STATUS_DELETED);
                 List<Photo> photoList = photoRepository.findAllByRefferenceId(productId);
+                for (Photo photo : photoList) {
+                    photo.setParentUrl("http://jaktani.com/photo/getImageByUniqueKey/");
+                }
                 for (ProductType productType : allProductType) {
                     Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productType.getTypeId(), STATUS_DELETED);
                     if (type.isPresent()) {
@@ -68,7 +71,7 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
                     productDetails.setYoutubeId(youtubeId);
                 }
                 productDetails.setProductTypeList(productTypeList);
-                productDetails.setDocumentList(documentList);
+                productDetails.setDocumentList(new ArrayList<>());
                 productDetails.setPhotoList(photoList);
             }
 
@@ -155,13 +158,17 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
 
             if (findProductDetails != null && findProductDetails.size() > 0) {
                 for (VwProductDetails productDetails : findProductDetails) {
-                    List<Document> documentList = new ArrayList<Document>();
+//                    List<Document> documentList = new ArrayList<Document>();
                     List<ProductType> productTypeList = new ArrayList<>();
                     List<ProductType> allProductType = productTypeRepo.findAllByProductIdAndStatusIsNot(productDetails.getProductId(), STATUS_DELETED);
-                    Document documentFront = documentRepo.findFirstByRefferenceIdAndTypeAndOrderNumberAndStatusIsNot(productDetails.getProductId(), PRODUCT_DOC_TYPE, PRODUCT_DOC_ORDER_NO_FRONT, STATUS_DELETED);
-                    if (documentFront != null) {
-                        documentList.add(documentFront);
+                    List<Photo> photoList = photoRepository.findAllByRefferenceId(productDetails.getProductId());
+                    for (Photo photo : photoList) {
+                        photo.setParentUrl("http://jaktani.com/photo/getImageByUniqueKey/");
                     }
+//                    Document documentFront = documentRepo.findFirstByRefferenceIdAndTypeAndOrderNumberAndStatusIsNot(productDetails.getProductId(), PRODUCT_DOC_TYPE, PRODUCT_DOC_ORDER_NO_FRONT, STATUS_DELETED);
+//                    if (documentFront != null) {
+//                        documentList.add(documentFront);
+//                    }
 
                     for (ProductType productType : allProductType) {
                         Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productType.getTypeId(), STATUS_DELETED);
@@ -177,7 +184,8 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
                         productDetails.setYoutubeId(youtubeId);
                     }
                     productDetails.setProductTypeList(productTypeList);
-                    productDetails.setDocumentList(documentList);
+//                    productDetails.setDocumentList(documentList);
+                    productDetails.setPhotoList(photoList);
                     productDetailsList.add(productDetails);
                 }
             }
