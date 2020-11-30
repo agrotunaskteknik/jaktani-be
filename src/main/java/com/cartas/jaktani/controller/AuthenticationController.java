@@ -27,5 +27,10 @@ public class AuthenticationController {
     public Object getAllCategory() {
         return categoryService.getAllCategoryName();
     }
+    
+    @GetMapping(path = "/allProductTypeByProductId/{productId}")
+    public Object allProductTypeByProductId(@PathVariable(name = "productId") Integer productId) {
+        return vwProductDetailsService.allProductTypeByProductId(productId);
+    }
 
 }
