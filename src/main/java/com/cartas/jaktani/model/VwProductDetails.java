@@ -106,7 +106,18 @@ public class VwProductDetails {
     
     @Transient
     List<Document> documentList;
-    
+
+	@Transient
+	List<Photo> photoList;
+
+	public List<Photo> getPhotoList() {
+		return photoList;
+	}
+
+	public void setPhotoList(List<Photo> photoList) {
+		this.photoList = photoList;
+	}
+
 	public Integer getProductId() {
 		return productId;
 	}
