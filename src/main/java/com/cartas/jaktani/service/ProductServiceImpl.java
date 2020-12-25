@@ -315,6 +315,13 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     void saveProductPhoto(List<DocumentDto> documentDtoList, Integer productId) {
         List<Photo> photoList = deleteAllProductPhoto(productId);
+        for (Photo photo : photoList) {
+            File directory = new File(photo.getImageFilePath());
+            boolean fileDeleted = directory.delete();
+            if (fileDeleted) {
+                logger.debug("success delete file : " + photo.getImageFilePath());
+            }
+        }
         for (DocumentDto documentDto : documentDtoList) {
             Long timeInMilis = Utils.getCalendar().getTimeInMillis();
             String pathFolder = "img/product/" + productId + "/";
@@ -347,19 +354,13 @@ public class ProductServiceImpl implements ProductService {
             try {
                 String compressImagePath = compressImage(pathFolder, imageFileName, 0.05f);
                 savedPhoto.setUrlPathHome(compressImagePath);
-                savedPhoto.setImageFilePathHome(pathFolder+compressImagePath);
+                savedPhoto.setImageFilePathHome(pathFolder + compressImagePath);
             } catch (Exception ex) {
                 logger.debug("error : " + ex.getMessage());
             }
             photoRepository.save(savedPhoto);
         }
-        for (Photo photo : photoList) {
-            File directory = new File(photo.getImageFilePath());
-            boolean fileDeleted = directory.delete();
-            if (fileDeleted) {
-                logger.debug("success delete file : " + photo.getImageFilePath());
-            }
-        }
+
     }
 
     @Transactional
@@ -391,7 +392,11 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     List<Photo> deleteAllProductPhoto(Integer productId) {
         if (productId != null) {
-            List<Photo> photoList = photoRepository.findAllByRefferenceId(productId);
+            List<Photo> photoList = photoRepository.findAllByRefferenceIdAndStatusIsNot(productId, STATUS_DELETED);
+            for (Photo entity : photoList) {
+                entity.setStatus(STATUS_DELETED);
+                photoRepository.save(entity);
+            }
             if (photoList != null && photoList.size() > 0) {
                 return photoList;
             }

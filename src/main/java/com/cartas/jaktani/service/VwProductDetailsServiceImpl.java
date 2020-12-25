@@ -53,7 +53,7 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
                 List<ProductType> productTypeList = new ArrayList<>();
                 List<ProductType> allProductType = productTypeRepo.findAllByProductIdAndStatusIsNot(productId, STATUS_DELETED);
 //                List<Document> documentList = documentRepo.findAllByRefferenceIdAndTypeAndStatusIsNot(productId, PRODUCT_DOC_TYPE, STATUS_DELETED);
-                List<Photo> photoList = photoRepository.findAllByRefferenceId(productId);
+                List<Photo> photoList = photoRepository.findAllByRefferenceIdAndStatusIsNot(productId,STATUS_DELETED);
                 for (Photo photo : photoList) {
                     photo.setParentUrl("http://jaktani.com/photo/getImageByUniqueKey/");
                 }
@@ -161,7 +161,7 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
 //                    List<Document> documentList = new ArrayList<Document>();
                     List<ProductType> productTypeList = new ArrayList<>();
                     List<ProductType> allProductType = productTypeRepo.findAllByProductIdAndStatusIsNot(productDetails.getProductId(), STATUS_DELETED);
-                    List<Photo> photoList = photoRepository.findAllByRefferenceId(productDetails.getProductId());
+                    List<Photo> photoList = photoRepository.findAllByRefferenceIdAndStatusIsNot(productDetails.getProductId(),STATUS_DELETED);
                     for (Photo photo : photoList) {
                         photo.setParentUrl("http://jaktani.com/photo/getImageByUniqueKey/");
                     }
