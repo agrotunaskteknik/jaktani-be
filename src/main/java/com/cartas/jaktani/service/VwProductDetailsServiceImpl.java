@@ -53,7 +53,7 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
                 List<ProductType> productTypeList = new ArrayList<>();
                 List<ProductType> allProductType = productTypeRepo.findAllByProductIdAndStatusIsNot(productId, STATUS_DELETED);
 //                List<Document> documentList = documentRepo.findAllByRefferenceIdAndTypeAndStatusIsNot(productId, PRODUCT_DOC_TYPE, STATUS_DELETED);
-                List<Photo> photoList = photoRepository.findAllByRefferenceIdAndStatusIsNot(productId,STATUS_DELETED);
+                List<Photo> photoList = photoRepository.findAllByRefferenceIdAndStatusIsNot(productId, STATUS_DELETED);
                 for (Photo photo : photoList) {
                     photo.setParentUrl("http://jaktani.com/photo/getImageByUniqueKey/");
                 }
@@ -82,6 +82,53 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
         }
 
         return new ResponseEntity<String>(JSONUtil.createJSON(productDetails), HttpStatus.OK);
+    }
+
+    @Override
+    public VwProductDetails findByProductIdProductDetails(Integer productId) {
+        VwProductDetails productDetails = null;
+
+        if (productId == null) {
+            response.setResponseCode("FAILED");
+            response.setResponseMessage("Bad Request");
+            return productDetails;
+        }
+
+        try {
+            productDetails = repository.findFirstByProductId(productId);
+            if (productDetails != null) {
+                List<ProductType> productTypeList = new ArrayList<>();
+                List<ProductType> allProductType = productTypeRepo.findAllByProductIdAndStatusIsNot(productId, STATUS_DELETED);
+//                List<Document> documentList = documentRepo.findAllByRefferenceIdAndTypeAndStatusIsNot(productId, PRODUCT_DOC_TYPE, STATUS_DELETED);
+                List<Photo> photoList = photoRepository.findAllByRefferenceIdAndStatusIsNot(productId, STATUS_DELETED);
+                for (Photo photo : photoList) {
+                    photo.setParentUrl("http://jaktani.com/photo/getImageByUniqueKey/");
+                }
+                for (ProductType productType : allProductType) {
+                    Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productType.getTypeId(), STATUS_DELETED);
+                    if (type.isPresent()) {
+                        productType.setCategoryId(type.get().getCategoryId());
+                        productType.setName(type.get().getName());
+                        productTypeList.add(productType);
+                    }
+                }
+                if (productDetails.getYoutubeLink() != null && productDetails.getYoutubeLink() != "") {
+                    YouTubeHelper youTubeHelper = new YouTubeHelper();
+                    String youtubeId = youTubeHelper.extractVideoIdFromUrl(productDetails.getYoutubeLink());
+                    productDetails.setYoutubeId(youtubeId);
+                }
+                productDetails.setProductTypeList(productTypeList);
+                productDetails.setDocumentList(new ArrayList<>());
+                productDetails.setPhotoList(photoList);
+            }
+
+        } catch (Exception e) {
+            response.setResponseCode("ERROR");
+            response.setResponseMessage("Error " + e.getMessage());
+            return productDetails;
+        }
+
+        return productDetails;
     }
 
     @Override
@@ -161,7 +208,7 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
 //                    List<Document> documentList = new ArrayList<Document>();
                     List<ProductType> productTypeList = new ArrayList<>();
                     List<ProductType> allProductType = productTypeRepo.findAllByProductIdAndStatusIsNot(productDetails.getProductId(), STATUS_DELETED);
-                    List<Photo> photoList = photoRepository.findAllByRefferenceIdAndStatusIsNot(productDetails.getProductId(),STATUS_DELETED);
+                    List<Photo> photoList = photoRepository.findAllByRefferenceIdAndStatusIsNot(productDetails.getProductId(), STATUS_DELETED);
                     for (Photo photo : photoList) {
                         photo.setParentUrl("http://jaktani.com/photo/getImageByUniqueKey/");
                     }
@@ -197,32 +244,32 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
 
         return new ResponseEntity<String>(JSONUtil.createJSON(productDetailsList), HttpStatus.OK);
     }
-    
+
     @Override
     public Object allProductTypeByProductId(Integer productId) {
-    	if(productId==null) {
-       	 	response.setResponseCode("FAILED");
+        if (productId == null) {
+            response.setResponseCode("FAILED");
             response.setResponseMessage("Bad Request");
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
         }
 
-		List<ProductType> productTypeList = new ArrayList<>();
+        List<ProductType> productTypeList = new ArrayList<>();
         try {
-        	 List<ProductType> allProductType = productTypeRepo.findAllByProductIdAndStatusIsNot(productId, STATUS_DELETED);
-             for(ProductType productType :allProductType) {
-            	 Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productType.getTypeId(), STATUS_DELETED);
-            	 if(type.isPresent()) {
-            		 productType.setCategoryId(type.get().getCategoryId());
-            		 productType.setName(type.get().getName());
-            		 productTypeList.add(productType);
-            	 }
-             }
-		} catch (Exception e) {
-			response.setResponseCode("ERROR");
-            response.setResponseMessage("Error "+e.getMessage());
+            List<ProductType> allProductType = productTypeRepo.findAllByProductIdAndStatusIsNot(productId, STATUS_DELETED);
+            for (ProductType productType : allProductType) {
+                Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productType.getTypeId(), STATUS_DELETED);
+                if (type.isPresent()) {
+                    productType.setCategoryId(type.get().getCategoryId());
+                    productType.setName(type.get().getName());
+                    productTypeList.add(productType);
+                }
+            }
+        } catch (Exception e) {
+            response.setResponseCode("ERROR");
+            response.setResponseMessage("Error " + e.getMessage());
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
-		}
-        
+        }
+
         return new ResponseEntity<String>(JSONUtil.createJSON(productTypeList), HttpStatus.OK);
     }
 
