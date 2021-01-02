@@ -31,6 +31,7 @@ public class CartServiceImpl implements CartService {
     final static String FAILED_REMOVE_CART = "Failed remove cart";
     final static String SUCCESS_REMOVE_CART = "Sukses menghapus keranjang";
     final static String FAILED_CART_LIST = "Failed Cart List";
+    final static String SUCCESS_CART_LIST_EMPTY = "Empty Cart List";
     final static String SUCCESS_CART_LIST = "Berhasil mendapatkan data";
     final static String STATUS_NOT_OK = "NOT_OK";
     final static String STATUS_OK = "OK";
@@ -304,7 +305,9 @@ public class CartServiceImpl implements CartService {
 //        }
         if (cartItemList.size() == 0) {
             logger.debug("Cart List Empty, userID = " + cartListDtoRequest.getUserID());
-            cartListResponse.setErrorMessage(FAILED_CART_LIST);
+            cartListResponse.setShopGroupUnavailable(new ArrayList<>());
+            cartListResponse.setShopGroupAvailable(new ArrayList<>());
+            cartListResponse.setErrorMessage(SUCCESS_CART_LIST_EMPTY);
             cartListResponse.setStatus(STATUS_OK);
             return cartListResponse;
         }
