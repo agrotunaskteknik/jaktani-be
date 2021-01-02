@@ -42,10 +42,10 @@ public class CategoryRelTypeGroupServiceImpl implements CategoryRelTypeGroupServ
         }
         Optional<Category> category = categoryRepository.findByIdAndStatusIsNot(findById.getCategoryId(), STATUS_DELETED);
         Optional<TypeGroup> typeGroup = typeGroupRepository.findByIdAndStatusIsNot(findById.getTypeGroupId(), STATUS_DELETED);
-        if(category!=null) {
+        if(category.isPresent()) {
         	findById.setCategoryName(category.get().getName());
         }
-        if(typeGroup!=null) {
+        if(typeGroup.isPresent()) {
         	findById.setTypeGroupName(typeGroup.get().getName());
         }
         return new ResponseEntity<String>(JSONUtil.createJSON(findById), HttpStatus.OK);
@@ -59,10 +59,10 @@ public class CategoryRelTypeGroupServiceImpl implements CategoryRelTypeGroupServ
         	for(CategoryRelTypeGroup categoryRelTypeGroup: categoryRelTypeGroups) {
         		 Optional<Category> category = categoryRepository.findByIdAndStatusIsNot(categoryRelTypeGroup.getCategoryId(), STATUS_DELETED);
         	        Optional<TypeGroup> typeGroup = typeGroupRepository.findByIdAndStatusIsNot(categoryRelTypeGroup.getTypeGroupId(), STATUS_DELETED);
-        	        if(category!=null) {
+        	        if(category.isPresent()) {
         	        	categoryRelTypeGroup.setCategoryName(category.get().getName());
         	        }
-        	        if(typeGroup!=null) {
+        	        if(typeGroup.isPresent()) {
         	        	categoryRelTypeGroup.setTypeGroupName(typeGroup.get().getName());
         	        }
         		categoryRelTypeGroupList.add(categoryRelTypeGroup);
@@ -114,6 +114,7 @@ public class CategoryRelTypeGroupServiceImpl implements CategoryRelTypeGroupServ
     	try {
     		entity.setCategoryId(categoryRelTypeGroup.getCategoryId());
     		entity.setTypeGroupId(categoryRelTypeGroup.getTypeGroupId());
+    		entity.setStatus(STATUS_ACTIVE);
     		repository.save(entity);
     		
 		} catch (Exception e) {
@@ -145,6 +146,7 @@ public class CategoryRelTypeGroupServiceImpl implements CategoryRelTypeGroupServ
     	try {
     		entity.setCategoryId(categoryRelTypeGroup.getCategoryId());
     		entity.setTypeGroupId(categoryRelTypeGroup.getTypeGroupId());
+    		entity.setStatus(categoryRelTypeGroup.getStatus());
     		repository.save(entity);
     		
 		} catch (Exception e) {
