@@ -44,7 +44,7 @@ public class ProductServiceImpl implements ProductService {
     Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
 
     Integer STATUS_DEFAULT = 1;
-    Integer STATUS_DELETED = 0;
+    static Integer STATUS_DELETED = 0;
     Integer STATUS_ACTIVE = 1;
     Integer ADD_TYPE = 1;
     Integer EDIT_TYPE = 2;

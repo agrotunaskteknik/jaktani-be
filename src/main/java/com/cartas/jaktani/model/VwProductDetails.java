@@ -110,6 +110,17 @@ public class VwProductDetails {
 	@Transient
 	List<Photo> photoList;
 
+	@Transient
+	private String tickerMessage;
+
+	public String getTickerMessage() {
+		return tickerMessage;
+	}
+
+	public void setTickerMessage(String tickerMessage) {
+		this.tickerMessage = tickerMessage;
+	}
+
 	public List<Photo> getPhotoList() {
 		return photoList;
 	}
