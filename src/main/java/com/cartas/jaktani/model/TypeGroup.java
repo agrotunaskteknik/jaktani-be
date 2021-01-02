@@ -3,11 +3,12 @@ package com.cartas.jaktani.model;
 import javax.persistence.*;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 
 @Entity
-@Table(name = "type")
-public class Type {
+@Table(name = "type_group")
+public class TypeGroup {
 	@Id
     @GeneratedValue(strategy = GenerationType.TABLE)
     public Integer id;
@@ -21,8 +22,8 @@ public class Type {
     @Column(name = "created_time")
     public Timestamp createdTime;
     
-    @Column(name = "type_group_id")
-    public Integer typeGroupId;
+    @Transient
+    List<Type> typeList;
 
 	public Integer getId() {
 		return id;
@@ -56,12 +57,12 @@ public class Type {
 		this.createdTime = createdTime;
 	}
 
-	public Integer getTypeGroupId() {
-		return typeGroupId;
+	public List<Type> getTypeList() {
+		return typeList;
 	}
 
-	public void setTypeGroupId(Integer typeGroupId) {
-		this.typeGroupId = typeGroupId;
+	public void setTypeList(List<Type> typeList) {
+		this.typeList = typeList;
 	}
 	
 }

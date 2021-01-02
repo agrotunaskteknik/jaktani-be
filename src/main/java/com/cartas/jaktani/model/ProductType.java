@@ -17,7 +17,7 @@ public class ProductType {
     private Integer status;
 	
 	@Transient
-    private Integer categoryId;
+    private Integer typeGroupId;
 	
 	@Transient
     private String name;
@@ -48,11 +48,12 @@ public class ProductType {
 	public void setStatus(Integer status) {
 		this.status = status;
 	}
-	public Integer getCategoryId() {
-		return categoryId;
+	
+	public Integer getTypeGroupId() {
+		return typeGroupId;
 	}
-	public void setCategoryId(Integer categoryId) {
-		this.categoryId = categoryId;
+	public void setTypeGroupId(Integer typeGroupId) {
+		this.typeGroupId = typeGroupId;
 	}
 	public String getName() {
 		return name;

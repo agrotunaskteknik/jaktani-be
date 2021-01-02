@@ -60,7 +60,7 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
                 for (ProductType productType : allProductType) {
                     Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productType.getTypeId(), STATUS_DELETED);
                     if (type.isPresent()) {
-                        productType.setCategoryId(type.get().getCategoryId());
+                        productType.setTypeGroupId(type.get().getTypeGroupId());
                         productType.setName(type.get().getName());
                         productTypeList.add(productType);
                     }
@@ -103,7 +103,7 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
                 for (ProductType productType : allProductType) {
                     Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productType.getTypeId(), STATUS_DELETED);
                     if (type.isPresent()) {
-                        productType.setCategoryId(type.get().getCategoryId());
+                        productType.setTypeGroupId(type.get().getTypeGroupId());
                         productType.setName(type.get().getName());
                         productTypeList.add(productType);
                     }
@@ -173,7 +173,7 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
                     for (ProductType productType : allProductType) {
                         Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productType.getTypeId(), STATUS_DELETED);
                         if (type.isPresent()) {
-                            productType.setCategoryId(type.get().getCategoryId());
+                            productType.setTypeGroupId(type.get().getTypeGroupId());
                             productType.setName(type.get().getName());
                             productTypeList.add(productType);
                         }
@@ -212,35 +212,7 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
              for(ProductType productType :allProductType) {
             	 Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productType.getTypeId(), STATUS_DELETED);
             	 if(type.isPresent()) {
-            		 productType.setCategoryId(type.get().getCategoryId());
-            		 productType.setName(type.get().getName());
-            		 productTypeList.add(productType);
-            	 }
-             }
-		} catch (Exception e) {
-			response.setResponseCode("ERROR");
-            response.setResponseMessage("Error "+e.getMessage());
-            return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
-		}
-        
-        return new ResponseEntity<String>(JSONUtil.createJSON(productTypeList), HttpStatus.OK);
-    }
-    
-    @Override
-    public Object allProductTypeByProductId(Integer productId) {
-    	if(productId==null) {
-       	 	response.setResponseCode("FAILED");
-            response.setResponseMessage("Bad Request");
-            return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
-        }
-
-		List<ProductType> productTypeList = new ArrayList<>();
-        try {
-        	 List<ProductType> allProductType = productTypeRepo.findAllByProductIdAndStatusIsNot(productId, STATUS_DELETED);
-             for(ProductType productType :allProductType) {
-            	 Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productType.getTypeId(), STATUS_DELETED);
-            	 if(type.isPresent()) {
-            		 productType.setCategoryId(type.get().getCategoryId());
+            		 productType.setTypeGroupId(type.get().getTypeGroupId());
             		 productType.setName(type.get().getName());
             		 productTypeList.add(productType);
             	 }
