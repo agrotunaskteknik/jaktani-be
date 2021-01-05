@@ -8,4 +8,5 @@ public interface CategoryRelTypeGroupService {
     Object deleteByID(Integer id);
     Object add(CategoryRelTypeGroup categoryRelTypeGroup);
     Object edit(CategoryRelTypeGroup categoryRelTypeGroup);
+    Object getAllByCategoryId(Integer categoryId);
 }

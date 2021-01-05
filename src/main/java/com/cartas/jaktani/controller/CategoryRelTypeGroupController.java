@@ -1,10 +1,8 @@
 package com.cartas.jaktani.controller;
 
-import com.cartas.jaktani.dto.CategoryDto;
 import com.cartas.jaktani.exceptions.ResourceNotFoundException;
 import com.cartas.jaktani.model.CategoryRelTypeGroup;
 import com.cartas.jaktani.service.CategoryRelTypeGroupService;
-import com.cartas.jaktani.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,6 +35,11 @@ public class CategoryRelTypeGroupController {
     @PostMapping(path = "/delete/{id}")
     public Object deleteByID(@PathVariable(name = "id") Integer id) throws ResourceNotFoundException {
         return service.deleteByID(id);
+    }
+    
+    @GetMapping(path = "/allByCategoryId/{categoryId}")
+    public Object getAllTypeByCategoryID(@PathVariable(name = "categoryId") Integer categoryId) throws ResourceNotFoundException {
+        return service.getAllByCategoryId(categoryId);
     }
 
 }

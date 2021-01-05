@@ -12,4 +12,5 @@ public interface CategoryRelTypeGroupRepository extends JpaRepository<CategoryRe
 	CategoryRelTypeGroup findFirstByCategoryIdAndTypeGroupIdAndIdIsNotAndStatusIsNot(Integer categoryId, Integer typeGroupId, Integer id, Integer status);
 	CategoryRelTypeGroup findFirstByCategoryIdAndTypeGroupIdAndStatusIsNot(Integer categoryId, Integer typeGroupId, Integer status);
     List<CategoryRelTypeGroup> findAllByStatusIsNot(Integer status);
+    List<CategoryRelTypeGroup> findAllByCategoryIdAndStatusIsNot(Integer categoryId, Integer status);
 }

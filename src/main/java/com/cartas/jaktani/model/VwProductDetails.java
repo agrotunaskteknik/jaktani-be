@@ -92,6 +92,18 @@ public class VwProductDetails {
     @Column(name = "category_name")
 	public String categoryName;
     
+    @Column(name = "type_group_id")
+   	public Integer typeGroupId;
+    
+    @Column(name = "type_group_name")
+	public String typeGroupName;
+       
+    @Column(name = "type_id")
+   	public Integer typeId;
+    
+    @Column(name = "type_name")
+	public String typeName;
+    
     @Column(name = "sub_category_id")
     private Integer subCategoryId;
 	
@@ -375,6 +387,38 @@ public class VwProductDetails {
 
 	public void setYoutubeId(String youtubeId) {
 		this.youtubeId = youtubeId;
+	}
+
+	public Integer getTypeGroupId() {
+		return typeGroupId;
+	}
+
+	public void setTypeGroupId(Integer typeGroupId) {
+		this.typeGroupId = typeGroupId;
+	}
+
+	public String getTypeGroupName() {
+		return typeGroupName;
+	}
+
+	public void setTypeGroupName(String typeGroupName) {
+		this.typeGroupName = typeGroupName;
+	}
+
+	public Integer getTypeId() {
+		return typeId;
+	}
+
+	public void setTypeId(Integer typeId) {
+		this.typeId = typeId;
+	}
+
+	public String getTypeName() {
+		return typeName;
+	}
+
+	public void setTypeName(String typeName) {
+		this.typeName = typeName;
 	}
 	
 }
