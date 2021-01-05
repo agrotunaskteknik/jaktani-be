@@ -60,7 +60,7 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
                 for (ProductType productType : allProductType) {
                     Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productType.getTypeId(), STATUS_DELETED);
                     if (type.isPresent()) {
-                        productType.setCategoryId(type.get().getCategoryId());
+                        productType.setTypeGroupId(type.get().getTypeGroupId());
                         productType.setName(type.get().getName());
                         productTypeList.add(productType);
                     }
@@ -107,7 +107,7 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
                 for (ProductType productType : allProductType) {
                     Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productType.getTypeId(), STATUS_DELETED);
                     if (type.isPresent()) {
-                        productType.setCategoryId(type.get().getCategoryId());
+                        productType.setTypeGroupId(type.get().getTypeGroupId());
                         productType.setName(type.get().getName());
                         productTypeList.add(productType);
                     }
@@ -150,7 +150,7 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
                 for (ProductType productType : allProductType) {
                     Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productType.getTypeId(), STATUS_DELETED);
                     if (type.isPresent()) {
-                        productType.setCategoryId(type.get().getCategoryId());
+                        productType.setTypeGroupId(type.get().getTypeGroupId());
                         productType.setName(type.get().getName());
                         productTypeList.add(productType);
                     }
@@ -220,7 +220,7 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
                     for (ProductType productType : allProductType) {
                         Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productType.getTypeId(), STATUS_DELETED);
                         if (type.isPresent()) {
-                            productType.setCategoryId(type.get().getCategoryId());
+                            productType.setTypeGroupId(type.get().getTypeGroupId());
                             productType.setName(type.get().getName());
                             productTypeList.add(productType);
                         }
@@ -259,7 +259,7 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
             for (ProductType productType : allProductType) {
                 Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productType.getTypeId(), STATUS_DELETED);
                 if (type.isPresent()) {
-                    productType.setCategoryId(type.get().getCategoryId());
+                    productType.setTypeGroupId(type.get().getTypeGroupId());
                     productType.setName(type.get().getName());
                     productTypeList.add(productType);
                 }

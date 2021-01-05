@@ -1,10 +1,12 @@
 package com.cartas.jaktani.dto;
 
-public class TypeDto {
+import java.util.List;
+
+public class TypeGroupDto {
     public Integer id;
 	public String name;
     public Integer status;
-    public Integer typeGroupId;
+    public List<TypeDto> typeList;
 
 	public Integer getId() {
 		return id;
@@ -30,12 +32,13 @@ public class TypeDto {
 		this.status = status;
 	}
 
-	public Integer getTypeGroupId() {
-		return typeGroupId;
+	public List<TypeDto> getTypeList() {
+		return typeList;
 	}
 
-	public void setTypeGroupId(Integer typeGroupId) {
-		this.typeGroupId = typeGroupId;
+	public void setTypeList(List<TypeDto> typeList) {
+		this.typeList = typeList;
 	}
+	
 	
 }

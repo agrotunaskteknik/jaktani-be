@@ -84,7 +84,7 @@ public class TypeServiceImpl implements TypeService {
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
     	}
     	
-    	Optional<Type> isExistType = repository.findFirstByNameAndCategoryIdAndStatusIsNot(type.getName(), type.getCategoryId(), STATUS_DELETED);
+    	Optional<Type> isExistType = repository.findFirstByNameAndTypeGroupIdAndStatusIsNot(type.getName(), type.getTypeGroupId(), STATUS_DELETED);
     	if(isExistType.isPresent()) {
     		response.setResponseCode("FAILED");
             response.setResponseMessage("Type name alrady exist");
@@ -94,7 +94,7 @@ public class TypeServiceImpl implements TypeService {
     	try {
     		entity.setName(type.getName());
     		entity.setStatus(STATUS_DEFAULT);
-    		entity.setCategoryId(type.getCategoryId());
+    		entity.setTypeGroupId(type.getTypeGroupId());
     		entity.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
     		repository.save(entity);
 		} catch (Exception e) {
@@ -123,7 +123,7 @@ public class TypeServiceImpl implements TypeService {
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
     	}
     	
-    	Optional<Type> isExistType = repository.findFirstByNameAndCategoryIdAndIdIsNotAndStatusIsNot(type.getName(), type.getCategoryId(), type.getId(), STATUS_DELETED);
+    	Optional<Type> isExistType = repository.findFirstByNameAndTypeGroupIdAndIdIsNotAndStatusIsNot(type.getName(), type.getTypeGroupId(), type.getId(), STATUS_DELETED);
     	if(isExistType.isPresent()) {
     		response.setResponseCode("FAILED");
             response.setResponseMessage("Type name alrady exist");
@@ -146,7 +146,7 @@ public class TypeServiceImpl implements TypeService {
     }
     
     private Boolean validateRequest(TypeDto type, Integer action) {
-    	if(type.getName()==null || type.getCategoryId()==null || type.getName()=="") {
+    	if(type.getName()==null || type.getTypeGroupId()==null || type.getName()=="") {
     		return false;
     	}
     		
@@ -159,14 +159,14 @@ public class TypeServiceImpl implements TypeService {
     }
     
     @Override
-    public Object getAllTypesByCategoryId(Integer categoryId) {
+    public Object getAllTypesByTypeGroupId(Integer categoryId) {
 	   if(categoryId==null) {
 			response.setResponseCode("FAILED");
 	        response.setResponseMessage("categoryId is null");
 	        return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
 	   }
        List<Type> typeList = new ArrayList<Type>();
-       List<Type> allTypes = repository.findAllByCategoryIdAndStatusIsNot(categoryId,STATUS_DELETED);
+       List<Type> allTypes = repository.findAllByTypeGroupIdAndStatusIsNot(categoryId,STATUS_DELETED);
        if(allTypes!=null) {
     	   typeList = allTypes;
        }

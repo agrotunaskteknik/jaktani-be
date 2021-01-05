@@ -3,14 +3,11 @@ package com.cartas.jaktani.service;
 import com.cartas.jaktani.dto.CategoryDto;
 import com.cartas.jaktani.dto.DocumentDto;
 import com.cartas.jaktani.dto.SubCategoryDto;
-import com.cartas.jaktani.dto.TypeDto;
 import com.cartas.jaktani.model.Category;
 import com.cartas.jaktani.model.Document;
 import com.cartas.jaktani.model.SubCategory;
-import com.cartas.jaktani.model.Type;
 import com.cartas.jaktani.repository.CategoryRepository;
 import com.cartas.jaktani.repository.DocumentRepository;
-import com.cartas.jaktani.repository.TypeRepository;
 import com.cartas.jaktani.util.BaseResponse;
 import com.cartas.jaktani.util.JSONUtil;
 import com.cartas.jaktani.util.Utils;
@@ -41,41 +38,6 @@ public class CategoryServiceImpl implements CategoryService {
     
     @Autowired private CategoryRepository repository;
     @Autowired private DocumentRepository documentRepository;
-    @Autowired private TypeRepository typeRepository;
-
-    @Override
-    public Object getCategoryByIDWithDocument(Integer id) {
-        Optional<Category> findCategory = repository.findByIdAndStatusIsNot(id,STATUS_DELETED);
-        if(!findCategory.isPresent()) {
-        	 response.setResponseCode("FAILED");
-             response.setResponseMessage("Data not found");
-             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
-        }
-        Category category = new Category();
-        CategoryDto categoryDto = new CategoryDto();
-		categoryDto.setName(category.getName());
-		categoryDto.setId(category.getId());
-		Optional<Document> findDocument = documentRepository.findByRefferenceIdAndTypeAndStatusIsNot(category.getId(), CATEGORY_DOC_TYPE, STATUS_DELETED);
-		if(findDocument.isPresent()) {
-			Document document = findDocument.get();
-			DocumentDto documentDto = new DocumentDto();
-			documentDto.setId(category.getId());
-			
-			documentDto.setRefferenceId(document.getRefferenceId());
-			documentDto.setName(document.getName());
-			documentDto.setType(document.getType());
-			documentDto.setCode(document.getCode());
-			documentDto.setFormat(document.getFormat());
-			documentDto.setContentData(document.getContentData());
-			documentDto.setSize(document.getSize());
-			documentDto.setOrderNumber(document.getOrderNumber());
-			documentDto.setStatus(document.getStatus());
-			categoryDto.setDocumentDto(documentDto);
-
-		}
-        
-        return new ResponseEntity<String>(JSONUtil.createJSON(categoryDto), HttpStatus.OK);
-    }
     
     @Override
     public Object getCategoryByID(Integer id) {
@@ -89,56 +51,7 @@ public class CategoryServiceImpl implements CategoryService {
         CategoryDto categoryDto = new CategoryDto();
 		categoryDto.setName(category.getName());
 		categoryDto.setId(category.getId());
-		
-        List<TypeDto> typeList = new ArrayList<>();
-		List<Type> allTypes = typeRepository.findAllByCategoryIdAndStatusIsNot(category.getId(), STATUS_DELETED);
-		if(allTypes!=null) {
-			for(Type type: allTypes) {
-    			TypeDto typeDto = new TypeDto();
-    			typeDto.setId(type.getId());
-    			typeDto.setName(type.getName());
-    			typeDto.setCategoryId(type.getCategoryId());
-    			typeDto.setStatus(type.getStatus());
-    			typeList.add(typeDto);
-    		}
-		}
-		
-		categoryDto.setTypeList(typeList);
         return new ResponseEntity<String>(JSONUtil.createJSON(categoryDto), HttpStatus.OK);
-    }
-
-
-    @Override
-    public Object getAllCategorysWithDocument() {
-    	List<Category> categorys= repository.findAllCategoryByAndStatusIsNot(STATUS_DELETED);
-        List<CategoryDto> categoryDtoList = new ArrayList<>();
-        if(categorys!=null) {
-        	for(Category category: categorys) {
-        		CategoryDto categoryDto = new CategoryDto();
-        		categoryDto.setName(category.getName());
-        		categoryDto.setId(category.getId());
-        		Optional<Document> findDocument = documentRepository.findByRefferenceIdAndTypeAndStatusIsNot(category.getId(), CATEGORY_DOC_TYPE, STATUS_DELETED);
-        		if(findDocument.isPresent()) {
-        			Document document = findDocument.get();
-        			DocumentDto documentDto = new DocumentDto();
-        			documentDto.setId(category.getId());
-        			
-        			documentDto.setRefferenceId(document.getRefferenceId());
-        			documentDto.setName(document.getName());
-        			documentDto.setType(document.getType());
-        			documentDto.setCode(document.getCode());
-        			documentDto.setFormat(document.getFormat());
-        			documentDto.setContentData(document.getContentData());
-        			documentDto.setSize(document.getSize());
-        			documentDto.setOrderNumber(document.getOrderNumber());
-        			documentDto.setStatus(document.getStatus());
-        			categoryDto.setDocumentDto(documentDto);
-
-        		}
-        		categoryDtoList.add(categoryDto);
-        	}
-        }
-        return new ResponseEntity<String>(JSONUtil.createJSON(categoryDtoList), HttpStatus.OK);
     }
     
     @Override
@@ -150,19 +63,6 @@ public class CategoryServiceImpl implements CategoryService {
         		CategoryDto categoryDto = new CategoryDto();
         		categoryDto.setName(category.getName());
         		categoryDto.setId(category.getId());
-        		List<Type> allTypes = typeRepository.findAllByCategoryIdAndStatusIsNot(category.getId(), STATUS_DELETED);
-        		if(allTypes!=null) {
-        	        List<TypeDto> typeList = new ArrayList<>();
-        			for(Type type: allTypes) {
-            			TypeDto typeDto = new TypeDto();
-            			typeDto.setId(type.getId());
-            			typeDto.setName(type.getName());
-            			typeDto.setCategoryId(type.getCategoryId());
-            			typeDto.setStatus(type.getStatus());
-            			typeList.add(typeDto);
-            		}
-        			categoryDto.setTypeList(typeList);
-        		}
         		categoryDtoList.add(categoryDto);
         	}
         }
@@ -236,10 +136,6 @@ public class CategoryServiceImpl implements CategoryService {
     		entity.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
     		repository.save(entity);
     		
-    		if(category.getDocumentDto()!=null) {
-        		saveCategoryDocument(category.getDocumentDto(), entity.getId(), ADD_TYPE);
-        	}
-    		
 		} catch (Exception e) {
 			response.setResponseCode("ERROR");
             response.setResponseMessage("Error "+e.getMessage());
@@ -253,7 +149,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Object editCategory(CategoryDto category) {
     	Category entity = new Category();
-    	if(!validateRequest(category, EDIT_TYPE) && category.getId()!=null) {
+    	if(!validateRequest(category, EDIT_TYPE)) {
     		response.setResponseCode("FAILED");
             response.setResponseMessage("Data is not valid");
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
@@ -278,9 +174,6 @@ public class CategoryServiceImpl implements CategoryService {
     		entity.setName(category.getName());
     		repository.save(entity);
     		
-    		if(category.getDocumentDto()!=null) {
-        		saveCategoryDocument(category.getDocumentDto(), entity.getId(), EDIT_TYPE);
-        	}
 		} catch (Exception e) {
 			response.setResponseCode("ERROR");
             response.setResponseMessage("Error "+e.getMessage());
@@ -346,28 +239,6 @@ public class CategoryServiceImpl implements CategoryService {
     		}
     	}
     	return true;
-    }
-    
-    private void saveCategoryDocument(DocumentDto document, Integer categoryId, Integer type) {
-    	Document entity = new Document();
-    	entity.setRefferenceId(categoryId);
-		entity.setName(document.getName());
-		entity.setType(CATEGORY_DOC_TYPE);
-		entity.setCode(document.getCode());
-		entity.setFormat(document.getFormat());
-		entity.setContentData(document.getContentData());
-		entity.setSize(document.getSize());
-		entity.setOrderNumber(document.getOrderNumber());
-		entity.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
-		entity.setStatus(STATUS_DEFAULT);
-		
-    	if(type == EDIT_TYPE) {
-    		Optional<Document> findDocument = documentRepository.findByRefferenceIdAndTypeAndStatusIsNot(categoryId, CATEGORY_DOC_TYPE, STATUS_DELETED);
-    		if(findDocument.isPresent()) {
-    			entity.setId(findDocument.get().getId());
-    		}
-    	}
-    	documentRepository.save(entity);
     }
 
 }

@@ -3,9 +3,7 @@ package com.cartas.jaktani.service;
 import com.cartas.jaktani.dto.CategoryDto;
 
 public interface CategoryService {
-	Object getCategoryByIDWithDocument(Integer id);
 	Object getCategoryByID(Integer id);
-	Object getAllCategorysWithDocument();
 	Object getAllCategorys();
 	Object getAllCategoryName();
     Object deleteCategoryByID(Integer id);
