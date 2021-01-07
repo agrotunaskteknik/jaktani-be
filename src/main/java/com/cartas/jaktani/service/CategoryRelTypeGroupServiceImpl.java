@@ -71,6 +71,26 @@ public class CategoryRelTypeGroupServiceImpl implements CategoryRelTypeGroupServ
         return new ResponseEntity<String>(JSONUtil.createJSON(categoryRelTypeGroupList), HttpStatus.OK);
     }
     
+    @Override
+    public Object getAllByCategoryId(Integer categoryId) {
+    	List<CategoryRelTypeGroup> categoryRelTypeGroups = repository.findAllByCategoryIdAndStatusIsNot(categoryId, STATUS_DELETED);
+    	List<CategoryRelTypeGroup> categoryRelTypeGroupList = new ArrayList<>();
+        if(categoryRelTypeGroups!=null) {
+        	for(CategoryRelTypeGroup categoryRelTypeGroup: categoryRelTypeGroups) {
+        		 Optional<Category> category = categoryRepository.findByIdAndStatusIsNot(categoryRelTypeGroup.getCategoryId(), STATUS_DELETED);
+        	        Optional<TypeGroup> typeGroup = typeGroupRepository.findByIdAndStatusIsNot(categoryRelTypeGroup.getTypeGroupId(), STATUS_DELETED);
+        	        if(category.isPresent()) {
+        	        	categoryRelTypeGroup.setCategoryName(category.get().getName());
+        	        }
+        	        if(typeGroup.isPresent()) {
+        	        	categoryRelTypeGroup.setTypeGroupName(typeGroup.get().getName());
+        	        }
+        		categoryRelTypeGroupList.add(categoryRelTypeGroup);
+        	}
+        }
+        return new ResponseEntity<String>(JSONUtil.createJSON(categoryRelTypeGroupList), HttpStatus.OK);
+    }
+    
 
     @Override
     public Object deleteByID(Integer id) {

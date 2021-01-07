@@ -57,6 +57,12 @@ public class Product {
     @Column(name = "category_id")
     private Integer categoryId;
     
+    @Column(name = "type_group_id")
+	public Integer typeGroupId;
+    
+    @Column(name = "type_id")
+	public Integer typeId;
+    
     @Column(name = "sub_category_id")
     private Integer subCategoryId;
     
@@ -218,6 +224,18 @@ public class Product {
 	}
 	public void setCondition(Integer condition) {
 		this.condition = condition;
+	}
+	public Integer getTypeGroupId() {
+		return typeGroupId;
+	}
+	public void setTypeGroupId(Integer typeGroupId) {
+		this.typeGroupId = typeGroupId;
+	}
+	public Integer getTypeId() {
+		return typeId;
+	}
+	public void setTypeId(Integer typeId) {
+		this.typeId = typeId;
 	}
     
 }

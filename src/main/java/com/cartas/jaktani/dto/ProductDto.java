@@ -19,6 +19,8 @@ public class ProductDto {
     private BigDecimal unitValue; //nilai satuans
     private List<TypeDto> typeList;
     private Integer categoryId;
+   	public Integer typeGroupId;
+   	public Integer typeId;
     private Integer subCategoryId;
 	public String brand;
 	public BigInteger price;
@@ -27,7 +29,6 @@ public class ProductDto {
 	public String youtubeLink;
 	public List<DocumentDto> documentList;
 	public Integer condition;
-
 
 	public Integer getId() {
 		return id;
@@ -167,6 +168,18 @@ public class ProductDto {
 	}
 	public void setCondition(Integer condition) {
 		this.condition = condition;
+	}
+	public Integer getTypeGroupId() {
+		return typeGroupId;
+	}
+	public void setTypeGroupId(Integer typeGroupId) {
+		this.typeGroupId = typeGroupId;
+	}
+	public Integer getTypeId() {
+		return typeId;
+	}
+	public void setTypeId(Integer typeId) {
+		this.typeId = typeId;
 	}
     
 }
