@@ -95,7 +95,7 @@ public class CategoryRelTypeGroupServiceImpl implements CategoryRelTypeGroupServ
     @Override
     public Object deleteByID(Integer id) {
     	CategoryRelTypeGroup findById = repository.findByIdAndStatusIsNot(id,STATUS_DELETED);
-        if(findById!=null) {
+        if(findById==null) {
         	 response.setResponseCode("FAILED");
              response.setResponseMessage("Data not found");
              return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
