@@ -5,6 +5,7 @@ public class TypeDto {
 	public String name;
     public Integer status;
     public Integer typeGroupId;
+    public String typeGroupName;
 
 	public Integer getId() {
 		return id;
@@ -38,4 +39,11 @@ public class TypeDto {
 		this.typeGroupId = typeGroupId;
 	}
 	
+	public String getTypeGroupName() {
+		return typeGroupName;
+	}
+
+	public void setTypeGroupName(String typeGroupName) {
+		this.typeGroupName = typeGroupName;
+	}
 }

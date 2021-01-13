@@ -4,10 +4,13 @@ import com.cartas.jaktani.dto.CategoryDto;
 import com.cartas.jaktani.dto.DocumentDto;
 import com.cartas.jaktani.dto.SubCategoryDto;
 import com.cartas.jaktani.model.Category;
+import com.cartas.jaktani.model.CategoryRelTypeGroup;
 import com.cartas.jaktani.model.Document;
 import com.cartas.jaktani.model.SubCategory;
+import com.cartas.jaktani.repository.CategoryRelTypeGroupRepository;
 import com.cartas.jaktani.repository.CategoryRepository;
 import com.cartas.jaktani.repository.DocumentRepository;
+import com.cartas.jaktani.repository.TypeGroupRepository;
 import com.cartas.jaktani.util.BaseResponse;
 import com.cartas.jaktani.util.JSONUtil;
 import com.cartas.jaktani.util.Utils;
@@ -38,6 +41,7 @@ public class CategoryServiceImpl implements CategoryService {
     
     @Autowired private CategoryRepository repository;
     @Autowired private DocumentRepository documentRepository;
+    @Autowired private CategoryRelTypeGroupRepository categoryRelTypeGroupRepository;
     
     @Override
     public Object getCategoryByID(Integer id) {
@@ -94,6 +98,11 @@ public class CategoryServiceImpl implements CategoryService {
     	}
     	
     	try {
+    		if(isAlreadyUsed(id)) {
+    			response.setResponseCode("FAILED");
+                response.setResponseMessage("Data Already Used!");
+                return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
+    		}
     		category.get().setStatus(STATUS_DELETED);
         	repository.save(category.get());
         	
@@ -239,6 +248,14 @@ public class CategoryServiceImpl implements CategoryService {
     		}
     	}
     	return true;
+    }
+    
+    private Boolean isAlreadyUsed(Integer categoryId) {
+    	List<CategoryRelTypeGroup> categoryRelTypeGroups = categoryRelTypeGroupRepository.findAllByCategoryIdAndStatusIsNot(categoryId, STATUS_DELETED);
+    	if(categoryRelTypeGroups!=null && categoryRelTypeGroups.size()>0) {
+    		return true;
+    	}
+    	return false;
     }
 
 }

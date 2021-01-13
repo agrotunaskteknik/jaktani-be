@@ -2,6 +2,8 @@ package com.cartas.jaktani.service;
 
 import com.cartas.jaktani.dto.TypeDto;
 import com.cartas.jaktani.model.Type;
+import com.cartas.jaktani.model.TypeGroup;
+import com.cartas.jaktani.repository.TypeGroupRepository;
 import com.cartas.jaktani.repository.TypeRepository;
 import com.cartas.jaktani.util.BaseResponse;
 import com.cartas.jaktani.util.JSONUtil;
@@ -26,28 +28,47 @@ public class TypeServiceImpl implements TypeService {
     
     BaseResponse response = new BaseResponse();
     
-    @Autowired
-    private TypeRepository repository;
+    @Autowired private TypeRepository repository;
+    @Autowired private TypeGroupRepository typeGroupRepository;
 
     @Override
     public Object getTypeByID(Integer id) {
-        Optional<Type> type = repository.findByIdAndStatusIsNot(id,STATUS_DELETED);
-        if(!type.isPresent()) {
+        Optional<Type> typeById = repository.findByIdAndStatusIsNot(id,STATUS_DELETED);
+        if(!typeById.isPresent()) {
         	 response.setResponseCode("FAILED");
              response.setResponseMessage("Data not found");
              return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
         }
-        
-        return new ResponseEntity<String>(JSONUtil.createJSON(type.get()), HttpStatus.OK);
+        Optional<TypeGroup> typeGroup = typeGroupRepository.findByIdAndStatusIsNot(typeById.get().getTypeGroupId(), STATUS_DELETED);
+        TypeDto type = new TypeDto();
+        type.setId(id);
+        type.setName(typeById.get().getName());
+        type.setStatus(typeById.get().getStatus());
+        type.setTypeGroupId(typeById.get().getTypeGroupId());
+        if(typeGroup.isPresent()) {
+            type.setTypeGroupName(typeGroup.get().getName());
+        }
+        return new ResponseEntity<String>(JSONUtil.createJSON(type), HttpStatus.OK);
     }
 
 
     @Override
     public Object getAllTypes() {
-        List<Type> types= repository.findAllTypeByAndStatusIsNot(STATUS_DELETED);
-        List<Type> typeList = new ArrayList<>();
+        List<Type> types = repository.findAllTypeByAndStatusIsNot(STATUS_DELETED);
+        List<TypeDto> typeList = new ArrayList<>();
         if(types!=null) {
-        	typeList = types;
+        	for(Type tempType: types) {
+        		Optional<TypeGroup> typeGroup = typeGroupRepository.findByIdAndStatusIsNot(tempType.getTypeGroupId(), STATUS_DELETED);
+                TypeDto type = new TypeDto();
+                type.setId(tempType.getId());
+                type.setName(tempType.getName());
+                type.setStatus(tempType.getStatus());
+                type.setTypeGroupId(tempType.getTypeGroupId());
+                if(typeGroup.isPresent()) {
+                    type.setTypeGroupName(typeGroup.get().getName());
+                }
+                typeList.add(type);
+        	}
         }
         return new ResponseEntity<String>(JSONUtil.createJSON(typeList), HttpStatus.OK);
     }
@@ -165,10 +186,21 @@ public class TypeServiceImpl implements TypeService {
 	        response.setResponseMessage("typeGroupId is null");
 	        return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
 	   }
-       List<Type> typeList = new ArrayList<Type>();
+       List<TypeDto> typeList = new ArrayList<TypeDto>();
        List<Type> allTypes = repository.findAllByTypeGroupIdAndStatusIsNot(typeGroupId,STATUS_DELETED);
        if(allTypes!=null) {
-    	   typeList = allTypes;
+       	for(Type tempType: allTypes) {
+       		Optional<TypeGroup> typeGroup = typeGroupRepository.findByIdAndStatusIsNot(tempType.getTypeGroupId(), STATUS_DELETED);
+               TypeDto type = new TypeDto();
+               type.setId(tempType.getId());
+               type.setName(tempType.getName());
+               type.setStatus(tempType.getStatus());
+               type.setTypeGroupId(tempType.getTypeGroupId());
+               if(typeGroup.isPresent()) {
+                   type.setTypeGroupName(typeGroup.get().getName());
+               }
+               typeList.add(type);
+       	}
        }
        return new ResponseEntity<String>(JSONUtil.createJSON(typeList), HttpStatus.OK);
     }

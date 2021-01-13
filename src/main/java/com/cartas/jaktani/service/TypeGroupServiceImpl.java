@@ -4,9 +4,11 @@ import com.cartas.jaktani.dto.TypeGroupDto;
 import com.cartas.jaktani.dto.DocumentDto;
 import com.cartas.jaktani.dto.TypeDto;
 import com.cartas.jaktani.model.TypeGroup;
+import com.cartas.jaktani.model.CategoryRelTypeGroup;
 import com.cartas.jaktani.model.Document;
 import com.cartas.jaktani.model.Type;
 import com.cartas.jaktani.repository.TypeGroupRepository;
+import com.cartas.jaktani.repository.CategoryRelTypeGroupRepository;
 import com.cartas.jaktani.repository.DocumentRepository;
 import com.cartas.jaktani.repository.TypeRepository;
 import com.cartas.jaktani.util.BaseResponse;
@@ -36,6 +38,7 @@ public class TypeGroupServiceImpl implements TypeGroupService {
     
     @Autowired private TypeGroupRepository repository;
     @Autowired private TypeRepository typeRepository;
+    @Autowired private CategoryRelTypeGroupRepository categoryRelTypeGroupRepository;
 
     @Override
     public Object getTypeGroupByID(Integer id) {
@@ -120,6 +123,12 @@ public class TypeGroupServiceImpl implements TypeGroupService {
     	}
     	
     	try {
+    		if(isAlreadyUsed(id)) {
+    			response.setResponseCode("FAILED");
+                response.setResponseMessage("Data Already Used!");
+                return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
+    		}
+    		
     		typeGroup.get().setStatus(STATUS_DELETED);
         	repository.save(typeGroup.get());
         	
@@ -218,5 +227,11 @@ public class TypeGroupServiceImpl implements TypeGroupService {
     	return true;
     }
     
-
+    private Boolean isAlreadyUsed(Integer typeGroupId) {
+    	List<CategoryRelTypeGroup> categoryRelTypeGroups = categoryRelTypeGroupRepository.findAllByCategoryIdAndStatusIsNot(typeGroupId, STATUS_DELETED);
+    	if(categoryRelTypeGroups!=null && categoryRelTypeGroups.size()>0) {
+    		return true;
+    	}
+    	return false;
+    }
 }
