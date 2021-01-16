@@ -16,8 +16,7 @@ public class ProductDto {
     private Integer minOrder;
     private Integer maxOrder;
     private Integer unitType; //jenis satuan (kg, m, dll)
-    private BigDecimal unitValue; //nilai satuans
-    private List<TypeDto> typeList;
+    private BigDecimal unitValue; //nilai satuan
     private Integer categoryId;
    	public Integer typeGroupId;
    	public Integer typeId;
@@ -150,12 +149,6 @@ public class ProductDto {
 	}
 	public void setUnitValue(BigDecimal unitValue) {
 		this.unitValue = unitValue;
-	}
-	public List<TypeDto> getTypeList() {
-		return typeList;
-	}
-	public void setTypeList(List<TypeDto> typeList) {
-		this.typeList = typeList;
 	}
 	public List<DocumentDto> getDocumentList() {
 		return documentList;

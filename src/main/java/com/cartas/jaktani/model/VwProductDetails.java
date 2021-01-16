@@ -114,9 +114,6 @@ public class VwProductDetails {
     String youtubeId;
     
     @Transient
-    List<ProductType> productTypeList;
-    
-    @Transient
     List<Document> documentList;
 
 	@Transient
@@ -347,14 +344,6 @@ public class VwProductDetails {
 
 	public void setSubCategoryName(String subCategoryName) {
 		this.subCategoryName = subCategoryName;
-	}
-
-	public List<ProductType> getProductTypeList() {
-		return productTypeList;
-	}
-
-	public void setProductTypeList(List<ProductType> productTypeList) {
-		this.productTypeList = productTypeList;
 	}
 
 	public List<Document> getDocumentList() {
