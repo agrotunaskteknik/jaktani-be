@@ -46,7 +46,6 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
         try {
             productDetails = repository.findFirstByProductId(productId);
             if (productDetails != null) {
-                List<ProductType> productTypeList = new ArrayList<>();
                 //List<ProductType> allProductType = productTypeRepo.findAllByProductIdAndStatusIsNot(productId, STATUS_DELETED);
 //                List<Document> documentList = documentRepo.findAllByRefferenceIdAndTypeAndStatusIsNot(productId, PRODUCT_DOC_TYPE, STATUS_DELETED);
                 List<Photo> photoList = photoRepository.findAllByRefferenceIdAndStatusIsNot(productId, STATUS_DELETED);
@@ -61,26 +60,12 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
                         productTypeList.add(productType);
                     }
                 }*/
-                if(productDetails.getTypeId()!=null) {
-                	Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productDetails.getTypeId(), STATUS_DELETED);
-                    if (type.isPresent()) {
-                    	productDetails.setTypeName(type.get().getName());
-                    }
-                }
-                
-                if(productDetails.getTypeGroupId()!=null) {
-                	Optional<TypeGroup> typeGroup = typeGroupRepository.findByIdAndStatusIsNot(productDetails.getTypeGroupId(), STATUS_DELETED);
-                    if (typeGroup.isPresent()) {
-                    	productDetails.setTypeGroupName(typeGroup.get().getName());
-                    }
-                }
                 
                 if (productDetails.getYoutubeLink() != null && productDetails.getYoutubeLink() != "") {
                     YouTubeHelper youTubeHelper = new YouTubeHelper();
                     String youtubeId = youTubeHelper.extractVideoIdFromUrl(productDetails.getYoutubeLink());
                     productDetails.setYoutubeId(youtubeId);
                 }
-                productDetails.setProductTypeList(productTypeList);
                 productDetails.setDocumentList(new ArrayList<>());
                 productDetails.setPhotoList(photoList);
             }
@@ -114,26 +99,11 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
                     photo.setParentUrl("http://jaktani.com/photo/getImageByUniqueKey/");
                 }
                 
-                if(productDetails.getTypeId()!=null) {
-                	Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productDetails.getTypeId(), STATUS_DELETED);
-                    if (type.isPresent()) {
-                    	productDetails.setTypeName(type.get().getName());
-                    }
-                }
-                
-                if(productDetails.getTypeGroupId()!=null) {
-                	Optional<TypeGroup> typeGroup = typeGroupRepository.findByIdAndStatusIsNot(productDetails.getTypeGroupId(), STATUS_DELETED);
-                    if (typeGroup.isPresent()) {
-                    	productDetails.setTypeGroupName(typeGroup.get().getName());
-                    }
-                }
-                
                 if (productDetails.getYoutubeLink() != null && productDetails.getYoutubeLink() != "") {
                     YouTubeHelper youTubeHelper = new YouTubeHelper();
                     String youtubeId = youTubeHelper.extractVideoIdFromUrl(productDetails.getYoutubeLink());
                     productDetails.setYoutubeId(youtubeId);
                 }
-                productDetails.setProductTypeList(productTypeList);
                 productDetails.setDocumentList(new ArrayList<>());
                 productDetails.setPhotoList(photoList);
             }
@@ -159,29 +129,13 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
         List<VwProductDetails> findProductDetails = repository.findAllByShopId(shopId);
         if (findProductDetails != null && findProductDetails.size() > 0) {
             for (VwProductDetails productDetails : findProductDetails) {
-                List<ProductType> productTypeList = new ArrayList<>();
                 List<Document> documentList = documentRepo.findAllByRefferenceIdAndTypeAndStatusIsNot(productDetails.getProductId(), PRODUCT_DOC_TYPE, STATUS_DELETED);
-                
-                if(productDetails.getTypeId()!=null) {
-                	Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productDetails.getTypeId(), STATUS_DELETED);
-                    if (type.isPresent()) {
-                    	productDetails.setTypeName(type.get().getName());
-                    }
-                }
-                
-                if(productDetails.getTypeGroupId()!=null) {
-                	Optional<TypeGroup> typeGroup = typeGroupRepository.findByIdAndStatusIsNot(productDetails.getTypeGroupId(), STATUS_DELETED);
-                    if (typeGroup.isPresent()) {
-                    	productDetails.setTypeGroupName(typeGroup.get().getName());
-                    }
-                }
-                
+               
                 if (productDetails.getYoutubeLink() != null && productDetails.getYoutubeLink() != "") {
                     YouTubeHelper youTubeHelper = new YouTubeHelper();
                     String youtubeId = youTubeHelper.extractVideoIdFromUrl(productDetails.getYoutubeLink());
                     productDetails.setYoutubeId(youtubeId);
                 }
-                productDetails.setProductTypeList(productTypeList);
                 productDetails.setDocumentList(documentList);
                 productDetailsList.add(productDetails);
 
@@ -227,7 +181,6 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
             if (findProductDetails != null && findProductDetails.size() > 0) {
                 for (VwProductDetails productDetails : findProductDetails) {
 //                    List<Document> documentList = new ArrayList<Document>();
-                    List<ProductType> productTypeList = new ArrayList<>();
                     List<Photo> photoList = photoRepository.findAllByRefferenceIdAndStatusIsNot(productDetails.getProductId(), STATUS_DELETED);
                     for (Photo photo : photoList) {
                         photo.setParentUrl("http://jaktani.com/photo/getImageByUniqueKey/");
@@ -255,7 +208,6 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
                         String youtubeId = youTubeHelper.extractVideoIdFromUrl(productDetails.getYoutubeLink());
                         productDetails.setYoutubeId(youtubeId);
                     }
-                    productDetails.setProductTypeList(productTypeList);
 //                    productDetails.setDocumentList(documentList);
                     productDetails.setPhotoList(photoList);
                     productDetailsList.add(productDetails);

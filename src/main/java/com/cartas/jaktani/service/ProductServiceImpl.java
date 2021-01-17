@@ -156,6 +156,8 @@ public class ProductServiceImpl implements ProductService {
             entity.setSold(product.getSold());
             entity.setCategoryId(product.getCategoryId());
             entity.setSubCategoryId(product.getSubCategoryId());
+            entity.setTypeGroupId(product.getTypeGroupId());
+            entity.setTypeId(product.getTypeId());
             entity.setBrand(product.getBrand());
             entity.setPrice(product.getPrice());
             entity.setDiscount(product.getDiscount());
@@ -163,7 +165,6 @@ public class ProductServiceImpl implements ProductService {
             entity.setYoutubeLink(product.getYoutubeLink());
             entity.setCondition(product.getCondition());
             repository.save(entity);
-            saveProductType(product.getTypeList(), entity.getId());
             saveProductDocument(product.getDocumentList(), entity.getId());
             saveProductPhoto(product.getDocumentList(), entity.getId());
         } catch (Exception e) {
@@ -214,6 +215,8 @@ public class ProductServiceImpl implements ProductService {
             entity.setUnitValue(product.getUnitValue());
             entity.setCategoryId(product.getCategoryId());
             entity.setSubCategoryId(product.getSubCategoryId());
+            entity.setTypeGroupId(product.getTypeGroupId());
+            entity.setTypeId(product.getTypeId());
             entity.setBrand(product.getBrand());
             entity.setPrice(product.getPrice());
             entity.setDiscount(product.getDiscount());
@@ -221,7 +224,6 @@ public class ProductServiceImpl implements ProductService {
             entity.setYoutubeLink(product.getYoutubeLink());
             entity.setCondition(product.getCondition());
             repository.save(entity);
-            saveProductType(product.getTypeList(), entity.getId());
             saveProductDocument(product.getDocumentList(), entity.getId());
             saveProductPhoto(product.getDocumentList(), entity.getId());
         } catch (Exception e) {
@@ -258,28 +260,6 @@ public class ProductServiceImpl implements ProductService {
             }
         }
         return true;
-    }
-
-
-    @Transactional
-    private void saveProductType(List<TypeDto> typeDtoList, Integer productId) {
-        deleteAllProductType(productId);
-        if (typeDtoList != null && typeDtoList.size() > 0) {
-            for (TypeDto typeDto : typeDtoList) {
-                ProductType entity = productTypeRepo.findFirstByProductIdAndTypeId(productId, typeDto.getId());
-                if (entity != null) {
-                    entity.setStatus(STATUS_ACTIVE);
-                    productTypeRepo.save(entity);
-                } else {
-                    entity = new ProductType();
-                    entity.setProductId(productId);
-                    entity.setTypeId(typeDto.getId());
-                    entity.setStatus(STATUS_ACTIVE);
-                    productTypeRepo.save(entity);
-                }
-                entity = null;
-            }
-        }
     }
 
     @Transactional
