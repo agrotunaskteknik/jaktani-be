@@ -19,10 +19,22 @@ public class CartController {
     @RequestMapping(value = "/add_to_cart", method = RequestMethod.POST)
     public ResponseEntity<?> addToCart(@RequestBody AddToCartDtoRequest addToCartDtoRequest) {
         try {
-            CommonResponse response = cartService.addToCart(addToCartDtoRequest);
+            AddToCartDtoResponse response = cartService.addToCart(addToCartDtoRequest);
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
             logger.debug("add_to_cart Caught Error : " + e.getMessage());
+            return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
+        }
+    }
+
+    @RequestMapping(value = "/cart_counter", method = RequestMethod.GET)
+    public ResponseEntity<?> cartCounter(@RequestParam String userID) {
+        try {
+            Long userIDLong = Long.parseLong(userID);
+            AddToCartDtoResponse response = cartService.getCounter(userIDLong);
+            return ResponseEntity.ok().body(new ParentResponse(response));
+        } catch (Exception e) {
+            logger.debug("cart_counter Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
