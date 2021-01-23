@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.sql.Date;
 
+import javax.persistence.Column;
+
 public class UserDto {
     public Integer id;
     public String fullName;
@@ -17,6 +19,19 @@ public class UserDto {
     public String mobilePhoneNumber;
     public Date birthDate;
     public String otp;
+
+    public String ktpNumber;
+    public String ktpFilePath;
+    public String ktpUrlPath;
+    public String ktpFilePathHome;
+    public String ktpUrlPathHome;
+    public String ktpBase64;
+	
+    public String profileFilePath;
+    public String profileUrlPath;
+    public String profileFilePathHome;
+    public String profileUrlPathHome;
+    public String profileBase64;
 
     public String getOtp() {
         return otp;
@@ -119,8 +134,98 @@ public class UserDto {
     public void setBirthDate(Date birthDate) {
         this.birthDate = birthDate;
     }
+    
+    
 
-    @Override
+    public String getKtpNumber() {
+		return ktpNumber;
+	}
+
+	public void setKtpNumber(String ktpNumber) {
+		this.ktpNumber = ktpNumber;
+	}
+
+	public String getKtpFilePath() {
+		return ktpFilePath;
+	}
+
+	public void setKtpFilePath(String ktpFilePath) {
+		this.ktpFilePath = ktpFilePath;
+	}
+
+	public String getKtpUrlPath() {
+		return ktpUrlPath;
+	}
+
+	public void setKtpUrlPath(String ktpUrlPath) {
+		this.ktpUrlPath = ktpUrlPath;
+	}
+
+	public String getKtpFilePathHome() {
+		return ktpFilePathHome;
+	}
+
+	public void setKtpFilePathHome(String ktpFilePathHome) {
+		this.ktpFilePathHome = ktpFilePathHome;
+	}
+
+	public String getKtpUrlPathHome() {
+		return ktpUrlPathHome;
+	}
+
+	public void setKtpUrlPathHome(String ktpUrlPathHome) {
+		this.ktpUrlPathHome = ktpUrlPathHome;
+	}
+
+	public String getProfileFilePath() {
+		return profileFilePath;
+	}
+
+	public void setProfileFilePath(String profileFilePath) {
+		this.profileFilePath = profileFilePath;
+	}
+
+	public String getProfileUrlPath() {
+		return profileUrlPath;
+	}
+
+	public void setProfileUrlPath(String profileUrlPath) {
+		this.profileUrlPath = profileUrlPath;
+	}
+
+	public String getProfileFilePathHome() {
+		return profileFilePathHome;
+	}
+
+	public void setProfileFilePathHome(String profileFilePathHome) {
+		this.profileFilePathHome = profileFilePathHome;
+	}
+
+	public String getProfileUrlPathHome() {
+		return profileUrlPathHome;
+	}
+
+	public void setProfileUrlPathHome(String profileUrlPathHome) {
+		this.profileUrlPathHome = profileUrlPathHome;
+	}
+
+	public String getKtpBase64() {
+		return ktpBase64;
+	}
+
+	public void setKtpBase64(String ktpBase64) {
+		this.ktpBase64 = ktpBase64;
+	}
+
+	public String getProfileBase64() {
+		return profileBase64;
+	}
+
+	public void setProfileBase64(String profileBase64) {
+		this.profileBase64 = profileBase64;
+	}
+
+	@Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("UserDto{");
         sb.append("id=").append(id);
