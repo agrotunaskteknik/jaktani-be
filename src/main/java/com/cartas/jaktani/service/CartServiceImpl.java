@@ -85,8 +85,8 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CommonResponse addToCart(AddToCartDtoRequest param) {
-        CommonResponse response = new CommonResponse();
+    public AddToCartDtoResponse addToCart(AddToCartDtoRequest param) {
+        AddToCartDtoResponse response = new AddToCartDtoResponse();
         // check request param
         if (param == null) {
             logger.error("Null param from client ");
@@ -142,6 +142,12 @@ public class CartServiceImpl implements CartService {
                 response.setStatus(STATUS_NOT_OK);
                 return response;
             }
+            List<CartItem> cartItemList = cartRepository.findByStatusAndUserID(CART_STATUS_CART_PAGE, param.getUserID());
+            long cartCounter = 0L;
+            if (cartItemList != null && cartItemList.size() > 0) {
+                cartCounter = cartItemList.size();
+            }
+            response.setCartCounter(cartCounter);
             response.setMessage(SUCCESS_SAVE_CART);
             response.setStatus(STATUS_OK);
             return response;
@@ -151,6 +157,20 @@ public class CartServiceImpl implements CartService {
             response.setStatus(STATUS_NOT_OK);
             return response;
         }
+    }
+
+    @Override
+    public AddToCartDtoResponse getCounter(Long userID) {
+        AddToCartDtoResponse response = new AddToCartDtoResponse();
+        List<CartItem> cartItemList = cartRepository.findByStatusAndUserID(CART_STATUS_CART_PAGE, userID);
+        long cartCounter = 0L;
+        if (cartItemList != null && cartItemList.size() > 0) {
+            cartCounter = cartItemList.size();
+        }
+        response.setCartCounter(cartCounter);
+        response.setMessage(SUCCESS_SAVE_CART);
+        response.setStatus(STATUS_OK);
+        return response;
     }
 
     @Override
@@ -357,7 +377,7 @@ public class CartServiceImpl implements CartService {
             ShopGroupData shopGroupData = new ShopGroupData();
             if (shopMap.get(cartDetail.getVWProductDto().getShopId().longValue()) != null) {
                 shopGroupData.setShop(shopMap.get(cartDetail.getVWProductDto().getShopId().longValue()));
-                if(shopGroupData.getShop().getStatus() == 2){
+                if (shopGroupData.getShop().getStatus() == 2) {
                     shopGroupData.setTickerMessage("Toko tutup");
                     // unavailable, get from map, and put it
                     ShopGroupData shopGroupData1 = shopGroupUnavailableMap.get(cartDetail.getVWProductDto().getShopId().longValue());
@@ -377,7 +397,6 @@ public class CartServiceImpl implements CartService {
                 logger.debug("Product not found for shop_id : " + cartDetail.getVWProductDto().getShopId());
                 continue;
             }
-
 
 
             if (cartDetail.getVWProductDto().getStock() < cartDetail.getQuantity()) {
