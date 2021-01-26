@@ -142,7 +142,7 @@ public class ShopServiceImpl implements ShopService {
 		}
     	
     	response.setResponseCode("SUCCESS");
-        response.setResponseMessage("Delete Success");
+        response.setResponseMessage("Update Status Success");
         return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.OK);
     }
     
