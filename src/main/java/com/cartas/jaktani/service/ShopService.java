@@ -6,7 +6,9 @@ public interface ShopService {
 	Object getShopByID(Integer userID);
 	Object getShopByName(String name);
 	Object getAllShops();
+	Object getAllShopsByStatus(Integer status);
     Object deleteShopByID(Integer id);
+    Object updateShopStatusByID(Integer id, Integer status);
     Object addShop(ShopDto shop);
     Object editShop(ShopDto shop);
 }

@@ -129,13 +129,7 @@ public class ProductServiceImpl implements ProductService {
             response.setResponseMessage("Data is not valid");
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
         }
-
-        Optional<Product> isExistProduct = repository.findByNameAndShopIdAndStatusIsNot(product.getName(), product.getShopId(), STATUS_DELETED);
-        if (isExistProduct.isPresent()) {
-            response.setResponseCode("FAILED");
-            response.setResponseMessage("Product name alrady exist");
-            return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
-        }
+        
         if (product.getDocumentList() == null || product.getDocumentList().size() < 1) {
             response.setResponseCode("FAILED");
             response.setResponseMessage("Product document is empty");
@@ -191,13 +185,6 @@ public class ProductServiceImpl implements ProductService {
         if (!productById.isPresent()) {
             response.setResponseCode("FAILED");
             response.setResponseMessage("Shop is not exist");
-            return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
-        }
-
-        Optional<Product> isExistProduct = repository.findByNameAndShopIdAndIdIsNotAndStatusIsNot(product.getName(), product.getShopId(), product.getId(), STATUS_DELETED);
-        if (isExistProduct.isPresent()) {
-            response.setResponseCode("FAILED");
-            response.setResponseMessage("Product name alrady exist");
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
         }
 

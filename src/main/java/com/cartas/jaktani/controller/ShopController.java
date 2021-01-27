@@ -22,12 +22,16 @@ public class ShopController {
     public Object getAllShop() {
         return shopService.getAllShops();
     }
+    
+    @GetMapping(path = "/allByStatus/{status}")
+    public Object getAllShopByStatus(@PathVariable(name = "status") Integer status) {
+        return shopService.getAllShopsByStatus(status);
+    }
 
 	@PostMapping(path = "/add") 
 	public Object addShop(@RequestBody ShopDto shop) { 
 		return shopService.addShop(shop); 
 	}
-	 
 
 	@PostMapping(path = "/edit") 
 	public Object editShop(@RequestBody ShopDto shop) { 
@@ -37,6 +41,11 @@ public class ShopController {
     @PostMapping(path = "/delete/{id}")
     public Object deleteShopByID(@PathVariable(name = "id") Integer id) throws ResourceNotFoundException {
         return shopService.deleteShopByID(id);
+    }
+    
+    @PostMapping(path = "/updateShopStatusByID/{id}/{status}")
+    public Object updateShopStatusByID(@PathVariable(name = "id") Integer id, @PathVariable(name = "status") Integer status) throws ResourceNotFoundException {
+        return shopService.updateShopStatusByID(id, status);
     }
 
 }
