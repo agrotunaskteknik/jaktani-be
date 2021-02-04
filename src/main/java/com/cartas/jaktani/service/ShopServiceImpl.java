@@ -66,6 +66,19 @@ public class ShopServiceImpl implements ShopService {
         shop.get().setUser(user.get());
         return new ResponseEntity<String>(JSONUtil.createJSON(shop.get()), HttpStatus.OK);
     }
+    
+    @Override
+    public Object getShopByUserID(Integer userId) {
+        Optional<Shop> shop = repository.findByUserIDAndStatusIsNot(userId,STATUS_DELETED);
+        if(!shop.isPresent()) {
+        	 response.setResponseCode("FAILED");
+             response.setResponseMessage("Data not found");
+             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
+        }
+        Optional<Users> user = userRepository.findById(shop.get().getUserID());
+        shop.get().setUser(user.get());
+        return new ResponseEntity<String>(JSONUtil.createJSON(shop.get()), HttpStatus.OK);
+    }
 
     @Override
     public Object getShopByName(String name) {
@@ -163,9 +176,17 @@ public class ShopServiceImpl implements ShopService {
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
     	}
     	
+    	Optional<Shop> shopByUserId = repository.findByUserIDAndStatusIsNot(shop.getUserID(),STATUS_DELETED);
+    	if(shopByUserId.isPresent()) {
+       	    response.setResponseCode("FAILED");
+            response.setResponseMessage("You already have a shop!");
+            return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
+        }
+    	
     	try {
     		entity.setName(shop.getName());
-    		entity.setDescription(shop.getName());
+    		entity.setAddress(shop.getAddress());
+    		entity.setDescription(shop.getDescription());
     		entity.setUserID(shop.getUserID());
     		entity.setStatus(STATUS_READY);
     		entity.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
@@ -212,7 +233,8 @@ public class ShopServiceImpl implements ShopService {
     	try {
     		entity = shopById.get();
     		entity.setName(shop.getName());
-    		entity.setDescription(shop.getName());
+    		entity.setAddress(shop.getAddress());
+    		entity.setDescription(shop.getDescription());
     		entity.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
     		entity.setUpdatedBy(shop.getUpdatedBy());
     		entity.setLatitude(shop.getLatitude());

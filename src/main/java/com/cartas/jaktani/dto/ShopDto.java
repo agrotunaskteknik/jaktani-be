@@ -7,6 +7,7 @@ public class ShopDto {
 	public Integer id;
 	public Integer userID;
     public String name;
+    public String address;
     public Integer updatedBy;
     public Integer status;
     public String description;
@@ -115,6 +116,12 @@ public class ShopDto {
 	}
 	public void setUserDto(UserDto userDto) {
 		this.userDto = userDto;
+	}
+	public String getAddress() {
+		return address;
+	}
+	public void setAddress(String address) {
+		this.address = address;
 	}
 	
 }
