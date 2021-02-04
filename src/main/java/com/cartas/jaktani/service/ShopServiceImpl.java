@@ -2,6 +2,7 @@ package com.cartas.jaktani.service;
 
 import com.cartas.jaktani.dto.ShopDto;
 import com.cartas.jaktani.dto.UserDto;
+import com.cartas.jaktani.model.Photo;
 import com.cartas.jaktani.model.Shop;
 import com.cartas.jaktani.model.Users;
 import com.cartas.jaktani.repository.ShopRepository;
@@ -10,6 +11,7 @@ import com.cartas.jaktani.util.BaseResponse;
 import com.cartas.jaktani.util.JSONUtil;
 import com.cartas.jaktani.util.Utils;
 
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +21,10 @@ import org.springframework.stereotype.Service;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -251,6 +255,31 @@ public class ShopServiceImpl implements ShopService {
     	response.setResponseCode("SUCCESS");
         response.setResponseMessage("Edit Success");
         return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.OK);
+    }
+    
+    @Override
+    public byte[] getLogoFile(String urlPath) {
+    	Optional<Shop> shop = repository.findFirstByLogoUrlPathAndStatusIsNot(urlPath, STATUS_DELETED);
+        if (!shop.isPresent()) {
+            logger.debug("Image logo not found from repository");
+            return null;
+        }
+        String imageFilePath = shop.get().getLogoFilePath();
+        if (imageFilePath == null || imageFilePath.trim().equalsIgnoreCase("")) {
+            logger.debug("Image logo from repository is empty");
+        }
+        try {
+            File initialFileImage = new File(imageFilePath);
+            if (!initialFileImage.exists()) {
+                logger.debug("initialFileImage logo Path not found");
+                return null;
+            }
+            InputStream in = new FileInputStream(initialFileImage);
+            return IOUtils.toByteArray(in);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage());
+        }
+        return null;
     }
     
     @Transactional
