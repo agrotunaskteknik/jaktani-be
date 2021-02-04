@@ -11,6 +11,7 @@ import java.util.Optional;
 public interface ShopRepository extends JpaRepository<Shop, Integer> {
     Optional<Shop> findFirstByNameAndStatusIsNot(String name, Integer status);
     Optional<Shop> findByIdAndStatusIsNot(Integer id, Integer status);
+    Optional<Shop> findByUserIDAndStatusIsNot(Integer userId, Integer status);
     Optional<Shop> findFirstByNameAndIdIsNotAndStatusIsNot(String name, Integer id, Integer status);
     List<Shop> findAllShopByAndStatusIsNot(Integer status);
     List<Shop> findAllShopByStatus(Integer status);

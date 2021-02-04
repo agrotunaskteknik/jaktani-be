@@ -17,6 +17,11 @@ public class ShopController {
     public Object getShopByID(@PathVariable(name = "id") Integer id) throws ResourceNotFoundException {
         return shopService.getShopByID(id);
     }
+    
+    @GetMapping(path = "/getByUserId/{userId}")
+    public Object getShopByUserID(@PathVariable(name = "userId") Integer userId) throws ResourceNotFoundException {
+        return shopService.getShopByUserID(userId);
+    }
 
     @GetMapping(path = "/all")
     public Object getAllShop() {

@@ -3,7 +3,8 @@ package com.cartas.jaktani.service;
 import com.cartas.jaktani.dto.ShopDto;
 
 public interface ShopService {
-	Object getShopByID(Integer userID);
+	Object getShopByID(Integer id);
+	Object getShopByUserID(Integer userID);
 	Object getShopByName(String name);
 	Object getAllShops();
 	Object getAllShopsByStatus(Integer status);

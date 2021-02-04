@@ -18,6 +18,9 @@ public class Shop {
 	@Column(name = "name")
     public String name;
 	
+	@Column(name = "address")
+    public String address;
+	
 	@Column(name = "updated_by")
     public Integer updatedBy;
 	
@@ -166,6 +169,12 @@ public class Shop {
 	}
 	public void setUser(Users user) {
 		this.user = user;
+	}
+	public String getAddress() {
+		return address;
+	}
+	public void setAddress(String address) {
+		this.address = address;
 	}
 	
 	 
