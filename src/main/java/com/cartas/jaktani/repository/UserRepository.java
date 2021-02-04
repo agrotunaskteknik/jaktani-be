@@ -21,4 +21,8 @@ public interface UserRepository extends JpaRepository<Users, Integer> {
 
     @Query("select u from Users u where u.id = ?1 and u.status = ?2")
     Optional<Users> findByIdAndStatus(Integer id, Integer status);
+
+    Optional<Users> findFirstByKtpUrlPathAndStatusIsNot(String name, Integer status);
+    
+    Optional<Users> findFirstByProfileUrlPathAndStatusIsNot(String name, Integer status);
 }

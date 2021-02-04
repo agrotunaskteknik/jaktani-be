@@ -12,4 +12,5 @@ public interface ShopService {
     Object updateShopStatusByID(Integer id, Integer status);
     Object addShop(ShopDto shop);
     Object editShop(ShopDto shop);
+    byte[] getLogoFile(String urlPath);
 }

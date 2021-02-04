@@ -5,16 +5,26 @@ import com.cartas.jaktani.model.Users;
 import com.cartas.jaktani.repository.UserRepository;
 import com.cartas.jaktani.repository.wrapper.UserWrapper;
 import com.cartas.jaktani.util.Utils;
+
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
+
+    Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+	
     @Autowired
     private UserRepository userRepository;
 
@@ -126,6 +136,56 @@ public class UserServiceImpl implements UserService {
         Users user = userRepository.save(userSaved);
 
         return UserWrapper.wrapModelToDto(user);
+    }
+    
+    @Override
+    public byte[] getKtpFile(String urlPath) {
+    	Optional<Users> userEntity = userRepository.findFirstByKtpUrlPathAndStatusIsNot(urlPath, USER_STATUS_DELETED);
+        if (!userEntity.isPresent()) {
+            logger.debug("Image Ktp not found from repository");
+            return null;
+        }
+        String imageFilePath = userEntity.get().getKtpFilePath();
+        if (imageFilePath == null || imageFilePath.trim().equalsIgnoreCase("")) {
+            logger.debug("Image Ktp from repository is empty");
+        }
+        try {
+            File initialFileImage = new File(imageFilePath);
+            if (!initialFileImage.exists()) {
+                logger.debug("initialFileImage Ktp Path not found");
+                return null;
+            }
+            InputStream in = new FileInputStream(initialFileImage);
+            return IOUtils.toByteArray(in);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage());
+        }
+        return null;
+    }
+    
+    @Override
+    public byte[] getProfileFile(String urlPath) {
+    	Optional<Users> userEntity = userRepository.findFirstByProfileUrlPathAndStatusIsNot(urlPath, USER_STATUS_DELETED);
+        if (!userEntity.isPresent()) {
+            logger.debug("Image Profile not found from repository");
+            return null;
+        }
+        String imageFilePath = userEntity.get().getProfileFilePath();
+        if (imageFilePath == null || imageFilePath.trim().equalsIgnoreCase("")) {
+            logger.debug("Image Profile from repository is empty");
+        }
+        try {
+            File initialFileImage = new File(imageFilePath);
+            if (!initialFileImage.exists()) {
+                logger.debug("initialFileImage Profile Path not found");
+                return null;
+            }
+            InputStream in = new FileInputStream(initialFileImage);
+            return IOUtils.toByteArray(in);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage());
+        }
+        return null;
     }
 
     public static UserDto fillNullValue(UserDto userDto, Users user){

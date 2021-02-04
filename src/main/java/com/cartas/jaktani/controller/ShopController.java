@@ -4,6 +4,7 @@ import com.cartas.jaktani.dto.ShopDto;
 import com.cartas.jaktani.exceptions.ResourceNotFoundException;
 import com.cartas.jaktani.service.ShopService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 

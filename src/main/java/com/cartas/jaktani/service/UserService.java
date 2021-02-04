@@ -12,4 +12,6 @@ public interface UserService {
     UserDto deleteUserByID(Long userID);
     UserDto editUserByID(Long userID, UserDto inputUser);
     UserDto editPasswordByUserID(Long userID, UserDto inputUser);
+    byte[] getKtpFile(String urlPath);
+    byte[] getProfileFile(String urlPath);
 }

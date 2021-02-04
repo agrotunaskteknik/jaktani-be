@@ -15,4 +15,5 @@ public interface ShopRepository extends JpaRepository<Shop, Integer> {
     Optional<Shop> findFirstByNameAndIdIsNotAndStatusIsNot(String name, Integer id, Integer status);
     List<Shop> findAllShopByAndStatusIsNot(Integer status);
     List<Shop> findAllShopByStatus(Integer status);
+    Optional<Shop> findFirstByLogoUrlPathAndStatusIsNot(String name, Integer status);
 }
