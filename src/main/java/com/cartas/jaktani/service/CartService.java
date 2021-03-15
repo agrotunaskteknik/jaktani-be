@@ -20,4 +20,6 @@ public interface CartService {
     CheckoutDtoResponse checkout(CheckoutDtoRequest cartListDtoRequest) throws IOException;
 
     PaymentChargeDtoResponse paymentCharge(PaymentChargeRequest paymentChargeRequest) throws IOException;
+
+    PaymentChargeDtoResponse paymentCheckStatus(String orderId) throws IOException;
 }

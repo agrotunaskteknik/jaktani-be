@@ -4,6 +4,7 @@ import com.cartas.jaktani.dto.*;
 import com.cartas.jaktani.model.Student;
 import com.cartas.jaktani.repository.StudentRepository;
 import com.cartas.jaktani.service.AddressService;
+import com.cartas.jaktani.service.CartService;
 import com.cartas.jaktani.service.CategoryService;
 import com.cartas.jaktani.service.VwProductDetailsService;
 
@@ -27,6 +28,8 @@ public class AuthenticationController {
     CategoryService categoryService;
     @Autowired
     AddressService addressService;
+    @Autowired
+    CartService cartService;
 
     Integer grade = 1;
     public static String staticKey = "Eng000";
@@ -92,6 +95,28 @@ public class AuthenticationController {
     @GetMapping(path = "/allProductTypeByProductId/{productId}")
     public Object allProductTypeByProductId(@PathVariable(name = "productId") Integer productId) {
         return vwProductDetailsService.allProductTypeByProductId(productId);
+    }
+
+    @RequestMapping(value = "/payment/charge", method = RequestMethod.POST)
+    public ResponseEntity<?> paymentCharge(@RequestBody PaymentChargeRequest paymentChargeRequest) {
+        try {
+            PaymentChargeDtoResponse response = cartService.paymentCharge(paymentChargeRequest);
+            return ResponseEntity.ok().body(new ParentResponse(response));
+        } catch (Exception e) {
+            System.out.println("paymentCharge Caught Error : " + e.getMessage());
+            return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
+        }
+    }
+
+    @RequestMapping(value = "/payment/status", method = RequestMethod.GET)
+    public ResponseEntity<?> paymentStatus(@RequestParam(value = "order_id") String orderId) {
+        try {
+            PaymentChargeDtoResponse response = cartService.paymentCheckStatus(orderId);
+            return ResponseEntity.ok().body(new ParentResponse(response));
+        } catch (Exception e) {
+            System.out.println("paymentStatus Caught Error : " + e.getMessage());
+            return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
+        }
     }
 
     @GetMapping(path = "/payment/get_all")

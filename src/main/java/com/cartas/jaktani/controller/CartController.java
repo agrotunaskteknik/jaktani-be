@@ -106,4 +106,15 @@ public class CartController {
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
+
+    @RequestMapping(value = "/payment/status", method = RequestMethod.GET)
+    public ResponseEntity<?> paymentStatus(@RequestParam(value = "order_id") String orderId) {
+        try {
+            PaymentChargeDtoResponse response = cartService.paymentCheckStatus(orderId);
+            return ResponseEntity.ok().body(new ParentResponse(response));
+        } catch (Exception e) {
+            System.out.println("paymentStatus Caught Error : " + e.getMessage());
+            return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
+        }
+    }
 }
