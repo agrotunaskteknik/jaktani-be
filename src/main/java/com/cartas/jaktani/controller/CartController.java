@@ -72,4 +72,38 @@ public class CartController {
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
+
+    @RequestMapping(value = "/shipment_address_form", method = RequestMethod.GET)
+    public ResponseEntity<?> shipmentAddressForm(@RequestParam String userID) {
+        try {
+            Long userIDLong = Long.parseLong(userID);
+            SAFDtoResponse response = cartService.shipmentAddressForm(new CartListDtoRequest(userIDLong));
+            return ResponseEntity.ok().body(new ParentResponse(response));
+        } catch (Exception e) {
+            logger.debug("shipment_address_form Caught Error : " + e.getMessage());
+            return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
+        }
+    }
+
+    @RequestMapping(value = "/checkout", method = RequestMethod.POST)
+    public ResponseEntity<?> checkout(@RequestBody CheckoutDtoRequest checkoutDtoRequest) {
+        try {
+            CheckoutDtoResponse response = cartService.checkout(checkoutDtoRequest);
+            return ResponseEntity.ok().body(new ParentResponse(response));
+        } catch (Exception e) {
+            logger.debug("checkout Caught Error : " + e.getMessage());
+            return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
+        }
+    }
+
+    @RequestMapping(value = "/payment/charge", method = RequestMethod.POST)
+    public ResponseEntity<?> paymentCharge(@RequestBody PaymentChargeRequest paymentChargeRequest) {
+        try {
+            PaymentChargeDtoResponse response = cartService.paymentCharge(paymentChargeRequest);
+            return ResponseEntity.ok().body(new ParentResponse(response));
+        } catch (Exception e) {
+            logger.debug("paymentCharge Caught Error : " + e.getMessage());
+            return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
+        }
+    }
 }

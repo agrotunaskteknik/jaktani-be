@@ -1,19 +1,17 @@
 package com.cartas.jaktani.service;
 
 import com.cartas.jaktani.dto.*;
-import com.cartas.jaktani.model.CartItem;
-import com.cartas.jaktani.model.Product;
-import com.cartas.jaktani.model.Shop;
-import com.cartas.jaktani.model.VwProductDetails;
-import com.cartas.jaktani.repository.CartRepository;
-import com.cartas.jaktani.repository.ProductRepository;
-import com.cartas.jaktani.repository.ShopRepository;
+import com.cartas.jaktani.model.*;
+import com.cartas.jaktani.repository.*;
 import com.cartas.jaktani.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -37,16 +35,48 @@ public class CartServiceImpl implements CartService {
     final static String STATUS_OK = "OK";
     final static Integer CART_STATUS_DELETED = 0;
     final static Integer CART_STATUS_CART_PAGE = 1;
-    final static Integer CART_STATUS_CHECKOUT = 3;
+    final static Integer CART_STATUS_CHECKOUT = 2;
+    public static String staticKey = "cart_";
 
     @Autowired
     CartRepository cartRepository;
+    @Autowired
+    OrderRepository orderRepository;
     @Autowired
     ProductRepository productRepository;
     @Autowired
     ShopRepository shopRepository;
     @Autowired
     VwProductDetailsService vwProductDetailsService;
+    @Autowired
+    AddressService addressService;
+
+    @Autowired
+    CartCacheRepository cacheRepository;
+
+    public String insertData(CartCache cache) {
+        cache.setId(staticKey + cache.getUserID());
+        System.out.println(cache);
+        cacheRepository.save(cache);
+        return cache.toString();
+    }
+
+    public List<CartCache> getAllDatas() {
+        List<CartCache> students = new ArrayList<>();
+        cacheRepository.findAll().forEach(students::add);
+        return students;
+    }
+
+    public CartCache getByCacheId(String userID) {
+        String cacheKey = staticKey + userID;
+        System.out.println(cacheKey);
+        Optional<CartCache> retrievedStudent = cacheRepository.findById(cacheKey);
+        if (!retrievedStudent.isPresent()) {
+            System.out.println("null for cache = " + cacheKey);
+            return null;
+        }
+        return retrievedStudent.get();
+    }
 
     public Boolean validationAddToCart(AddToCartDtoRequest addToCartDtoRequest) {
         boolean isValid = true;
@@ -291,6 +321,11 @@ public class CartServiceImpl implements CartService {
                 response.setStatus(STATUS_NOT_OK);
                 return response;
             }
+            CartCache cartCache = new CartCache("", saveCartResponse.getId(), saveCartResponse.getUserID(), saveCartResponse.getShopID(),
+                    saveCartResponse.getProductID(), saveCartResponse.getPrice(), saveCartResponse.getStatus(), saveCartResponse.getQuantity(),
+                    saveCartResponse.getTransactionID(), saveCartResponse.getNotes());
+            String insertCache = insertData(cartCache);
+            System.out.println("insertCache = " + insertCache);
             response.setMessage(SUCCESS_UPDATE_CART);
             response.setStatus(STATUS_OK);
             return response;
@@ -440,5 +475,368 @@ public class CartServiceImpl implements CartService {
         cartListResponse.setErrorMessage(SUCCESS_CART_LIST);
         cartListResponse.setStatus(STATUS_OK);
         return cartListResponse;
+    }
+
+    @Override
+    public SAFDtoResponse shipmentAddressForm(CartListDtoRequest cartListDtoRequest) {
+//        CartListResponse cartListResponse = new CartListResponse();
+        SAFDtoResponse safDtoResponse = new SAFDtoResponse();
+        List<String> tickers = new ArrayList<>();
+        List<GroupAddress> groupAddresses = new ArrayList<>();
+        safDtoResponse.setTickers(tickers);
+        safDtoResponse.setGroupAddress(groupAddresses);
+
+        if (cartListDtoRequest == null || cartListDtoRequest.getUserID() == 0) {
+            logger.debug("Empty Param");
+            safDtoResponse.setErrorMessage(FAILED_CART_LIST);
+            safDtoResponse.setStatus(STATUS_NOT_OK);
+            return safDtoResponse;
+        }
+//        List<CartItem> cartItemList = cartRepository.findByStatusAndUserID(CART_STATUS_CART_PAGE, cartListDtoRequest.getUserID());
+        CartCache cache = getByCacheId(cartListDtoRequest.getUserID().toString());
+        List<CartItem> cartItemList = new ArrayList<>();
+        CartItem cartItemCache = new CartItem();
+        cartItemCache.setNotes(cache.getNotes());
+        cartItemCache.setQuantity(cache.getQuantity());
+        cartItemCache.setStatus(cache.getStatus());
+        cartItemCache.setPrice(cache.getPrice());
+        cartItemCache.setShopID(cache.getShopID());
+        cartItemCache.setProductID(cache.getProductID());
+        cartItemCache.setUserID(cache.getUserID());
+        cartItemCache.setId(cache.getCartId());
+        cartItemCache.setTransactionID(cache.getTransactionID());
+
+        cartItemList.add(cartItemCache);
+
+        if (cartItemList.size() == 0) {
+            logger.debug("Cart List Empty, userID = " + cartListDtoRequest.getUserID());
+            safDtoResponse.setErrorMessage(SUCCESS_CART_LIST_EMPTY);
+            safDtoResponse.setStatus(STATUS_OK);
+            return safDtoResponse;
+        }
+
+        // get product info
+        HashMap<Long, VwProductDetails> productMap = new HashMap<>();
+
+        // get shop info
+        HashMap<Long, Shop> shopMap = new HashMap<>();
+        for (CartItem cartItem : cartItemList) {
+            VwProductDetails product = vwProductDetailsService.findByProductIdProductDetails(cartItem.getProductID().intValue());
+            if (product != null) {
+                productMap.put(product.getProductId().longValue(), product);
+            }
+
+            Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.STATUS_DELETED);
+            shop.ifPresent(value -> shopMap.put(value.getId().longValue(), value));
+        }
+
+
+        // sort by shop loop cartItemList, then get shop and product and save to HM, and in HM check the status available to sort
+        List<CartDetails> listCartDetails = new ArrayList<>();
+        for (CartItem cartItem : cartItemList) {
+            // check if list product null or size == 0, if yes then initiate, else just add the product from map
+            VwProductDetails product = new VwProductDetails();
+            if (productMap.get(cartItem.getProductID()) != null) {
+                product = productMap.get(cartItem.getProductID());
+            } else {
+                // product not found the continue
+                logger.debug("Product not found for product_id : " + cartItem.getProductID());
+                continue;
+            }
+            CartDetails cartDetail = new CartDetails();
+            cartDetail.setId(cartItem.getId());
+            cartDetail.setVWProductDto(product);
+            cartDetail.setNotes(cartItem.getNotes());
+            cartDetail.setQuantity(cartItem.getQuantity());
+            cartDetail.setPrice(cartItem.getPrice());
+            listCartDetails.add(cartDetail);
+        }
+
+
+        HashMap<Long, ShopGroupData> shopGroupAvailableMap = new HashMap<>();
+        HashMap<Long, ShopGroupData> shopGroupUnavailableMap = new HashMap<>();
+        // check if it available or unavailable (validation product)
+        for (CartDetails cartDetail : listCartDetails) {
+            ShopGroupData shopGroupData = new ShopGroupData();
+            if (shopMap.get(cartDetail.getVWProductDto().getShopId().longValue()) != null) {
+                shopGroupData.setShop(shopMap.get(cartDetail.getVWProductDto().getShopId().longValue()));
+                if (shopGroupData.getShop().getStatus() == 2) {
+                    shopGroupData.setTickerMessage("Toko tutup");
+                    // unavailable, get from map, and put it
+                    ShopGroupData shopGroupData1 = shopGroupUnavailableMap.get(cartDetail.getVWProductDto().getShopId().longValue());
+                    if (shopGroupData1 != null) {
+                        shopGroupData1.getCartDetails().add(cartDetail);
+                        shopGroupUnavailableMap.put(cartDetail.getVWProductDto().getShopId().longValue(), shopGroupData1);
+                    } else {
+                        List<CartDetails> cartDetails = new ArrayList<>();
+                        cartDetails.add(cartDetail);
+                        shopGroupData.setCartDetails(cartDetails);
+                        shopGroupUnavailableMap.put(cartDetail.getVWProductDto().getShopId().longValue(), shopGroupData);
+                    }
+                    continue;
+                }
+            } else {
+                // shop not found the continue
+                logger.debug("Product not found for shop_id : " + cartDetail.getVWProductDto().getShopId());
+                continue;
+            }
+
+
+            if (cartDetail.getVWProductDto().getStock() < cartDetail.getQuantity()) {
+                cartDetail.getVWProductDto().setTickerMessage("Quantity is more than stock");
+                // unavailable, get from map, and put it
+                ShopGroupData shopGroupData1 = shopGroupUnavailableMap.get(cartDetail.getVWProductDto().getShopId().longValue());
+                if (shopGroupData1 != null) {
+                    shopGroupData1.getCartDetails().add(cartDetail);
+                    shopGroupUnavailableMap.put(cartDetail.getVWProductDto().getShopId().longValue(), shopGroupData1);
+                } else {
+                    List<CartDetails> cartDetails = new ArrayList<>();
+                    cartDetails.add(cartDetail);
+                    shopGroupData.setCartDetails(cartDetails);
+                    shopGroupUnavailableMap.put(cartDetail.getVWProductDto().getShopId().longValue(), shopGroupData);
+                }
+                continue;
+            }
+            ShopGroupData shopGroupDataA = shopGroupAvailableMap.get(cartDetail.getVWProductDto().getShopId().longValue());
+            if (shopGroupDataA != null) {
+                shopGroupDataA.getCartDetails().add(cartDetail);
+                shopGroupAvailableMap.put(cartDetail.getVWProductDto().getShopId().longValue(), shopGroupDataA);
+            } else {
+                List<CartDetails> cartDetails = new ArrayList<>();
+                cartDetails.add(cartDetail);
+                shopGroupData.setCartDetails(cartDetails);
+                shopGroupAvailableMap.put(cartDetail.getVWProductDto().getShopId().longValue(), shopGroupData);
+            }
+        }
+
+        AddressDetailDto defaultDto = addressService.getUserDefaultAddress(cartListDtoRequest.getUserID().intValue());
+        for (Long key : shopGroupAvailableMap.keySet()) {
+            GroupAddress groupAddress = new GroupAddress();
+            ShopGroupData shopGroupData = shopGroupAvailableMap.get(key);
+            groupAddress.setUserAddress(defaultDto);
+            List<GroupShopDto> groupShops = new ArrayList<>();
+            for (CartDetails cd : shopGroupData.getCartDetails()) {
+                GroupShopDto groupShopDto = new GroupShopDto();
+                groupShopDto.setCartString(cd.getId().toString());
+                groupShopDto.setErrors(new ArrayList<>());
+                groupShopDto.setShippingId(0L);
+                groupShopDto.setShop(shopGroupData.getShop());
+                groupShopDto.setSpId(0L);
+                groupShopDto.setVwProductDto(cd.getVWProductDto());
+                groupShops.add(groupShopDto);
+            }
+            groupAddress.setGroupShop(groupShops);
+            groupAddress.setErrors(new ArrayList<>());
+            groupAddresses.add(groupAddress);
+        }
+        safDtoResponse.setTickers(tickers);
+        safDtoResponse.setGroupAddress(groupAddresses);
+        safDtoResponse.setErrorMessage(SUCCESS_CART_LIST);
+        safDtoResponse.setStatus(STATUS_OK);
+        return safDtoResponse;
+    }
+
+    @Override
+    public CheckoutDtoResponse checkout(CheckoutDtoRequest cartListDtoRequest) throws IOException {
+        CheckoutDtoResponse response = new CheckoutDtoResponse();
+        CheckoutDtoData data = new CheckoutDtoData();
+        List<CheckoutProductData> productList = new ArrayList<>();
+
+
+        List<String> tickers = new ArrayList<>();
+        List<GroupAddress> groupAddresses = new ArrayList<>();
+
+        if (cartListDtoRequest == null || cartListDtoRequest.getUserId() == 0) {
+            logger.debug("Empty Param");
+            response.setErrorMessage(FAILED_CART_LIST);
+            response.setStatus(STATUS_NOT_OK);
+            return response;
+        }
+        HashMap<Long, CheckoutShopProduct> checkoutShopProductByCartId = new HashMap<>();
+        for (CheckoutShopProduct checkoutShopProduct : cartListDtoRequest.getShopProducts()) {
+            checkoutShopProductByCartId.put(checkoutShopProduct.getCartId(), checkoutShopProduct);
+        }
+
+        // get cache for comparison
+        CartCache cartCache = getByCacheId(cartListDtoRequest.getUserId().toString());
+        List<CartItem> cartItemList = new ArrayList<>();
+        CartItem cartItemFromCache = new CartItem();
+        cartItemFromCache.setNotes(cartCache.getNotes());
+        cartItemFromCache.setQuantity(cartCache.getQuantity());
+        cartItemFromCache.setStatus(cartCache.getStatus());
+        cartItemFromCache.setPrice(cartCache.getPrice());
+        cartItemFromCache.setShopID(cartCache.getShopID());
+        cartItemFromCache.setProductID(cartCache.getProductID());
+        cartItemFromCache.setUserID(cartCache.getUserID());
+        cartItemFromCache.setId(cartCache.getCartId());
+        cartItemFromCache.setTransactionID(cartCache.getTransactionID());
+        cartItemList.add(cartItemFromCache);
+
+        // get db data
+        Optional<CartItem> cartItemOptional = cartRepository.findByIdAndStatusAndUserID(cartItemFromCache.getId(),
+                CART_STATUS_CART_PAGE, cartItemFromCache.getUserID());
+        if (!cartItemOptional.isPresent()) {
+            logger.debug("Cart id not found in db");
+            response.setErrorMessage(FAILED_CART_LIST);
+            response.setStatus(STATUS_NOT_OK);
+            return response;
+        }
+
+
+        if (cartItemList.size() == 0) {
+            logger.debug("Cart List Empty, userID = " + cartListDtoRequest.getUserId());
+            response.setErrorMessage(SUCCESS_CART_LIST_EMPTY);
+            response.setStatus(STATUS_OK);
+            return response;
+        }
+
+        // get product info
+        HashMap<Long, VwProductDetails> productMap = new HashMap<>();
+        // get shop info
+        HashMap<Long, Shop> shopMap = new HashMap<>();
+        for (CartItem cartItem : cartItemList) {
+            VwProductDetails product = vwProductDetailsService.findByProductIdProductDetails(cartItem.getProductID().intValue());
+            if (product != null) {
+                productMap.put(product.getProductId().longValue(), product);
+            }
+
+            Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.STATUS_DELETED);
+            shop.ifPresent(value -> shopMap.put(value.getId().longValue(), value));
+        }
+
+
+        // sort by shop loop cartItemList, then get shop and product and save to HM, and in HM check the status available to sort
+        List<CartDetails> listCartDetails = new ArrayList<>();
+        for (CartItem cartItem : cartItemList) {
+            // check if list product null or size == 0, if yes then initiate, else just add the product from map
+            VwProductDetails product = new VwProductDetails();
+            if (productMap.get(cartItem.getProductID()) != null) {
+                product = productMap.get(cartItem.getProductID());
+            } else {
+                // product not found the continue
+                logger.debug("Product not found for product_id : " + cartItem.getProductID());
+                continue;
+            }
+            CartDetails cartDetail = new CartDetails();
+            cartDetail.setId(cartItem.getId());
+            cartDetail.setVWProductDto(product);
+            cartDetail.setNotes(cartItem.getNotes());
+            cartDetail.setQuantity(cartItem.getQuantity());
+            cartDetail.setPrice(cartItem.getPrice());
+            listCartDetails.add(cartDetail);
+        }
+
+
+        HashMap<Long, ShopGroupData> shopGroupAvailableMap = new HashMap<>();
+        HashMap<Long, ShopGroupData> shopGroupUnavailableMap = new HashMap<>();
+        // check if it available or unavailable (validation product)
+        for (CartDetails cartDetail : listCartDetails) {
+            ShopGroupData shopGroupData = new ShopGroupData();
+            if (shopMap.get(cartDetail.getVWProductDto().getShopId().longValue()) != null) {
+                shopGroupData.setShop(shopMap.get(cartDetail.getVWProductDto().getShopId().longValue()));
+                if (shopGroupData.getShop().getStatus() == 2) {
+                    shopGroupData.setTickerMessage("Toko tutup");
+                    // unavailable, get from map, and put it
+                    ShopGroupData shopGroupData1 = shopGroupUnavailableMap.get(cartDetail.getVWProductDto().getShopId().longValue());
+                    if (shopGroupData1 != null) {
+                        shopGroupData1.getCartDetails().add(cartDetail);
+                        shopGroupUnavailableMap.put(cartDetail.getVWProductDto().getShopId().longValue(), shopGroupData1);
+                    } else {
+                        List<CartDetails> cartDetails = new ArrayList<>();
+                        cartDetails.add(cartDetail);
+                        shopGroupData.setCartDetails(cartDetails);
+                        shopGroupUnavailableMap.put(cartDetail.getVWProductDto().getShopId().longValue(), shopGroupData);
+                    }
+                    continue;
+                }
+            } else {
+                // shop not found the continue
+                logger.debug("Product not found for shop_id : " + cartDetail.getVWProductDto().getShopId());
+                continue;
+            }
+
+
+            if (cartDetail.getVWProductDto().getStock() < cartDetail.getQuantity()) {
+                cartDetail.getVWProductDto().setTickerMessage("Quantity is more than stock");
+                // unavailable, get from map, and put it
+                ShopGroupData shopGroupData1 = shopGroupUnavailableMap.get(cartDetail.getVWProductDto().getShopId().longValue());
+                if (shopGroupData1 != null) {
+                    shopGroupData1.getCartDetails().add(cartDetail);
+                    shopGroupUnavailableMap.put(cartDetail.getVWProductDto().getShopId().longValue(), shopGroupData1);
+                } else {
+                    List<CartDetails> cartDetails = new ArrayList<>();
+                    cartDetails.add(cartDetail);
+                    shopGroupData.setCartDetails(cartDetails);
+                    shopGroupUnavailableMap.put(cartDetail.getVWProductDto().getShopId().longValue(), shopGroupData);
+                }
+                continue;
+            }
+            ShopGroupData shopGroupDataA = shopGroupAvailableMap.get(cartDetail.getVWProductDto().getShopId().longValue());
+            if (shopGroupDataA != null) {
+                shopGroupDataA.getCartDetails().add(cartDetail);
+                shopGroupAvailableMap.put(cartDetail.getVWProductDto().getShopId().longValue(), shopGroupDataA);
+            } else {
+                List<CartDetails> cartDetails = new ArrayList<>();
+                cartDetails.add(cartDetail);
+                shopGroupData.setCartDetails(cartDetails);
+                shopGroupAvailableMap.put(cartDetail.getVWProductDto().getShopId().longValue(), shopGroupData);
+            }
+        }
+        CheckoutParameterResponse checkoutParameterResponse = new CheckoutParameterResponse();
+        for (Long key : shopGroupAvailableMap.keySet()) {
+            ShopGroupData shopGroupData = shopGroupAvailableMap.get(key);
+            Long grossAmount = 0L;
+            CheckoutProductData productData = new CheckoutProductData();
+            for (CartDetails cartDetails : shopGroupData.getCartDetails()) {
+                grossAmount += cartDetails.getPrice();
+                CheckoutShopProduct checkoutShopProduct = checkoutShopProductByCartId.get(cartDetails.getId());
+                CostParent costParent = addressService.getCostByCityId(checkoutShopProduct.getOriginCityId().toString(), checkoutShopProduct.getDestincationCityId().toString(),
+                        cartDetails.getVWProductDto().getSize().longValue(), checkoutShopProduct.getCourier());
+                for (CostResult costResult : costParent.getRajaongkir().getResults()) {
+                    if (costResult.getCode().trim().equalsIgnoreCase(checkoutShopProduct.getCourier())) {
+                        for (CostResultDetail costResultDetail : costResult.getCosts()) {
+                            if (costResultDetail.getService().trim().equalsIgnoreCase(checkoutShopProduct.getService())) {
+                                for (CostResultDetailData costResultDetailData : costResultDetail.getCost()) {
+                                    grossAmount += costResultDetailData.getValue();
+                                    productData.setId(cartDetails.getId().toString());
+                                    productData.setName(cartDetails.getVWProductDto().getProductName());
+                                    productData.setPrice(cartDetails.getVWProductDto().getPrice().longValue());
+                                    productData.setQuantity(cartDetails.getQuantity());
+                                    productList.add(productData);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            checkoutParameterResponse.setGrossAmount(grossAmount);
+            checkoutParameterResponse.setCustomerId(cartListDtoRequest.getUserId());
+        }
+        // save gross amount and get order id
+        Order order = new Order();
+        order.setUserID(cartListDtoRequest.getUserId());
+        order.setGrossAmount(checkoutParameterResponse.getGrossAmount());
+        order = orderRepository.save(order);
+        System.out.println("order = " + order);
+
+        // update cart db
+        CartItem cartItemUpdate = cartItemOptional.get();
+        cartItemUpdate.setStatus(CART_STATUS_CHECKOUT);
+        cartItemUpdate.setTransactionID(order.getId());
+        cartItemUpdate.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+        cartItemUpdate = cartRepository.save(cartItemUpdate);
+        System.out.println("cartItemUpdate = " + cartItemUpdate);
+
+        // delete cache
+        cacheRepository.delete(cartCache);
+
+        checkoutParameterResponse.setOrderId(order.getId());
+        data.setProductList(productList);
+        data.setParameter(checkoutParameterResponse);
+        response.setData(data);
+        response.setErrorMessage(SUCCESS_CART_LIST);
+        response.setStatus(STATUS_OK);
+        return response;
     }
 }

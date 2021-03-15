@@ -24,7 +24,7 @@ import com.google.gson.GsonBuilder;
 public class JSONUtil {
 	
 	static Logger log = LoggerFactory.getLogger(JSONUtil.class);
-	
+
 	static ObjectMapper mapper = new ObjectMapper();
 
 	private static GsonBuilder builder = new GsonBuilder();
@@ -43,16 +43,16 @@ public class JSONUtil {
 		return null;
 	}
 
-	
+
 	public static Object parseJSON(String jsonString, Type type){
 		return GSON.fromJson(jsonString, type);
 	}
-	
+
 	public static String createJSONExcludeFieldsWithoutExposeAnnotation(Object obj) {
 		GSON = builder.excludeFieldsWithoutExposeAnnotation().create();
 		return createJSON(obj);
 	}
-	
+
 	public static JsonNode convertJsonFormat(JSONObject json) {
 	    ObjectNode ret = JsonNodeFactory.instance.objectNode();
 
@@ -87,7 +87,7 @@ public class JSONUtil {
 	    }
 	    return ret;
 	}
-	
+
 	public static JsonNode convertJsonFormat(JSONArray json) {
 	    ArrayNode ret = JsonNodeFactory.instance.arrayNode();
 	    for (int i = 0; i < json.length(); i++) {
