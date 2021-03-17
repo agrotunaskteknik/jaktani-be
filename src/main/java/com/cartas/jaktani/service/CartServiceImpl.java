@@ -10,8 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.util.*;
@@ -823,9 +821,18 @@ public class CartServiceImpl implements CartService {
         }
         // save gross amount and get order id
         Order order = new Order();
-        order.setUserID(cartListDtoRequest.getUserId());
+        order.setCustomerId(cartListDtoRequest.getUserId());
         order.setGrossAmount(checkoutParameterResponse.getGrossAmount());
+//        order.setVaNumber("");
+//        order.setCreatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+//        order.setMetadata("");
+//        order.setPaymentType("");
+//        order.setTransactionID("");
+//        order.setTransactionStatus("");
+//        order.setTransactionTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+//        order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
         order = orderRepository.save(order);
+
         System.out.println("order = " + order);
 
         // update cart db

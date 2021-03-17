@@ -4,14 +4,14 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name = "order")
+@Table(name = "order_transaction")
 public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.TABLE)
     private Long id;
 
     @Column(name = "customer_id")
-    private Long userID;
+    private Long customerId;
 
     @Column(name = "gross_amount")
     private Long grossAmount;
@@ -40,9 +40,6 @@ public class Order {
     @Column(name = "updated_date")
     private Timestamp updatedDate;
 
-    public Order() {
-    }
-
     public Long getId() {
         return id;
     }
@@ -51,12 +48,12 @@ public class Order {
         this.id = id;
     }
 
-    public Long getUserID() {
-        return userID;
+    public Long getCustomerId() {
+        return customerId;
     }
 
-    public void setUserID(Long userID) {
-        this.userID = userID;
+    public void setCustomerId(Long userID) {
+        this.customerId = userID;
     }
 
     public Long getGrossAmount() {
@@ -135,7 +132,7 @@ public class Order {
     public String toString() {
         final StringBuilder sb = new StringBuilder("Order{");
         sb.append("id=").append(id);
-        sb.append(", userID=").append(userID);
+        sb.append(", userID=").append(customerId);
         sb.append(", grossAmount=").append(grossAmount);
         sb.append(", paymentType='").append(paymentType).append('\'');
         sb.append(", transactionStatus='").append(transactionStatus).append('\'');
