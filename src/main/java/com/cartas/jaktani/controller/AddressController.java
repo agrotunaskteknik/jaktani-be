@@ -16,17 +16,17 @@ public class AddressController {
     @Autowired
     AddressService addressService;
 
-    @GetMapping(path = "/id/{id}")
+    @GetMapping(path = "/id/{address_id}")
     public Object getByAddressId(@PathVariable(name = "address_id") Integer addressId) {
         return addressService.getByAddressId(addressId);
     }
 
-    @GetMapping(path = "/all/shop")
+    @GetMapping(path = "/all/shop/{shop_id}")
     public Object getAllShop(@PathVariable(name = "shop_id") Integer shopId) {
         return addressService.getAllShopAddresses(shopId);
     }
 
-    @GetMapping(path = "/all/user")
+    @GetMapping(path = "/all/user/{user_id}")
     public Object getAllUser(@PathVariable(name = "user_id") Integer userId) {
         return addressService.getAllShopAddresses(userId);
     }
@@ -56,13 +56,13 @@ public class AddressController {
         return addressService.updateAddress(addressDetailDto);
     }
 
-    @PostMapping(path = "/delete/shop/{id}")
+    @PostMapping(path = "/delete/shop")
     public Object deleteShopByID(@RequestBody AddressDetailDto addressDetailDto) {
         addressDetailDto.setType(AddressServiceImpl.TYPE_SHOP);
         return addressService.updateAddress(addressDetailDto);
     }
 
-    @PostMapping(path = "/delete/user/{id}")
+    @PostMapping(path = "/delete/user")
     public Object deleteUserByID(@RequestBody AddressDetailDto addressDetailDto) {
         addressDetailDto.setType(AddressServiceImpl.TYPE_USER);
         return addressService.updateAddress(addressDetailDto);

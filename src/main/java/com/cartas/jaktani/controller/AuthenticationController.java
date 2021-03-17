@@ -144,4 +144,13 @@ public class AuthenticationController {
         return paymentGatewayDtos;
     }
 
+    @GetMapping(path = "/logistic/get_all_courier")
+    public List<CourierDetailDto> getAllCourier() {
+        List<CourierDetailDto> courierDetailDtos = new ArrayList<>();
+        courierDetailDtos.add(new CourierDetailDto("jne_image", "JNE", "jne", "Pengiriman menggunakan JNE"));
+        courierDetailDtos.add(new CourierDetailDto("pos_image", "POS", "pos", "Pengiriman menggunakan POS"));
+        courierDetailDtos.add(new CourierDetailDto("tiki_image", "TIKI", "tiki", "Pengiriman menggunakan TIKI"));
+        return courierDetailDtos;
+    }
+
 }

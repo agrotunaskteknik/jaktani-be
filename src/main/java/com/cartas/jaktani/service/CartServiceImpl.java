@@ -862,10 +862,10 @@ public class CartServiceImpl implements CartService {
                 "        \"bank\": \"{{bank}}\"\n" +
                 "    }\n" +
                 "}";
-        json = json.replace("{{paymentType}}",paymentChargeRequest.getPaymentType());
-        json = json.replace("{{orderId}}",paymentChargeRequest.getOrderId());
-        json = json.replace("{{grossAmount}}",paymentChargeRequest.getGrossAmount());
-        json = json.replace("{{bank}}",paymentChargeRequest.getBank());
+        json = json.replace("{{paymentType}}", paymentChargeRequest.getPaymentType());
+        json = json.replace("{{orderId}}", paymentChargeRequest.getOrderId());
+        json = json.replace("{{grossAmount}}", paymentChargeRequest.getGrossAmount());
+        json = json.replace("{{bank}}", paymentChargeRequest.getBank());
         RequestBody body = RequestBody.create(JSON, json);
         Request request = new Request.Builder()
                 .url("https://api.sandbox.midtrans.com/v2/charge")
@@ -883,7 +883,7 @@ public class CartServiceImpl implements CartService {
             System.out.println(jsonString);
             PaymentChargeMidResponse entity = gson.fromJson(jsonString, PaymentChargeMidResponse.class);
             List<VaNumberDto> vaNumberDtos = new ArrayList<>();
-            for(VaNumber vaNumber : entity.getVa_numbers()){
+            for (VaNumber vaNumber : entity.getVa_numbers()) {
                 VaNumberDto vaNumberDto = new VaNumberDto();
                 vaNumberDto.setBank(vaNumber.getBank());
                 vaNumberDto.setVaNumber(vaNumber.getVa_number());
@@ -893,8 +893,28 @@ public class CartServiceImpl implements CartService {
             Double grossAmountDouble = Double.parseDouble(entity.getGross_amount());
             Long grossAmount = grossAmountDouble.longValue();
 
+            // update order
+            try {
+                Optional<Order> orderOptional = orderRepository.findById(Long.parseLong(entity.getOrder_id()));
+                if (orderOptional.isPresent()) {
+                    Order order = orderOptional.get();
+                    order.setGrossAmount(grossAmount);
+                    order.setCreatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+                    order.setPaymentType(entity.getPayment_type());
+                    order.setMetadata(jsonString);
+                    order.setTransactionID(entity.getTransaction_id());
+                    order.setTransactionStatus(entity.getTransaction_status());
+                    order.setVaNumber(entity.getVa_numbers().get(0).getVa_number());
+                    order = orderRepository.save(order);
+                    System.out.println("order = " + order);
+                }
+            } catch (Exception ex) {
+                System.out.println("error : " + ex);
+            }
+
+
             responseDto = new PaymentChargeDtoResponse(entity.getStatus_message(), entity.getTransaction_id(), entity.getOrder_id(), entity.getMerchant_id(),
-                    grossAmount, entity.getGross_amount()+entity.getCurrency(), entity.getCurrency(), entity.getPayment_type(),
+                    grossAmount, entity.getGross_amount() + entity.getCurrency(), entity.getCurrency(), entity.getPayment_type(),
                     Utils.getCalendar().getTimeInMillis(), entity.getTransaction_status(), vaNumberDtos, entity.getFraud_status());
             return responseDto;
         }
@@ -904,7 +924,7 @@ public class CartServiceImpl implements CartService {
     public PaymentChargeDtoResponse paymentCheckStatus(String orderId) throws IOException {
         PaymentChargeDtoResponse responseDto;
         String url = "https://api.sandbox.midtrans.com/v2/{{orderId}}/status";
-        url = url.replace("{{orderId}}",orderId);
+        url = url.replace("{{orderId}}", orderId);
         Request request = new Request.Builder()
                 .url(url)
                 .addHeader("Authorization", "Basic U0ItTWlkLXNlcnZlci1mY0V3R2kyb2xseldrU0xMVGtoSUpqYnc6")  // add request headers
@@ -920,7 +940,7 @@ public class CartServiceImpl implements CartService {
             System.out.println(jsonString);
             PaymentChargeMidResponse entity = gson.fromJson(jsonString, PaymentChargeMidResponse.class);
             List<VaNumberDto> vaNumberDtos = new ArrayList<>();
-            for(VaNumber vaNumber : entity.getVa_numbers()){
+            for (VaNumber vaNumber : entity.getVa_numbers()) {
                 VaNumberDto vaNumberDto = new VaNumberDto();
                 vaNumberDto.setBank(vaNumber.getBank());
                 vaNumberDto.setVaNumber(vaNumber.getVa_number());
@@ -931,7 +951,7 @@ public class CartServiceImpl implements CartService {
             Long grossAmount = grossAmountDouble.longValue();
 
             responseDto = new PaymentChargeDtoResponse(entity.getStatus_message(), entity.getTransaction_id(), entity.getOrder_id(), entity.getMerchant_id(),
-                    grossAmount, entity.getGross_amount()+entity.getCurrency(), entity.getCurrency(), entity.getPayment_type(),
+                    grossAmount, entity.getGross_amount() + entity.getCurrency(), entity.getCurrency(), entity.getPayment_type(),
                     Utils.getCalendar().getTimeInMillis(), entity.getTransaction_status(), vaNumberDtos, entity.getFraud_status());
             return responseDto;
         }
