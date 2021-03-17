@@ -64,7 +64,7 @@ public class CartServiceImpl implements CartService {
     public String insertData(CartCache cache) {
         cache.setId(staticKey + cache.getUserID());
         System.out.println(cache);
-        cacheRepository.save(cache);
+        cache = cacheRepository.save(cache);
         return cache.toString();
     }
 
@@ -77,6 +77,7 @@ public class CartServiceImpl implements CartService {
     public CartCache getByCacheId(String userID) {
         String cacheKey = staticKey + userID;
         System.out.println(cacheKey);
+//        getAllDatas();
         Optional<CartCache> retrievedStudent = cacheRepository.findById(cacheKey);
         if (!retrievedStudent.isPresent()) {
             System.out.println("null for cache = " + cacheKey);

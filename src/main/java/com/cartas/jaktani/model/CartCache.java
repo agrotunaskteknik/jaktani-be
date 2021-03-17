@@ -5,7 +5,7 @@ import org.springframework.data.redis.core.RedisHash;
 import java.io.Serializable;
 
 // timeToLive = 20 (20 is second)
-@RedisHash(value = "CartCache",timeToLive = 20)
+@RedisHash(value = "CartCache",timeToLive = (30*60))
 public class CartCache implements Serializable {
     private String id;
     private Long cartId;
