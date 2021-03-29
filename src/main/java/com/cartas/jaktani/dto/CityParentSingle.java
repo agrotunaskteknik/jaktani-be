@@ -7,6 +7,10 @@ public class CityParentSingle {
         this.rajaongkir = rajaongkir;
     }
 
+    public CityParentSingle() {
+
+    }
+
     public RajaOngkirCitySingle getRajaongkir() {
         return rajaongkir;
     }

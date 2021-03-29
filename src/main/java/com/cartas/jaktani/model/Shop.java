@@ -1,5 +1,7 @@
 package com.cartas.jaktani.model;
 
+import com.cartas.jaktani.dto.AddressDetailDto;
+
 import javax.persistence.*;
 
 import java.sql.Timestamp;
@@ -56,7 +58,18 @@ public class Shop {
 	
 	@Column(name = "logo_url_path_home")
     public String logoUrlPathHome;
-	
+
+	@Transient
+	private AddressDetailDto addressDetailDto;
+
+	public AddressDetailDto getAddressDetailDto() {
+		return addressDetailDto;
+	}
+
+	public void setAddressDetailDto(AddressDetailDto addressDetailDto) {
+		this.addressDetailDto = addressDetailDto;
+	}
+
 	@Transient
 	public Users user;
 	

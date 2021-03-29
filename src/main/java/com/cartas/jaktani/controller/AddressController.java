@@ -28,7 +28,7 @@ public class AddressController {
 
     @GetMapping(path = "/all/user/{user_id}")
     public Object getAllUser(@PathVariable(name = "user_id") Integer userId) {
-        return addressService.getAllShopAddresses(userId);
+        return addressService.getAllUserAddresses(userId);
     }
 
 

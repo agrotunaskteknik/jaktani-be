@@ -3,10 +3,7 @@ package com.cartas.jaktani.controller;
 import com.cartas.jaktani.dto.*;
 import com.cartas.jaktani.model.Student;
 import com.cartas.jaktani.repository.StudentRepository;
-import com.cartas.jaktani.service.AddressService;
-import com.cartas.jaktani.service.CartService;
-import com.cartas.jaktani.service.CategoryService;
-import com.cartas.jaktani.service.VwProductDetailsService;
+import com.cartas.jaktani.service.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,6 +148,34 @@ public class AuthenticationController {
         courierDetailDtos.add(new CourierDetailDto("pos_image", "POS", "pos", "Pengiriman menggunakan POS"));
         courierDetailDtos.add(new CourierDetailDto("tiki_image", "TIKI", "tiki", "Pengiriman menggunakan TIKI"));
         return courierDetailDtos;
+    }
+
+    @GetMapping(path = "/id/{address_id}")
+    public Object getByAddressId(@PathVariable(name = "address_id") Integer addressId) {
+        return addressService.getByAddressId(addressId);
+    }
+
+    @GetMapping(path = "/all/shop/{shop_id}")
+    public Object getAllShop(@PathVariable(name = "shop_id") Integer shopId) {
+        return addressService.getAllShopAddresses(shopId);
+    }
+
+    @GetMapping(path = "/all/user/{user_id}")
+    public Object getAllUser(@PathVariable(name = "user_id") Integer userId) {
+        return addressService.getAllUserAddresses(userId);
+    }
+
+
+    @PostMapping(path = "/add/user")
+    public Object addUserAddress(@RequestBody AddressDetailDto addressDetailDto) {
+        addressDetailDto.setType(AddressServiceImpl.TYPE_USER);
+        return addressService.saveAddress(addressDetailDto);
+    }
+
+    @PostMapping(path = "/add/shop")
+    public Object addShopAddress(@RequestBody AddressDetailDto addressDetailDto) {
+        addressDetailDto.setType(AddressServiceImpl.TYPE_SHOP);
+        return addressService.saveAddress(addressDetailDto);
     }
 
 }

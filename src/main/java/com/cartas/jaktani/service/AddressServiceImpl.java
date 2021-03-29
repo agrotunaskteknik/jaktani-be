@@ -112,7 +112,7 @@ public class AddressServiceImpl implements AddressService {
         }
         Address address = new Address();
         address.setPostalCode(addressDetailDto.getPostalCode());
-        address.setProvince(addressDetailDto.getPostalCode());
+        address.setProvince(addressDetailDto.getProvinceId());
         address.setCity(addressDetailDto.getCityId());
         address.setDescription(addressDetailDto.getDescription());
         address.setType(addressDetailDto.getType());
@@ -328,13 +328,13 @@ public class AddressServiceImpl implements AddressService {
     public CityParentSingle getCitiesByProvinceIdAndCityId(String provinceId, String cityId) throws IOException {
         String query = "city";
         if (provinceId != null && !provinceId.trim().equalsIgnoreCase("")) {
-            query += "?province=" + provinceId + "id=" + cityId;
+            query += "?province=" + provinceId + "&id=" + cityId;
         }
         Request request = new Request.Builder()
                 .url(serviceURL + query)
                 .addHeader("key", "68d3e4ddba14b33ee44d8bc9656f444f")  // add request headers
                 .build();
-
+        CityParentSingle entity = new CityParentSingle();
         try (Response response = httpClient.newCall(request).execute()) {
 
             if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
@@ -342,10 +342,28 @@ public class AddressServiceImpl implements AddressService {
             // Get response body
             String jsonString = Objects.requireNonNull(response.body()).string();
             System.out.println(jsonString);
-            CityParentSingle entity = gson.fromJson(jsonString, CityParentSingle.class);
-            return entity;
-        }
+            try {
+                CityParent entity2 = gson.fromJson(jsonString, CityParent.class);
+                if (entity2 != null && entity2.getRajaongkir() != null && entity2.getRajaongkir().getResults().size() > 0) {
+                    RajaOngkirCity cityMulti = entity2.getRajaongkir();
+                    RajaOngkirCitySingle citySingle = new RajaOngkirCitySingle(cityMulti.getQuery(), cityMulti.getResults().get(0), cityMulti.getStatus());
+                    entity.setRajaongkir(citySingle);
+                }
+                return entity;
 
+            } catch (Exception ex) {
+                System.out.println(ex.getMessage());
+                CityParentSingle entity2 = gson.fromJson(jsonString, CityParentSingle.class);
+                if (entity2 != null && entity2.getRajaongkir() != null) {
+                    RajaOngkirCitySingle citySingle = entity2.getRajaongkir();
+                    entity.setRajaongkir(citySingle);
+                }
+                return entity;
+            }
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+        return entity;
     }
 
     @Override

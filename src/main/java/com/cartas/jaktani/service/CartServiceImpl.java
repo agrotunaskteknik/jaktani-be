@@ -626,7 +626,10 @@ public class CartServiceImpl implements CartService {
                 groupShopDto.setCartString(cd.getId().toString());
                 groupShopDto.setErrors(new ArrayList<>());
                 groupShopDto.setShippingId(0L);
-                groupShopDto.setShop(shopGroupData.getShop());
+                Shop shopData = shopGroupData.getShop();
+                AddressDetailDto defaultShopDto = addressService.getShopDefaultAddress(shopData.getId());
+                shopData.setAddressDetailDto(defaultShopDto);
+                groupShopDto.setShop(shopData);
                 groupShopDto.setSpId(0L);
                 groupShopDto.setVwProductDto(cd.getVWProductDto());
                 groupShops.add(groupShopDto);
