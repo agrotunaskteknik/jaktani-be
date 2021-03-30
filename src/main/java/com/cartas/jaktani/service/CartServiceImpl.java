@@ -631,6 +631,7 @@ public class CartServiceImpl implements CartService {
                 shopData.setAddressDetailDto(defaultShopDto);
                 groupShopDto.setShop(shopData);
                 groupShopDto.setSpId(0L);
+                groupShopDto.setQty(cd.getQuantity());
                 groupShopDto.setVwProductDto(cd.getVWProductDto());
                 groupShops.add(groupShopDto);
             }

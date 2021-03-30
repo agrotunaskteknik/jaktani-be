@@ -12,17 +12,19 @@ public class GroupShopDto {
     private Long shippingId;
     private Long spId;
     private VwProductDetails vwProductDto;
+    private Long qty;
 
     public GroupShopDto() {
     }
 
-    public GroupShopDto(Shop shop, List<String> errors, String cartString, Long shippingId, Long spId, VwProductDetails vwProductDto) {
+    public GroupShopDto(Shop shop, List<String> errors, String cartString, Long shippingId, Long spId, VwProductDetails vwProductDto, Long qty) {
         this.shop = shop;
         this.errors = errors;
         this.cartString = cartString;
         this.shippingId = shippingId;
         this.spId = spId;
         this.vwProductDto = vwProductDto;
+        this.qty = qty;
     }
 
     public Shop getShop() {
@@ -73,6 +75,14 @@ public class GroupShopDto {
         this.vwProductDto = vwProductDto;
     }
 
+    public Long getQty() {
+        return qty;
+    }
+
+    public void setQty(Long qty) {
+        this.qty = qty;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("GroupShopDto{");
@@ -82,6 +92,7 @@ public class GroupShopDto {
         sb.append(", shippingId=").append(shippingId);
         sb.append(", spId=").append(spId);
         sb.append(", vwProductDto=").append(vwProductDto);
+        sb.append(", qty=").append(qty);
         sb.append('}');
         return sb.toString();
     }
