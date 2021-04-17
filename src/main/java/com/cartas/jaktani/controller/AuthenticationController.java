@@ -116,10 +116,21 @@ public class AuthenticationController {
     @RequestMapping(value = "/order-history/list", method = RequestMethod.GET)
     public ResponseEntity<?> orderTransactionList(@RequestParam(value = "user_id") Long userID) {
         try {
-            List<OrderDetailDto> response = cartService.orderStatusByOrderID(userID);
+            List<OrderDetailDto> response = cartService.orderStatusByUserID(userID);
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
             System.out.println("orderTransactionList Caught Error : " + e.getMessage());
+            return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
+        }
+    }
+
+    @RequestMapping(value = "/seller/order-list", method = RequestMethod.GET)
+    public ResponseEntity<?> shopOrderList(@RequestParam(value = "shop_id") Long shopID) {
+        try {
+            List<OrderDetailDto> response = cartService.orderStatusByShopID(shopID);
+            return ResponseEntity.ok().body(new ParentResponse(response));
+        } catch (Exception e) {
+            System.out.println("shopOrderList Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
@@ -128,7 +139,7 @@ public class AuthenticationController {
     public ResponseEntity<?> sellerVerifyOrder(@RequestBody VerifyOrderShippingRequest request) {
         try {
             List<OrderDetailDto> response = new ArrayList<>();
-            if(request.getOrderID().equals(0L)){
+            if (request.getOrderID().equals(0L)) {
                 return ResponseEntity.ok().body(new ParentResponse(new CommonResponse("Empty OrderID", "NOT_OK", "")));
             }
             cartService.sellerVerifyOrder(request);
@@ -143,10 +154,10 @@ public class AuthenticationController {
     public ResponseEntity<?> sellerVerifyOrderShipping(@RequestBody VerifyOrderShippingRequest request) {
         try {
             List<OrderDetailDto> response = new ArrayList<>();
-            if(request.getResiCode().trim().equalsIgnoreCase("")){
+            if (request.getResiCode().trim().equalsIgnoreCase("")) {
                 return ResponseEntity.ok().body(new ParentResponse(new CommonResponse("Empty ResiCode", "NOT_OK", "")));
             }
-            if(request.getOrderID().equals(0L)){
+            if (request.getOrderID().equals(0L)) {
                 return ResponseEntity.ok().body(new ParentResponse(new CommonResponse("Empty OrderID", "NOT_OK", "")));
             }
             cartService.sellerVerifyOrderShipping(request);
@@ -161,7 +172,7 @@ public class AuthenticationController {
     public ResponseEntity<?> sellerVerifyOrderSent(@RequestBody VerifyOrderShippingRequest request) {
         try {
             List<OrderDetailDto> response = new ArrayList<>();
-            if(request.getOrderID().equals(0L)){
+            if (request.getOrderID().equals(0L)) {
                 return ResponseEntity.ok().body(new ParentResponse(new CommonResponse("Empty OrderID", "NOT_OK", "")));
             }
             cartService.sellerVerifyOrderSent(request);
@@ -176,7 +187,7 @@ public class AuthenticationController {
     public ResponseEntity<?> sellerVerifyReview(@RequestBody VerifyOrderShippingRequest request) {
         try {
             List<OrderDetailDto> response = new ArrayList<>();
-            if(request.getOrderID().equals(0L)){
+            if (request.getOrderID().equals(0L)) {
                 return ResponseEntity.ok().body(new ParentResponse(new CommonResponse("Empty OrderID", "NOT_OK", "")));
             }
             cartService.sellerVerifyReview(request);

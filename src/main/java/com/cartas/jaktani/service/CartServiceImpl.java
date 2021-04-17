@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.util.*;
 
 @Service
@@ -854,6 +855,8 @@ public class CartServiceImpl implements CartService {
         order.setStatus(ORDER_STATUS_WAITING_PAYMENT_METHOD);
         order.setQuantity(cartItemOptional.get().getQuantity().intValue());
         order.setCustAddress(Integer.valueOf(cartListDtoRequest.getAddressId()));
+        order.setShopId(cartItemOptional.get().getShopID());
+        order.setCourier(cartListDtoRequest.getShopProducts().get(0).getCourier());
 //        order.setVaNumber("");
 //        order.setCreatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
 //        order.setMetadata("");
@@ -874,11 +877,11 @@ public class CartServiceImpl implements CartService {
         cartItemUpdate = cartRepository.save(cartItemUpdate);
         System.out.println("cartItemUpdate = " + cartItemUpdate);
 
-        // update derease product stock
+        // update decrease product stock
         Optional<Product> optionalProduct = productRepository.findById(cartItemOptional.get().getProductID().intValue());
         if (optionalProduct.isPresent()) {
             Product product = optionalProduct.get();
-            product.setStock(optionalProduct.get().getStock() - 1);
+            product.setStock(optionalProduct.get().getStock() - cartItemOptional.get().getQuantity().intValue());
             productRepository.save(product);
         }
 
@@ -1014,7 +1017,11 @@ public class CartServiceImpl implements CartService {
         Optional<Order> orderOptional = orderRepository.findById(Long.parseLong(orderId));
         if (orderOptional.isPresent()) {
             Order order = orderOptional.get();
-            emailForPaymentAccepted("mockBCA", order.getTransactionTime().toString(), order.getCustomerId().intValue(), order.getGrossAmount());
+            Timestamp transactiontime = Utils.getTimeStamp(1L);
+            if(order.getTransactionTime()!=null){
+                transactiontime = order.getTransactionTime();
+            }
+            emailForPaymentAccepted("mockBCA", transactiontime.toString(), order.getCustomerId().intValue(), order.getGrossAmount());
             if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT)) {
                 order.setStatus(ORDER_STATUS_PAYMENT_SETTLED);
                 order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
@@ -1025,7 +1032,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public List<OrderDetailDto> orderStatusByOrderID(Long userID) {
+    public List<OrderDetailDto> orderStatusByUserID(Long userID) {
         List<OrderDetailDto> orderDetailDto = new ArrayList<>();
         List<Order> orderList = orderRepository.findByStatusIsNotAndCustomerId(0, userID);
         for (Order order : orderList) {
@@ -1043,6 +1050,82 @@ public class CartServiceImpl implements CartService {
             }
             // get product id by order id from cart
             List<CartItem> cartItemOptional = cartRepository.findByStatusAndUserIDAndTransactionID(CART_STATUS_CHECKOUT, userID, order.getId());
+            // get product detail by product id
+            for (CartItem cartItem : cartItemOptional) {
+                // get shop detail by product shop id
+                VwProductDetails product = vwProductDetailsService.findByProductIdProductDetails(cartItem.getProductID().intValue());
+                // get shipping detail by cart item detail
+                Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.STATUS_DELETED);
+                OrderDetailDto orderResp = new OrderDetailDto();
+                orderResp.setIconImg("");
+                String statusTitle = "";
+                if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT_METHOD)) {
+                    statusTitle = ORDER_STATUS_WAITING_PAYMENT_METHOD_TITLE;
+                }
+                if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT)) {
+                    statusTitle = ORDER_STATUS_WAITING_PAYMENT_TITLE;
+                }
+                if (order.getStatus().equals(ORDER_STATUS_PAYMENT_SETTLED)) {
+                    statusTitle = ORDER_STATUS_PAYMENT_SETTLED_TITLE;
+                }
+                if (order.getStatus().equals(ORDER_STATUS_WAITING_SELLER_CONFIRMATION)) {
+                    statusTitle = ORDER_STATUS_WAITING_SELLER_CONFIRMATION_TITLE;
+                }
+                if (order.getStatus().equals(ORDER_STATUS_SELLER_PROCESSING)) {
+                    statusTitle = ORDER_STATUS_SELLER_PROCESSING_TITLE;
+                }
+                if (order.getStatus().equals(ORDER_STATUS_SHIPPING)) {
+                    statusTitle = ORDER_STATUS_SHIPPING_TITLE;
+                }
+                if (order.getStatus().equals(ORDER_STATUS_WAITING_FOR_REVIEW)) {
+                    statusTitle = ORDER_STATUS_WAITING_FOR_REVIEW_TITLE;
+                }
+                if (order.getStatus().equals(ORDER_STATUS_DONE)) {
+                    statusTitle = ORDER_STATUS_DONE_TITLE;
+                }
+                orderResp.setOrderStatusTitle(statusTitle);
+                orderResp.setOrderStatus(order.getStatus());
+                orderResp.setOrderTotal(order.getGrossAmount());
+                orderResp.setOrderTotalAmount(order.getQuantity().longValue());
+                orderResp.setOrderID(order.getId());
+                Timestamp orderDate = Utils.getTimeStamp(1L);
+                if (order.getCreatedDate() != null) {
+                    orderDate = order.getCreatedDate();
+                }
+                orderResp.setOrderTransactionDateString(orderDate.toString());
+                orderResp.setProduct(product);
+                if (shop.isPresent()) {
+                    Shop shopData = shop.get();
+                    AddressDetailDto defaultShopDto = addressService.getShopDefaultAddress(shopData.getId());
+                    shopData.setAddressDetailDto(defaultShopDto);
+                    orderResp.setShop(shopData);
+                }
+
+                orderDetailDto.add(orderResp);
+            }
+        }
+        return orderDetailDto;
+    }
+
+    @Override
+    public List<OrderDetailDto> orderStatusByShopID(Long shopID) {
+        List<OrderDetailDto> orderDetailDto = new ArrayList<>();
+        List<Order> orderList = orderRepository.findByStatusOrStatusAndShopId(ORDER_STATUS_PAYMENT_SETTLED, ORDER_STATUS_WAITING_SELLER_CONFIRMATION, shopID);
+        for (Order order : orderList) {
+            // if waiting for payment then check if already updated (this function can be replaced if there are cron or listener to change status from midtrans)
+            if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT)) {
+                try {
+                    paymentCheckStatus(order.getId().toString());
+                } catch (Exception ex) {
+                    System.out.println("Exception check status order : " + ex.getMessage());
+                }
+                Optional<Order> orderChanged = orderRepository.findById(order.getId());
+                if (orderChanged.isPresent()) {
+                    order = orderChanged.get();
+                }
+            }
+            // get product id by order id from cart
+            List<CartItem> cartItemOptional = cartRepository.findByStatusAndUserIDAndTransactionID(CART_STATUS_CHECKOUT, order.getCustomerId(), order.getId());
             // get product detail by product id
             for (CartItem cartItem : cartItemOptional) {
                 // get shop detail by product shop id
@@ -1077,9 +1160,19 @@ public class CartServiceImpl implements CartService {
                 orderResp.setOrderStatus(order.getStatus());
                 orderResp.setOrderTotal(order.getGrossAmount());
                 orderResp.setOrderTotalAmount(order.getQuantity().longValue());
-                orderResp.setOrderTransactionDateString(order.getCreatedDate().toString());
+                Timestamp orderDate = Utils.getTimeStamp(1L);
+                if (order.getCreatedDate() != null) {
+                    orderDate = order.getCreatedDate();
+                }
+                orderResp.setOrderTransactionDateString(orderDate.toString());
+                orderResp.setOrderID(order.getId());
                 orderResp.setProduct(product);
-                shop.ifPresent(orderResp::setShop);
+                if (shop.isPresent()) {
+                    Shop shopData = shop.get();
+                    AddressDetailDto defaultShopDto = addressService.getShopDefaultAddress(shopData.getId());
+                    shopData.setAddressDetailDto(defaultShopDto);
+                    orderResp.setShop(shopData);
+                }
                 orderDetailDto.add(orderResp);
             }
         }

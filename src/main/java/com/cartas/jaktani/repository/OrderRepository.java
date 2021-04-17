@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByStatusIsNotAndCustomerId(Integer status, Long userID);
 
+    List<Order> findByStatusOrStatusAndShopId(Integer statusA, Integer statusB, Long userID);
 }

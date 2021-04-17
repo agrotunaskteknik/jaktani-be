@@ -24,7 +24,9 @@ public interface CartService {
 
     PaymentChargeDtoResponse paymentCheckStatus(String orderId) throws IOException;
 
-    List<OrderDetailDto> orderStatusByOrderID(Long userID);
+    List<OrderDetailDto> orderStatusByUserID(Long userID);
+
+    List<OrderDetailDto> orderStatusByShopID(Long shopID);
 
     public void sellerVerifyOrder(VerifyOrderShippingRequest request);
 
