@@ -1,6 +1,8 @@
 package com.cartas.jaktani.service;
 
+import com.cartas.jaktani.controller.SendMail;
 import com.cartas.jaktani.dto.*;
+import com.cartas.jaktani.exceptions.ResourceNotFoundException;
 import com.cartas.jaktani.model.*;
 import com.cartas.jaktani.repository.*;
 import com.cartas.jaktani.util.Utils;
@@ -36,6 +38,23 @@ public class CartServiceImpl implements CartService {
     final static Integer CART_STATUS_DELETED = 0;
     final static Integer CART_STATUS_CART_PAGE = 1;
     final static Integer CART_STATUS_CHECKOUT = 2;
+    final static String MIDTRANS_STATUS_SETTLEMENT = "settlement";
+    final static Integer ORDER_STATUS_WAITING_PAYMENT_METHOD = 99;
+    final static Integer ORDER_STATUS_WAITING_PAYMENT = 1;
+    final static Integer ORDER_STATUS_PAYMENT_SETTLED = 2;
+    final static Integer ORDER_STATUS_WAITING_SELLER_CONFIRMATION = 3;
+    final static Integer ORDER_STATUS_SELLER_PROCESSING = 4;
+    final static Integer ORDER_STATUS_SHIPPING = 5;
+    final static Integer ORDER_STATUS_WAITING_FOR_REVIEW = 6;
+    final static Integer ORDER_STATUS_DONE = 7;
+    final static String ORDER_STATUS_WAITING_PAYMENT_METHOD_TITLE = "Menunggu metode pembayaran";
+    final static String ORDER_STATUS_WAITING_PAYMENT_TITLE = "Menunggu pembayaran";
+    final static String ORDER_STATUS_PAYMENT_SETTLED_TITLE = "Pembayaran Terverifikasi";
+    final static String ORDER_STATUS_WAITING_SELLER_CONFIRMATION_TITLE = "Menunggu konfirmasi Seller";
+    final static String ORDER_STATUS_SELLER_PROCESSING_TITLE = "Diproses";
+    final static String ORDER_STATUS_SHIPPING_TITLE = "Dikirim";
+    final static String ORDER_STATUS_WAITING_FOR_REVIEW_TITLE = "Tulis Review";
+    final static String ORDER_STATUS_DONE_TITLE = "Selesai";
     public static String staticKey = "cart_";
 
     // one instance, reuse
@@ -55,6 +74,8 @@ public class CartServiceImpl implements CartService {
     VwProductDetailsService vwProductDetailsService;
     @Autowired
     AddressService addressService;
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     CartCacheRepository cacheRepository;
@@ -827,6 +848,12 @@ public class CartServiceImpl implements CartService {
         Order order = new Order();
         order.setCustomerId(cartListDtoRequest.getUserId());
         order.setGrossAmount(checkoutParameterResponse.getGrossAmount());
+        if (cartListDtoRequest.getShopProducts().size() != 0) {
+            order.setShopId(cartListDtoRequest.getShopProducts().get(0).getShopId());
+        }
+        order.setStatus(ORDER_STATUS_WAITING_PAYMENT_METHOD);
+        order.setQuantity(cartItemOptional.get().getQuantity().intValue());
+        order.setCustAddress(Integer.valueOf(cartListDtoRequest.getAddressId()));
 //        order.setVaNumber("");
 //        order.setCreatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
 //        order.setMetadata("");
@@ -846,6 +873,14 @@ public class CartServiceImpl implements CartService {
         cartItemUpdate.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
         cartItemUpdate = cartRepository.save(cartItemUpdate);
         System.out.println("cartItemUpdate = " + cartItemUpdate);
+
+        // update derease product stock
+        Optional<Product> optionalProduct = productRepository.findById(cartItemOptional.get().getProductID().intValue());
+        if (optionalProduct.isPresent()) {
+            Product product = optionalProduct.get();
+            product.setStock(optionalProduct.get().getStock() - 1);
+            productRepository.save(product);
+        }
 
         // delete cache
         cacheRepository.delete(cartCache);
@@ -917,7 +952,9 @@ public class CartServiceImpl implements CartService {
                     order.setTransactionID(entity.getTransaction_id());
                     order.setTransactionStatus(entity.getTransaction_status());
                     order.setVaNumber(entity.getVa_numbers().get(0).getVa_number());
+                    order.setStatus(ORDER_STATUS_WAITING_PAYMENT);
                     order = orderRepository.save(order);
+                    paymentChargeRequest.setUserID(order.getCustomerId().intValue());
                     System.out.println("order = " + order);
                 }
             } catch (Exception ex) {
@@ -928,6 +965,7 @@ public class CartServiceImpl implements CartService {
             responseDto = new PaymentChargeDtoResponse(entity.getStatus_message(), entity.getTransaction_id(), entity.getOrder_id(), entity.getMerchant_id(),
                     grossAmount, entity.getGross_amount() + entity.getCurrency(), entity.getCurrency(), entity.getPayment_type(),
                     Utils.getCalendar().getTimeInMillis(), entity.getTransaction_status(), vaNumberDtos, entity.getFraud_status());
+            emailForPaymentRequest(paymentChargeRequest, responseDto);
             return responseDto;
         }
     }
@@ -965,7 +1003,224 @@ public class CartServiceImpl implements CartService {
             responseDto = new PaymentChargeDtoResponse(entity.getStatus_message(), entity.getTransaction_id(), entity.getOrder_id(), entity.getMerchant_id(),
                     grossAmount, entity.getGross_amount() + entity.getCurrency(), entity.getCurrency(), entity.getPayment_type(),
                     Utils.getCalendar().getTimeInMillis(), entity.getTransaction_status(), vaNumberDtos, entity.getFraud_status());
+            if (responseDto.getTransactionStatus().equalsIgnoreCase(MIDTRANS_STATUS_SETTLEMENT)) {
+                updateOrderToSettlement(orderId);
+            }
             return responseDto;
         }
+    }
+
+    public void updateOrderToSettlement(String orderId) {
+        Optional<Order> orderOptional = orderRepository.findById(Long.parseLong(orderId));
+        if (orderOptional.isPresent()) {
+            Order order = orderOptional.get();
+            emailForPaymentAccepted("mockBCA", order.getTransactionTime().toString(), order.getCustomerId().intValue(), order.getGrossAmount());
+            if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT)) {
+                order.setStatus(ORDER_STATUS_PAYMENT_SETTLED);
+                order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+                orderRepository.save(order);
+                logger.debug("Success Update to Settlement: order id : " + orderId);
+            }
+        }
+    }
+
+    @Override
+    public List<OrderDetailDto> orderStatusByOrderID(Long userID) {
+        List<OrderDetailDto> orderDetailDto = new ArrayList<>();
+        List<Order> orderList = orderRepository.findByStatusIsNotAndCustomerId(0, userID);
+        for (Order order : orderList) {
+            // if waiting for payment then check if already updated (this function can be replaced if there are cron or listener to change status from midtrans)
+            if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT)) {
+                try {
+                    paymentCheckStatus(order.getId().toString());
+                } catch (Exception ex) {
+                    System.out.println("Exception check status order : " + ex.getMessage());
+                }
+                Optional<Order> orderChanged = orderRepository.findById(order.getId());
+                if (orderChanged.isPresent()) {
+                    order = orderChanged.get();
+                }
+            }
+            // get product id by order id from cart
+            List<CartItem> cartItemOptional = cartRepository.findByStatusAndUserIDAndTransactionID(CART_STATUS_CHECKOUT, userID, order.getId());
+            // get product detail by product id
+            for (CartItem cartItem : cartItemOptional) {
+                // get shop detail by product shop id
+                VwProductDetails product = vwProductDetailsService.findByProductIdProductDetails(cartItem.getProductID().intValue());
+                // get shipping detail by cart item detail
+                Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.STATUS_DELETED);
+                OrderDetailDto orderResp = new OrderDetailDto();
+                orderResp.setIconImg("");
+                String statusTitle = "";
+                if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT_METHOD)) {
+                    statusTitle = ORDER_STATUS_WAITING_PAYMENT_METHOD_TITLE;
+                }
+                if (order.getStatus().equals(ORDER_STATUS_PAYMENT_SETTLED)) {
+                    statusTitle = ORDER_STATUS_PAYMENT_SETTLED_TITLE;
+                }
+                if (order.getStatus().equals(ORDER_STATUS_WAITING_SELLER_CONFIRMATION)) {
+                    statusTitle = ORDER_STATUS_WAITING_SELLER_CONFIRMATION_TITLE;
+                }
+                if (order.getStatus().equals(ORDER_STATUS_SELLER_PROCESSING)) {
+                    statusTitle = ORDER_STATUS_SELLER_PROCESSING_TITLE;
+                }
+                if (order.getStatus().equals(ORDER_STATUS_SHIPPING)) {
+                    statusTitle = ORDER_STATUS_SHIPPING_TITLE;
+                }
+                if (order.getStatus().equals(ORDER_STATUS_WAITING_FOR_REVIEW)) {
+                    statusTitle = ORDER_STATUS_WAITING_FOR_REVIEW_TITLE;
+                }
+                if (order.getStatus().equals(ORDER_STATUS_DONE)) {
+                    statusTitle = ORDER_STATUS_DONE_TITLE;
+                }
+                orderResp.setOrderStatusTitle(statusTitle);
+                orderResp.setOrderStatus(order.getStatus());
+                orderResp.setOrderTotal(order.getGrossAmount());
+                orderResp.setOrderTotalAmount(order.getQuantity().longValue());
+                orderResp.setOrderTransactionDateString(order.getCreatedDate().toString());
+                orderResp.setProduct(product);
+                shop.ifPresent(orderResp::setShop);
+                orderDetailDto.add(orderResp);
+            }
+        }
+        return orderDetailDto;
+    }
+
+    @Override
+    public void sellerVerifyOrder(VerifyOrderShippingRequest request) {
+        Optional<Order> orderOptional = orderRepository.findById(request.getOrderID());
+        if (orderOptional.isPresent()) {
+            Order order = orderOptional.get();
+            order.setStatus(ORDER_STATUS_SELLER_PROCESSING);
+            order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+            orderRepository.save(order);
+        }
+    }
+
+    @Override
+    public void sellerVerifyOrderShipping(VerifyOrderShippingRequest request) {
+        Optional<Order> orderOptional = orderRepository.findById(request.getOrderID());
+        if (orderOptional.isPresent()) {
+            Order order = orderOptional.get();
+            order.setStatus(ORDER_STATUS_SHIPPING);
+            order.setResiCode(request.getResiCode());
+            order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+            orderRepository.save(order);
+        }
+    }
+
+    @Override
+    public void sellerVerifyOrderSent(VerifyOrderShippingRequest request) {
+        Optional<Order> orderOptional = orderRepository.findById(request.getOrderID());
+        if (orderOptional.isPresent()) {
+            Order order = orderOptional.get();
+            order.setStatus(ORDER_STATUS_WAITING_FOR_REVIEW);
+            order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+            orderRepository.save(order);
+            List<CartItem> cartItems = cartRepository.findByStatusAndUserIDAndTransactionID(CART_STATUS_CHECKOUT, order.getCustomerId(), order.getId());
+            for (CartItem cartItem : cartItems) {
+                Optional<Product> product = productRepository.findById(cartItem.getProductID().intValue());
+                product.ifPresent(value -> emailForOrderDone(order.getCustomerId().intValue(), value.getName()));
+            }
+        }
+    }
+
+    @Override
+    public void sellerVerifyReview(VerifyOrderShippingRequest request) {
+        Optional<Order> orderOptional = orderRepository.findById(request.getOrderID());
+        if (orderOptional.isPresent()) {
+            Order order = orderOptional.get();
+            order.setStatus(ORDER_STATUS_DONE);
+            order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+            orderRepository.save(order);
+        }
+    }
+
+    public void emailForPaymentRequest(PaymentChargeRequest paymentChargeRequest, PaymentChargeDtoResponse paymentChargeDtoResponse) {
+        Optional<Users> user = userRepository.findById(paymentChargeRequest.getUserID());
+        if (user.isPresent()) {
+            String messageBodyRegister = "Halo! Terimakasih telah melakukan transaksi checkout\n" +
+                    "Silahkan lakukan pembayaran " + paymentChargeRequest.getBank().toUpperCase() + " dengan detail sebagai berikut :\n" +
+                    "\n" +
+                    "Total Bayar : " + paymentChargeDtoResponse.getGrossAmount() + "\n" +
+                    "\n" +
+                    "Metode Pembayaran : " + paymentChargeRequest.getBank().toUpperCase() + "\n" +
+                    "\n" +
+                    "Kode Virtual Account : " + paymentChargeDtoResponse.getVaNumberDto().get(0) + "\n" +
+                    "\n" +
+                    "Rincian Pesanan : \n" +
+                    "\n" +
+                    "\n" +
+                    "Mohon melakukan pembayaran sebelum :" + paymentChargeDtoResponse.getTransactionTimeInMilis() + " \n" +
+                    "\n" +
+                    "Terima Kasih,\n" +
+                    "Team Jak Tani\n" +
+                    "\n";
+            String messageSubjectRegister = "Menunggu Pembayaran " + paymentChargeRequest.getBank().toUpperCase() + " untuk pembayaran dengan order id " + paymentChargeRequest.getOrderId();
+            sentEmail(user.get().getEmail(), messageBodyRegister, messageSubjectRegister);
+        } else {
+            logger.debug("Username/Email tidak ditemukan");
+        }
+    }
+
+    public void emailForPaymentAccepted(String kodeBank, String tanggalBayar, Integer userID, Long totalBayar) {
+        Optional<Users> user = userRepository.findById(userID);
+        if (user.isPresent()) {
+            String messageBodyRegister = "Halo! Pembayaran terverifikasi dan pesanan telah diteruskan ke penjual \n" +
+                    "Terima kasih, ya! Berikut detail pembayaranmu :\n" +
+                    "\n" +
+                    "Total Bayar : " + totalBayar + "\n" +
+                    "\n" +
+                    "Metode Pembayaran : " + kodeBank.toUpperCase() + "\n" +
+                    "\n" +
+                    "Waktu Pembayaran : " + tanggalBayar + "\n" +
+                    "\n" +
+                    "Rincian Pesanan : \n" +
+                    "\n" +
+                    "\n" +
+                    "Terima Kasih,\n" +
+                    "Team Jak Tani\n" +
+                    "\n";
+            String messageSubjectRegister = "Checkout Pesanan dengan " + kodeBank.toUpperCase() + " Berhasil tanggal " + tanggalBayar;
+            sentEmail(user.get().getEmail(), messageBodyRegister, messageSubjectRegister);
+        } else {
+            logger.debug("Username/Email tidak ditemukan");
+        }
+    }
+
+    public void emailForOrderDone(Integer userID, String productName) {
+        Optional<Users> user = userRepository.findById(userID);
+        if (user.isPresent()) {
+            String messageBodyRegister = "Halo! Yeay barangmu sudah sampai! \n" +
+                    "Terimakasih sudah berbelanja dan mendukung para penjual di JakTani. \n" +
+                    "\n" +
+                    "Rincian Pesanan : \n" +
+                    "\n" +
+                    "\n" +
+                    "Terima Kasih,\n" +
+                    "Team Jak Tani\n" +
+                    "\n";
+            String messageSubjectRegister = "Pesanan Selesai: " + productName;
+            sentEmail(user.get().getEmail(), messageBodyRegister, messageSubjectRegister);
+        } else {
+            logger.debug("Username/Email tidak ditemukan");
+        }
+    }
+
+    public void sentEmail(String email, String messageBody, String messageSubject) {
+        try {
+            Thread newThread = new Thread(() -> {
+                try {
+                    SendMail.sentEmail(email, messageBody, messageSubject);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+            newThread.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.debug("Error caught : " + e.getMessage());
+        }
+
     }
 }

@@ -10,8 +10,14 @@ import java.util.Optional;
 @Repository
 public interface CartRepository extends JpaRepository<CartItem, Long> {
     List<CartItem> findByStatusAndUserID(Integer status, Long userID);
+
     Optional<CartItem> findByIdAndStatusIsNotAndUserID(Long id, Integer status, Long userID);
+
     Optional<CartItem> findByProductIDAndStatusAndUserID(Long productID, Integer status, Long userID);
+
     Optional<CartItem> findByIdAndProductIDAndStatusAndUserID(Long cartID, Long productID, Integer status, Long userID);
+
     Optional<CartItem> findByIdAndStatusAndUserID(Long id, Integer status, Long userID);
+
+    List<CartItem> findByStatusAndUserIDAndTransactionID(Integer status, Long userID, Long orderID);
 }

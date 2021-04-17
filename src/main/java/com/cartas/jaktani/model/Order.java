@@ -40,6 +40,33 @@ public class Order {
     @Column(name = "updated_date")
     private Timestamp updatedDate;
 
+    @Column(name = "shop_id")
+    private Long shopId;
+
+    @Column(name = "status")
+    private Integer status;
+
+    @Column(name = "quantity")
+    private Integer quantity;
+
+    @Column(name = "resi_code")
+    private String resiCode;
+
+    @Column(name = "customer_address")
+    private Integer custAddress;
+
+    @Column(name = "shop_address")
+    private Integer shopAddress;
+
+    @Column(name = "courier")
+    private String courier;
+
+    @Column(name = "weight")
+    private Integer weight;
+
+    @Column(name = "service")
+    private String service;
+
     public Long getId() {
         return id;
     }
@@ -128,11 +155,83 @@ public class Order {
         this.updatedDate = updatedDate;
     }
 
+    public Long getShopId() {
+        return shopId;
+    }
+
+    public void setShopId(Long shopId) {
+        this.shopId = shopId;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public String getResiCode() {
+        return resiCode;
+    }
+
+    public void setResiCode(String resiCode) {
+        this.resiCode = resiCode;
+    }
+
+    public Integer getCustAddress() {
+        return custAddress;
+    }
+
+    public void setCustAddress(Integer custAddress) {
+        this.custAddress = custAddress;
+    }
+
+    public Integer getShopAddress() {
+        return shopAddress;
+    }
+
+    public void setShopAddress(Integer shopAddress) {
+        this.shopAddress = shopAddress;
+    }
+
+    public String getCourier() {
+        return courier;
+    }
+
+    public void setCourier(String courier) {
+        this.courier = courier;
+    }
+
+    public Integer getWeight() {
+        return weight;
+    }
+
+    public void setWeight(Integer weight) {
+        this.weight = weight;
+    }
+
+    public String getService() {
+        return service;
+    }
+
+    public void setService(String service) {
+        this.service = service;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("Order{");
         sb.append("id=").append(id);
-        sb.append(", userID=").append(customerId);
+        sb.append(", customerId=").append(customerId);
         sb.append(", grossAmount=").append(grossAmount);
         sb.append(", paymentType='").append(paymentType).append('\'');
         sb.append(", transactionStatus='").append(transactionStatus).append('\'');
@@ -142,6 +241,15 @@ public class Order {
         sb.append(", metadata='").append(metadata).append('\'');
         sb.append(", createdDate=").append(createdDate);
         sb.append(", updatedDate=").append(updatedDate);
+        sb.append(", shopId=").append(shopId);
+        sb.append(", status=").append(status);
+        sb.append(", quantity=").append(quantity);
+        sb.append(", resiCode='").append(resiCode).append('\'');
+        sb.append(", custAddress=").append(custAddress);
+        sb.append(", shopAddress=").append(shopAddress);
+        sb.append(", courier='").append(courier).append('\'');
+        sb.append(", weight=").append(weight);
+        sb.append(", service='").append(service).append('\'');
         sb.append('}');
         return sb.toString();
     }

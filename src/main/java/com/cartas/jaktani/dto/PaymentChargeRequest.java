@@ -5,15 +5,17 @@ public class PaymentChargeRequest {
     private String orderId;
     private String grossAmount;
     private String bank;
+    private Integer userID;
 
     public PaymentChargeRequest() {
     }
 
-    public PaymentChargeRequest(String paymentType, String orderId, String grossAmount, String bank) {
+    public PaymentChargeRequest(String paymentType, String orderId, String grossAmount, String bank, Integer userID) {
         this.paymentType = paymentType;
         this.orderId = orderId;
         this.grossAmount = grossAmount;
         this.bank = bank;
+        this.userID = userID;
     }
 
     public String getPaymentType() {
@@ -48,6 +50,14 @@ public class PaymentChargeRequest {
         this.bank = bank;
     }
 
+    public Integer getUserID() {
+        return userID;
+    }
+
+    public void setUserID(Integer userID) {
+        this.userID = userID;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("PaymentChargeRequest{");
@@ -55,6 +65,7 @@ public class PaymentChargeRequest {
         sb.append(", orderId='").append(orderId).append('\'');
         sb.append(", grossAmount='").append(grossAmount).append('\'');
         sb.append(", bank='").append(bank).append('\'');
+        sb.append(", userID=").append(userID);
         sb.append('}');
         return sb.toString();
     }

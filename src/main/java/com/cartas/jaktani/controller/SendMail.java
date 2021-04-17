@@ -18,7 +18,7 @@ import javax.mail.internet.MimeMessage;
 public class SendMail {
     static Logger logger = LoggerFactory.getLogger(SendMail.class);
 
-    public static void sentOTPToEmail(String email, String messageBody, String messageSubject) throws Exception {
+    public static void sentEmail(String email, String messageBody, String messageSubject) throws Exception {
 
         // Recipient's email ID needs to be mentioned.
         String to = email;

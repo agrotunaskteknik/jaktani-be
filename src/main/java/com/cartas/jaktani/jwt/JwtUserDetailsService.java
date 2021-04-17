@@ -127,7 +127,7 @@ public class JwtUserDetailsService implements UserDetailsService {
             String finalMessageBody = messageBody;
             Thread newThread = new Thread(() -> {
                 try {
-                    SendMail.sentOTPToEmail(email, finalMessageBody, messageSubject);
+                    SendMail.sentEmail(email, finalMessageBody, messageSubject);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
