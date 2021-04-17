@@ -9,6 +9,8 @@ import com.cartas.jaktani.service.ShopService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping(path = "/api/address")
@@ -35,12 +37,26 @@ public class AddressController {
     @PostMapping(path = "/add/user")
     public Object addUserAddress(@RequestBody AddressDetailDto addressDetailDto) {
         addressDetailDto.setType(AddressServiceImpl.TYPE_USER);
+        List<AddressDetailDto> addressDetailDtoList = addressService.getAllUserAddresses(addressDetailDto.getRelationId());
+        for(AddressDetailDto address : addressDetailDtoList){
+            if(address.getStatus().equals(AddressServiceImpl.STATUS_DEFAULT)){
+                addressDetailDto.setStatus(AddressServiceImpl.STATUS_ACTIVE);
+                break;
+            }
+        }
         return addressService.saveAddress(addressDetailDto);
     }
 
     @PostMapping(path = "/add/shop")
     public Object addShopAddress(@RequestBody AddressDetailDto addressDetailDto) {
         addressDetailDto.setType(AddressServiceImpl.TYPE_SHOP);
+        List<AddressDetailDto> addressDetailDtoList = addressService.getAllShopAddresses(addressDetailDto.getRelationId());
+        for(AddressDetailDto address : addressDetailDtoList){
+            if(address.getStatus().equals(AddressServiceImpl.STATUS_DEFAULT)){
+                addressDetailDto.setStatus(AddressServiceImpl.STATUS_ACTIVE);
+                break;
+            }
+        }
         return addressService.saveAddress(addressDetailDto);
     }
 
