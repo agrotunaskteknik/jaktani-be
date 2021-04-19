@@ -391,4 +391,75 @@ public class AddressServiceImpl implements AddressService {
         }
 
     }
+
+    public List<AddressDetailDto> setDefaultAddress(AddressDetailDto addressDetailDto) {
+        List<AddressDetailDto> addressDetailDtos = new ArrayList<>();
+        Integer addressId = Integer.valueOf(addressDetailDto.getAddressId());
+
+        // address need to changed
+        Optional<Address> addressOptional = addressRepository.findByIdAndStatusIsNot(addressId, STATUS_DELETED);
+        if (!addressOptional.isPresent()) {
+            logger.debug("address = " + addressId + " not found");
+            return addressDetailDtos;
+        }
+        Address address = addressOptional.get();
+        if (addressDetailDto.getStatus().equals(STATUS_DELETED)) {
+            logger.debug("address already deleted");
+            return addressDetailDtos;
+        }
+        if (!addressDetailDto.getType().equals(address.getType())) {
+            logger.debug("type is not the same");
+            return addressDetailDtos;
+        }
+        if (!addressDetailDto.getRelationId().equals(address.getRelationId())) {
+            logger.debug("relation id is not the same");
+            return addressDetailDtos;
+        }
+        address.setCity(addressDetailDto.getCityId());
+        address.setDescription(addressDetailDto.getDescription());
+        address.setProvince(addressDetailDto.getProvinceId());
+        address.setPostalCode(addressDetailDto.getPostalCode());
+        address.setUpdatedBy(addressDetailDto.getRelationId());
+        address.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+        address.setStatus(STATUS_DEFAULT);
+        // get default address
+        Optional<Address> addressDefaultOptional = addressRepository.findByStatus(STATUS_DEFAULT);
+        if (!addressDefaultOptional.isPresent()) {
+            logger.debug("address default not found");
+            return addressDetailDtos;
+        }
+        Address addressDefault = addressDefaultOptional.get();
+        addressDefault.setStatus(STATUS_ACTIVE);
+        addressDefault.setUpdatedBy(addressDefault.createdBy);
+        addressDefault.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+        // save default to active first
+        addressDefault = addressRepository.save(addressDefault);
+        // save active to default
+        address = addressRepository.save(address);
+        List<Address> addresses = addressRepository.findAllByTypeAndRelationIdAndStatusIsNot(address.getType(), address.getCreatedBy(), STATUS_DELETED);
+        if (addresses == null || addresses.size() == 0) {
+            logger.debug("Empty user Address");
+            return addressDetailDtos;
+        }
+        for (Address addressNew : addresses) {
+            AddressDetailDto addressDetailDtoNew = new AddressDetailDto();
+            addressDetailDtoNew.setAddressId(addressNew.getId().toString());
+            addressDetailDtoNew.setCityId(addressNew.getCity());
+            addressDetailDtoNew.setPostalCode(addressNew.getPostalCode());
+            addressDetailDtoNew.setProvinceId(addressNew.getProvince());
+            addressDetailDtoNew.setRelationId(addressNew.getRelationId());
+            addressDetailDtoNew.setStatus(addressNew.getStatus());
+            addressDetailDtoNew.setDescription(addressNew.getDescription());
+            addressDetailDtoNew.setType(addressNew.getType());
+            try {
+                CityParentSingle cityParentSingle = getCitiesByProvinceIdAndCityId(addressNew.getProvince(), addressNew.getCity());
+                addressDetailDtoNew.setCityName(cityParentSingle.getRajaongkir().getResults().getCity_name());
+                addressDetailDtoNew.setProvinceName(cityParentSingle.getRajaongkir().getResults().getProvince());
+            } catch (Exception ex) {
+                logger.debug("error get detail ex: " + ex.getMessage());
+            }
+            addressDetailDtos.add(addressDetailDtoNew);
+        }
+        return addressDetailDtos;
+    }
 }

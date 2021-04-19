@@ -28,4 +28,6 @@ public interface AddressService {
     CityParent getCitiesByProvinceId(String provinceId) throws IOException;
 
     CostParent getCostByCityId(String originCityId, String destinationCityId, Long weight, String courier) throws IOException;
+
+    List<AddressDetailDto> setDefaultAddress(AddressDetailDto addressDetailDto);
 }

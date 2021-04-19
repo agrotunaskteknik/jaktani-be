@@ -83,4 +83,16 @@ public class AddressController {
         addressDetailDto.setType(AddressServiceImpl.TYPE_USER);
         return addressService.updateAddress(addressDetailDto);
     }
+
+    @PostMapping(path = "/shop/set_default")
+    public Object setDefaultShopAddress(@RequestBody AddressDetailDto addressDetailDto) {
+        addressDetailDto.setType(AddressServiceImpl.TYPE_SHOP);
+        return addressService.setDefaultAddress(addressDetailDto);
+    }
+
+    @PostMapping(path = "/user/set_default")
+    public Object setDefaultUserAddress(@RequestBody AddressDetailDto addressDetailDto) {
+        addressDetailDto.setType(AddressServiceImpl.TYPE_USER);
+        return addressService.setDefaultAddress(addressDetailDto);
+    }
 }
