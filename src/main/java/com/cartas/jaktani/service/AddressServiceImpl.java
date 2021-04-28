@@ -89,6 +89,33 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
+    public AddressDetailDto getDefaultAddressByIdAndRelationType(Integer id, Integer relationType) {
+        Optional<Address> addressOptional = addressRepository.findByTypeAndRelationIdAndStatusIs(relationType, id, STATUS_DEFAULT);
+        if (!addressOptional.isPresent()) {
+            logger.debug("address for id = " + id + " not found");
+            return new AddressDetailDto();
+        }
+        Address address = addressOptional.get();
+        AddressDetailDto addressDetailDto = new AddressDetailDto();
+        addressDetailDto.setAddressId(address.getId().toString());
+        addressDetailDto.setCityId(address.getCity());
+        addressDetailDto.setPostalCode(address.getPostalCode());
+        addressDetailDto.setProvinceId(address.getProvince());
+        addressDetailDto.setRelationId(address.getRelationId());
+        addressDetailDto.setStatus(address.getStatus());
+        addressDetailDto.setDescription(address.getDescription());
+        addressDetailDto.setType(address.getType());
+        try {
+            CityParentSingle cityParentSingle = getCitiesByProvinceIdAndCityId(address.getProvince(), address.getCity());
+            addressDetailDto.setCityName(cityParentSingle.getRajaongkir().getResults().getCity_name());
+            addressDetailDto.setProvinceName(cityParentSingle.getRajaongkir().getResults().getProvince());
+        } catch (Exception ex) {
+            logger.debug("error get detail ex: " + ex.getMessage());
+        }
+        return addressDetailDto;
+    }
+
+    @Override
     public AddressDetailDto saveAddress(AddressDetailDto addressDetailDto) {
         if (addressDetailDto.getStatus().equals(STATUS_DELETED)) {
             logger.debug("address status deleted");
@@ -423,7 +450,7 @@ public class AddressServiceImpl implements AddressService {
         address.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
         address.setStatus(STATUS_DEFAULT);
         // get default address
-        Optional<Address> addressDefaultOptional = addressRepository.findByStatus(STATUS_DEFAULT);
+        Optional<Address> addressDefaultOptional = addressRepository.findByTypeAndRelationIdAndStatusIs(address.getType(), address.getRelationId(), STATUS_DEFAULT);
         if (!addressDefaultOptional.isPresent()) {
             logger.debug("address default not found");
             return addressDetailDtos;

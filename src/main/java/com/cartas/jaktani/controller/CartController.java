@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(path = "/api/cart")
 public class CartController {
@@ -54,6 +56,17 @@ public class CartController {
     public ResponseEntity<?> updateCart(@RequestBody AddToCartDtoRequest addToCartDtoRequest) {
         try {
             CommonResponse response = cartService.updateCart(addToCartDtoRequest);
+            return ResponseEntity.ok().body(new ParentResponse(response));
+        } catch (Exception e) {
+            logger.debug("update_cart Caught Error : " + e.getMessage());
+            return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
+        }
+    }
+
+    @RequestMapping(value = "/update_cart_v2", method = RequestMethod.POST)
+    public ResponseEntity<?> updateCartV2(@RequestBody List<AddToCartDtoRequest> addToCartDtoRequest) {
+        try {
+            CommonResponse response = cartService.updateCartV2(addToCartDtoRequest);
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
             logger.debug("update_cart Caught Error : " + e.getMessage());

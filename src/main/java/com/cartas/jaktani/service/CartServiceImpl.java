@@ -45,6 +45,7 @@ public class CartServiceImpl implements CartService {
     final static Integer ORDER_STATUS_PAYMENT_SETTLED = 2;
     final static Integer ORDER_STATUS_WAITING_SELLER_CONFIRMATION = 3;
     final static Integer ORDER_STATUS_SELLER_PROCESSING = 4;
+    final static Integer ORDER_STATUS_SELLER_REJECTED = 99;
     final static Integer ORDER_STATUS_SHIPPING = 5;
     final static Integer ORDER_STATUS_WAITING_FOR_REVIEW = 6;
     final static Integer ORDER_STATUS_DONE = 7;
@@ -53,10 +54,13 @@ public class CartServiceImpl implements CartService {
     final static String ORDER_STATUS_PAYMENT_SETTLED_TITLE = "Pembayaran Terverifikasi";
     final static String ORDER_STATUS_WAITING_SELLER_CONFIRMATION_TITLE = "Menunggu konfirmasi Seller";
     final static String ORDER_STATUS_SELLER_PROCESSING_TITLE = "Diproses";
+    final static String ORDER_STATUS_SELLER_REJECTED_TITLE = "Tidak Diproses";
     final static String ORDER_STATUS_SHIPPING_TITLE = "Dikirim";
     final static String ORDER_STATUS_WAITING_FOR_REVIEW_TITLE = "Tulis Review";
     final static String ORDER_STATUS_DONE_TITLE = "Selesai";
     public static String staticKey = "cart_";
+    public static Integer ORDER_VERIFY_STATUS_CONFIRM = 1;
+    public static Integer ORDER_VERIFY_STATUS_REJECT = 2;
 
     // one instance, reuse
     private final OkHttpClient httpClient = new OkHttpClient();
@@ -81,10 +85,20 @@ public class CartServiceImpl implements CartService {
     @Autowired
     CartCacheRepository cacheRepository;
 
+    @Autowired
+    MultiCartCacheRepository multiCacheRepository;
+
     public String insertData(CartCache cache) {
         cache.setId(staticKey + cache.getUserID());
         System.out.println(cache);
         cache = cacheRepository.save(cache);
+        return cache.toString();
+    }
+
+    public String insertMultiData(MultiCartCache cache) {
+        cache.setId(staticKey + cache.getUserID());
+        System.out.println(cache);
+        cache = multiCacheRepository.save(cache);
         return cache.toString();
     }
 
@@ -94,16 +108,28 @@ public class CartServiceImpl implements CartService {
         return students;
     }
 
-    public CartCache getByCacheId(String userID) {
+    public MultiCartCache getByCacheId(String userID) {
+        MultiCartCache multiCartCache = new MultiCartCache();
         String cacheKey = staticKey + userID;
         System.out.println(cacheKey);
 //        getAllDatas();
+        Optional<MultiCartCache> multiCartCacheOptional = multiCacheRepository.findById(cacheKey);
+        if (multiCartCacheOptional.isPresent()) {
+            System.out.println(multiCartCache);
+            return multiCartCacheOptional.get();
+        }
+        System.out.println("null for multi cache = " + cacheKey);
         Optional<CartCache> retrievedStudent = cacheRepository.findById(cacheKey);
         if (!retrievedStudent.isPresent()) {
             System.out.println("null for cache = " + cacheKey);
             return null;
         }
-        return retrievedStudent.get();
+        multiCartCache.setUserID(Long.parseLong(userID));
+        multiCartCache.setId(retrievedStudent.get().getId());
+        List<CartCache> cartCacheList = new ArrayList<>();
+        cartCacheList.add(retrievedStudent.get());
+        multiCartCache.setCartCacheList(cartCacheList);
+        return multiCartCache;
     }
 
     public Boolean validationAddToCart(AddToCartDtoRequest addToCartDtoRequest) {
@@ -521,20 +547,23 @@ public class CartServiceImpl implements CartService {
             return safDtoResponse;
         }
 //        List<CartItem> cartItemList = cartRepository.findByStatusAndUserID(CART_STATUS_CART_PAGE, cartListDtoRequest.getUserID());
-        CartCache cache = getByCacheId(cartListDtoRequest.getUserID().toString());
+        MultiCartCache multiCartCache = getByCacheId(cartListDtoRequest.getUserID().toString());
         List<CartItem> cartItemList = new ArrayList<>();
-        CartItem cartItemCache = new CartItem();
-        cartItemCache.setNotes(cache.getNotes());
-        cartItemCache.setQuantity(cache.getQuantity());
-        cartItemCache.setStatus(cache.getStatus());
-        cartItemCache.setPrice(cache.getPrice());
-        cartItemCache.setShopID(cache.getShopID());
-        cartItemCache.setProductID(cache.getProductID());
-        cartItemCache.setUserID(cache.getUserID());
-        cartItemCache.setId(cache.getCartId());
-        cartItemCache.setTransactionID(cache.getTransactionID());
-
-        cartItemList.add(cartItemCache);
+        if (null != multiCartCache.getCartCacheList() && multiCartCache.getCartCacheList().size() > 0) {
+            for (CartCache cache : multiCartCache.getCartCacheList()) {
+                CartItem cartItemCache = new CartItem();
+                cartItemCache.setNotes(cache.getNotes());
+                cartItemCache.setQuantity(cache.getQuantity());
+                cartItemCache.setStatus(cache.getStatus());
+                cartItemCache.setPrice(cache.getPrice());
+                cartItemCache.setShopID(cache.getShopID());
+                cartItemCache.setProductID(cache.getProductID());
+                cartItemCache.setUserID(cache.getUserID());
+                cartItemCache.setId(cache.getCartId());
+                cartItemCache.setTransactionID(cache.getTransactionID());
+                cartItemList.add(cartItemCache);
+            }
+        }
 
         if (cartItemList.size() == 0) {
             logger.debug("Cart List Empty, userID = " + cartListDtoRequest.getUserID());
@@ -690,43 +719,46 @@ public class CartServiceImpl implements CartService {
         }
 
         // get cache for comparison
-        CartCache cartCache = getByCacheId(cartListDtoRequest.getUserId().toString());
+        MultiCartCache multiCartCache = getByCacheId(cartListDtoRequest.getUserId().toString());
         List<CartItem> cartItemList = new ArrayList<>();
-        CartItem cartItemFromCache = new CartItem();
-        cartItemFromCache.setNotes(cartCache.getNotes());
-        cartItemFromCache.setQuantity(cartCache.getQuantity());
-        cartItemFromCache.setStatus(cartCache.getStatus());
-        cartItemFromCache.setPrice(cartCache.getPrice());
-        cartItemFromCache.setShopID(cartCache.getShopID());
-        cartItemFromCache.setProductID(cartCache.getProductID());
-        cartItemFromCache.setUserID(cartCache.getUserID());
-        cartItemFromCache.setId(cartCache.getCartId());
-        cartItemFromCache.setTransactionID(cartCache.getTransactionID());
-        cartItemList.add(cartItemFromCache);
-
-        // get db data
-        Optional<CartItem> cartItemOptional = cartRepository.findByIdAndStatusAndUserID(cartItemFromCache.getId(),
-                CART_STATUS_CART_PAGE, cartItemFromCache.getUserID());
-        if (!cartItemOptional.isPresent()) {
-            logger.debug("Cart id not found in db");
-            response.setErrorMessage(FAILED_CART_LIST);
-            response.setStatus(STATUS_NOT_OK);
-            return response;
+        if (null != multiCartCache.getCartCacheList() && multiCartCache.getCartCacheList().size() > 0) {
+            for (CartCache cache : multiCartCache.getCartCacheList()) {
+                CartItem cartItemCache = new CartItem();
+                cartItemCache.setNotes(cache.getNotes());
+                cartItemCache.setQuantity(cache.getQuantity());
+                cartItemCache.setStatus(cache.getStatus());
+                cartItemCache.setPrice(cache.getPrice());
+                cartItemCache.setShopID(cache.getShopID());
+                cartItemCache.setProductID(cache.getProductID());
+                cartItemCache.setUserID(cache.getUserID());
+                cartItemCache.setId(cache.getCartId());
+                cartItemCache.setTransactionID(cache.getTransactionID());
+                cartItemList.add(cartItemCache);
+            }
         }
-
-
         if (cartItemList.size() == 0) {
             logger.debug("Cart List Empty, userID = " + cartListDtoRequest.getUserId());
             response.setErrorMessage(SUCCESS_CART_LIST_EMPTY);
             response.setStatus(STATUS_OK);
             return response;
         }
-
+        List<CartItem> cartItemFromDB = new ArrayList<>();
         // get product info
         HashMap<Long, VwProductDetails> productMap = new HashMap<>();
         // get shop info
         HashMap<Long, Shop> shopMap = new HashMap<>();
         for (CartItem cartItem : cartItemList) {
+            // get db data
+            Optional<CartItem> cartItemOptional = cartRepository.findByIdAndStatusAndUserID(cartItem.getId(),
+                    CART_STATUS_CART_PAGE, cartItem.getUserID());
+            if (!cartItemOptional.isPresent()) {
+                logger.debug("Cart id not found in db");
+                response.setErrorMessage(FAILED_CART_LIST);
+                response.setStatus(STATUS_NOT_OK);
+                return response;
+            }
+            cartItemFromDB.add(cartItemOptional.get());
+
             VwProductDetails product = vwProductDetailsService.findByProductIdProductDetails(cartItem.getProductID().intValue());
             if (product != null) {
                 productMap.put(product.getProductId().longValue(), product);
@@ -818,8 +850,8 @@ public class CartServiceImpl implements CartService {
         for (Long key : shopGroupAvailableMap.keySet()) {
             ShopGroupData shopGroupData = shopGroupAvailableMap.get(key);
             Long grossAmount = 0L;
-            CheckoutProductData productData = new CheckoutProductData();
             for (CartDetails cartDetails : shopGroupData.getCartDetails()) {
+                CheckoutProductData productData = new CheckoutProductData();
                 grossAmount += cartDetails.getPrice();
                 CheckoutShopProduct checkoutShopProduct = checkoutShopProductByCartId.get(cartDetails.getId());
                 CostParent costParent = addressService.getCostByCityId(checkoutShopProduct.getOriginCityId().toString(), checkoutShopProduct.getDestincationCityId().toString(),
@@ -853,40 +885,34 @@ public class CartServiceImpl implements CartService {
             order.setShopId(cartListDtoRequest.getShopProducts().get(0).getShopId());
         }
         order.setStatus(ORDER_STATUS_WAITING_PAYMENT_METHOD);
-        order.setQuantity(cartItemOptional.get().getQuantity().intValue());
+        order.setQuantity(cartItemList.get(0).getQuantity().intValue());
         order.setCustAddress(Integer.valueOf(cartListDtoRequest.getAddressId()));
-        order.setShopId(cartItemOptional.get().getShopID());
+        order.setShopId(cartItemList.get(0).getShopID());
         order.setCourier(cartListDtoRequest.getShopProducts().get(0).getCourier());
-//        order.setVaNumber("");
-//        order.setCreatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
-//        order.setMetadata("");
-//        order.setPaymentType("");
-//        order.setTransactionID("");
-//        order.setTransactionStatus("");
-//        order.setTransactionTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
-//        order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
         order = orderRepository.save(order);
 
         System.out.println("order = " + order);
 
-        // update cart db
-        CartItem cartItemUpdate = cartItemOptional.get();
-        cartItemUpdate.setStatus(CART_STATUS_CHECKOUT);
-        cartItemUpdate.setTransactionID(order.getId());
-        cartItemUpdate.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
-        cartItemUpdate = cartRepository.save(cartItemUpdate);
-        System.out.println("cartItemUpdate = " + cartItemUpdate);
+        for (CartItem cartItem : cartItemFromDB) {
+            // update cart db
+            CartItem cartItemUpdate = cartItem;
+            cartItemUpdate.setStatus(CART_STATUS_CHECKOUT);
+            cartItemUpdate.setTransactionID(order.getId());
+            cartItemUpdate.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+            cartItemUpdate = cartRepository.save(cartItemUpdate);
+            System.out.println("cartItemUpdate = " + cartItemUpdate);
 
-        // update decrease product stock
-        Optional<Product> optionalProduct = productRepository.findById(cartItemOptional.get().getProductID().intValue());
-        if (optionalProduct.isPresent()) {
-            Product product = optionalProduct.get();
-            product.setStock(optionalProduct.get().getStock() - cartItemOptional.get().getQuantity().intValue());
-            productRepository.save(product);
+            // update decrease product stock
+            Optional<Product> optionalProduct = productRepository.findById(cartItem.getProductID().intValue());
+            if (optionalProduct.isPresent()) {
+                Product product = optionalProduct.get();
+                product.setStock(optionalProduct.get().getStock() - cartItem.getQuantity().intValue());
+                productRepository.save(product);
+            }
         }
 
         // delete cache
-        cacheRepository.delete(cartCache);
+        multiCacheRepository.delete(multiCartCache);
 
         checkoutParameterResponse.setOrderId(order.getId());
         data.setProductList(productList);
@@ -1018,7 +1044,7 @@ public class CartServiceImpl implements CartService {
         if (orderOptional.isPresent()) {
             Order order = orderOptional.get();
             Timestamp transactiontime = Utils.getTimeStamp(1L);
-            if(order.getTransactionTime()!=null){
+            if (order.getTransactionTime() != null) {
                 transactiontime = order.getTransactionTime();
             }
             emailForPaymentAccepted("mockBCA", transactiontime.toString(), order.getCustomerId().intValue(), order.getGrossAmount());
@@ -1058,31 +1084,7 @@ public class CartServiceImpl implements CartService {
                 Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.STATUS_DELETED);
                 OrderDetailDto orderResp = new OrderDetailDto();
                 orderResp.setIconImg("");
-                String statusTitle = "";
-                if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT_METHOD)) {
-                    statusTitle = ORDER_STATUS_WAITING_PAYMENT_METHOD_TITLE;
-                }
-                if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT)) {
-                    statusTitle = ORDER_STATUS_WAITING_PAYMENT_TITLE;
-                }
-                if (order.getStatus().equals(ORDER_STATUS_PAYMENT_SETTLED)) {
-                    statusTitle = ORDER_STATUS_PAYMENT_SETTLED_TITLE;
-                }
-                if (order.getStatus().equals(ORDER_STATUS_WAITING_SELLER_CONFIRMATION)) {
-                    statusTitle = ORDER_STATUS_WAITING_SELLER_CONFIRMATION_TITLE;
-                }
-                if (order.getStatus().equals(ORDER_STATUS_SELLER_PROCESSING)) {
-                    statusTitle = ORDER_STATUS_SELLER_PROCESSING_TITLE;
-                }
-                if (order.getStatus().equals(ORDER_STATUS_SHIPPING)) {
-                    statusTitle = ORDER_STATUS_SHIPPING_TITLE;
-                }
-                if (order.getStatus().equals(ORDER_STATUS_WAITING_FOR_REVIEW)) {
-                    statusTitle = ORDER_STATUS_WAITING_FOR_REVIEW_TITLE;
-                }
-                if (order.getStatus().equals(ORDER_STATUS_DONE)) {
-                    statusTitle = ORDER_STATUS_DONE_TITLE;
-                }
+                String statusTitle = getStatusTitleByStatusId(order.getStatus());
                 orderResp.setOrderStatusTitle(statusTitle);
                 orderResp.setOrderStatus(order.getStatus());
                 orderResp.setOrderTotal(order.getGrossAmount());
@@ -1134,28 +1136,7 @@ public class CartServiceImpl implements CartService {
                 Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.STATUS_DELETED);
                 OrderDetailDto orderResp = new OrderDetailDto();
                 orderResp.setIconImg("");
-                String statusTitle = "";
-                if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT_METHOD)) {
-                    statusTitle = ORDER_STATUS_WAITING_PAYMENT_METHOD_TITLE;
-                }
-                if (order.getStatus().equals(ORDER_STATUS_PAYMENT_SETTLED)) {
-                    statusTitle = ORDER_STATUS_PAYMENT_SETTLED_TITLE;
-                }
-                if (order.getStatus().equals(ORDER_STATUS_WAITING_SELLER_CONFIRMATION)) {
-                    statusTitle = ORDER_STATUS_WAITING_SELLER_CONFIRMATION_TITLE;
-                }
-                if (order.getStatus().equals(ORDER_STATUS_SELLER_PROCESSING)) {
-                    statusTitle = ORDER_STATUS_SELLER_PROCESSING_TITLE;
-                }
-                if (order.getStatus().equals(ORDER_STATUS_SHIPPING)) {
-                    statusTitle = ORDER_STATUS_SHIPPING_TITLE;
-                }
-                if (order.getStatus().equals(ORDER_STATUS_WAITING_FOR_REVIEW)) {
-                    statusTitle = ORDER_STATUS_WAITING_FOR_REVIEW_TITLE;
-                }
-                if (order.getStatus().equals(ORDER_STATUS_DONE)) {
-                    statusTitle = ORDER_STATUS_DONE_TITLE;
-                }
+                String statusTitle = getStatusTitleByStatusId(order.getStatus());
                 orderResp.setOrderStatusTitle(statusTitle);
                 orderResp.setOrderStatus(order.getStatus());
                 orderResp.setOrderTotal(order.getGrossAmount());
@@ -1179,14 +1160,55 @@ public class CartServiceImpl implements CartService {
         return orderDetailDto;
     }
 
+    public String getStatusTitleByStatusId(Integer statusID) {
+        String statusTitle = "";
+        if (statusID.equals(ORDER_STATUS_WAITING_PAYMENT_METHOD)) {
+            statusTitle = ORDER_STATUS_WAITING_PAYMENT_METHOD_TITLE;
+        }
+        if (statusID.equals(ORDER_STATUS_PAYMENT_SETTLED)) {
+            statusTitle = ORDER_STATUS_PAYMENT_SETTLED_TITLE;
+        }
+        if (statusID.equals(ORDER_STATUS_WAITING_SELLER_CONFIRMATION)) {
+            statusTitle = ORDER_STATUS_WAITING_SELLER_CONFIRMATION_TITLE;
+        }
+        if (statusID.equals(ORDER_STATUS_SELLER_PROCESSING)) {
+            statusTitle = ORDER_STATUS_SELLER_PROCESSING_TITLE;
+        }
+        if (statusID.equals(ORDER_STATUS_SELLER_REJECTED)) {
+            statusTitle = ORDER_STATUS_SELLER_REJECTED_TITLE;
+        }
+        if (statusID.equals(ORDER_STATUS_SHIPPING)) {
+            statusTitle = ORDER_STATUS_SHIPPING_TITLE;
+        }
+        if (statusID.equals(ORDER_STATUS_WAITING_FOR_REVIEW)) {
+            statusTitle = ORDER_STATUS_WAITING_FOR_REVIEW_TITLE;
+        }
+        if (statusID.equals(ORDER_STATUS_DONE)) {
+            statusTitle = ORDER_STATUS_DONE_TITLE;
+        }
+        return statusTitle;
+    }
+
     @Override
     public void sellerVerifyOrder(VerifyOrderShippingRequest request) {
+        if (!request.getStatus().equals(ORDER_VERIFY_STATUS_CONFIRM)
+                || !request.getStatus().equals(ORDER_VERIFY_STATUS_REJECT)) {
+            logger.debug("status not found");
+            return;
+        }
         Optional<Order> orderOptional = orderRepository.findById(request.getOrderID());
         if (orderOptional.isPresent()) {
             Order order = orderOptional.get();
-            order.setStatus(ORDER_STATUS_SELLER_PROCESSING);
-            order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
-            orderRepository.save(order);
+            if (request.getStatus().equals(ORDER_VERIFY_STATUS_CONFIRM)) {
+                order.setStatus(ORDER_STATUS_SELLER_PROCESSING);
+                order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+                orderRepository.save(order);
+            } else if (request.getStatus().equals(ORDER_VERIFY_STATUS_REJECT)) {
+                order.setStatus(ORDER_STATUS_SELLER_REJECTED);
+                order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+                orderRepository.save(order);
+            }
+
         }
     }
 
@@ -1227,6 +1249,95 @@ public class CartServiceImpl implements CartService {
             order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
             orderRepository.save(order);
         }
+    }
+
+    @Override
+    public CommonResponse updateCartV2(List<AddToCartDtoRequest> params) {
+        CommonResponse response = new CommonResponse();
+
+        // check request param
+        if (params == null) {
+            logger.error("Null param from client ");
+            response.setMessage(INVALID_PARAM);
+            response.setStatus(STATUS_NOT_OK);
+            return response;
+        }
+
+        for (AddToCartDtoRequest request : params) {
+            Boolean isValidParam = validationUpdateToCart(request);
+            if (!isValidParam) {
+                logger.error("Empty param from client : " + params.toString());
+                response.setMessage(INVALID_PARAM);
+                response.setStatus(STATUS_NOT_OK);
+                return response;
+            }
+        }
+
+        List<CartCache> cartCacheList = new ArrayList<>();
+        Long userID = 0L;
+        for (AddToCartDtoRequest param : params) {
+            // check if cart id exist and product and shop the same
+            Optional<CartItem> cartDB = cartRepository.findByIdAndProductIDAndStatusAndUserID(param.getCartID(), param.getProductID(), CART_STATUS_CART_PAGE, param.getUserID());
+            if (!cartDB.isPresent()) {
+                logger.error(INVALID_CART_ID_NOT_FOUND_DB);
+                response.setMessage(INVALID_CART_ID_NOT_FOUND_DB);
+                response.setStatus(STATUS_NOT_OK);
+                return response;
+            }
+            // check if product exist
+            Optional<Product> product = productRepository.findByIdAndStatusIsNot(param.getProductID().intValue(), ProductServiceImpl.STATUS_DELETED);
+            if (!product.isPresent()) {
+                response.setMessage("Product Not Found");
+                response.setStatus(STATUS_NOT_OK);
+                return response;
+            }
+            // check if shop exist
+            Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(param.getShopID().intValue(), ProductServiceImpl.STATUS_DELETED);
+            if (!shop.isPresent()) {
+                response.setMessage("Shop Not Found");
+                response.setStatus(STATUS_NOT_OK);
+                return response;
+            }
+
+            // update logic by checking product id and cart status and cart id
+            CartItem saveCartParam = new CartItem();
+            saveCartParam.setUserID(param.getUserID());
+            saveCartParam.setProductID(param.getProductID());
+            saveCartParam.setShopID(param.getShopID());
+            saveCartParam.setQuantity(param.getQuantity());
+            saveCartParam.setPrice(1000L);
+            saveCartParam.setStatus(CART_STATUS_CART_PAGE);
+            saveCartParam.setId(cartDB.get().getId());
+            saveCartParam.setNotes(param.getNotes());
+            saveCartParam.setCreatedTime(cartDB.get().getCreatedTime());
+            saveCartParam.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+            try {
+                CartItem saveCartResponse = cartRepository.save(saveCartParam);
+                if (saveCartResponse.getId() == null || saveCartResponse.getId() == 0L) {
+                    response.setMessage(FAILED_UPDATE_CART);
+                    response.setStatus(STATUS_NOT_OK);
+                    return response;
+                }
+                CartCache cartCache = new CartCache("", saveCartResponse.getId(), saveCartResponse.getUserID(), saveCartResponse.getShopID(),
+                        saveCartResponse.getProductID(), saveCartResponse.getPrice(), saveCartResponse.getStatus(), saveCartResponse.getQuantity(),
+                        saveCartResponse.getTransactionID(), saveCartResponse.getNotes());
+                cartCacheList.add(cartCache);
+                userID = saveCartResponse.getUserID();
+            } catch (Exception ex) {
+                logger.error(ex.getMessage());
+                response.setMessage(FAILED_UPDATE_CART);
+                response.setStatus(STATUS_NOT_OK);
+                return response;
+            }
+        }
+        MultiCartCache multiCartCache = new MultiCartCache();
+        multiCartCache.setCartCacheList(cartCacheList);
+        multiCartCache.setUserID(userID);
+        String insertCache = insertMultiData(multiCartCache);
+        System.out.println("insertMultiData = " + insertCache);
+        response.setMessage(SUCCESS_UPDATE_CART);
+        response.setStatus(STATUS_OK);
+        return response;
     }
 
     public void emailForPaymentRequest(PaymentChargeRequest paymentChargeRequest, PaymentChargeDtoResponse paymentChargeDtoResponse) {

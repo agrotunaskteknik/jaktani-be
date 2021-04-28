@@ -14,6 +14,8 @@ public interface CartService {
 
     CommonResponse updateCart(AddToCartDtoRequest addToCartDtoRequest);
 
+    CommonResponse updateCartV2(List<AddToCartDtoRequest> addToCartDtoRequest);
+
     CartListResponse cartList(CartListDtoRequest cartListDtoRequest);
 
     SAFDtoResponse shipmentAddressForm(CartListDtoRequest cartListDtoRequest);

@@ -85,6 +85,19 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
+    public Shop getShopObjectByUserID(Integer userId) {
+        Optional<Shop> shop = repository.findByUserIDAndStatusIsNot(userId,STATUS_DELETED);
+        if(!shop.isPresent()) {
+            response.setResponseCode("FAILED");
+            response.setResponseMessage("Data not found");
+            return new Shop();
+        }
+        Optional<Users> user = userRepository.findById(shop.get().getUserID());
+        shop.get().setUser(user.get());
+        return shop.get();
+    }
+
+    @Override
     public Object getShopByName(String name) {
         Optional<Shop> shop = repository.findFirstByNameAndStatusIsNot(name, STATUS_DELETED);
         if(!shop.isPresent()) {

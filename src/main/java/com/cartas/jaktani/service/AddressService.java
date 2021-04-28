@@ -30,4 +30,6 @@ public interface AddressService {
     CostParent getCostByCityId(String originCityId, String destinationCityId, Long weight, String courier) throws IOException;
 
     List<AddressDetailDto> setDefaultAddress(AddressDetailDto addressDetailDto);
+
+    AddressDetailDto getDefaultAddressByIdAndRelationType(Integer id, Integer relationType);
 }

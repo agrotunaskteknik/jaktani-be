@@ -33,6 +33,9 @@ public class UserDto {
     public String profileUrlPathHome;
     public String profileBase64;
 
+    public AddressDetailDto userAddress;
+    public AddressDetailDto userShopAddress;
+
     public String getOtp() {
         return otp;
     }
@@ -225,7 +228,23 @@ public class UserDto {
 		this.profileBase64 = profileBase64;
 	}
 
-	@Override
+    public AddressDetailDto getUserAddress() {
+        return userAddress;
+    }
+
+    public void setUserAddress(AddressDetailDto userAddress) {
+        this.userAddress = userAddress;
+    }
+
+    public AddressDetailDto getUserShopAddress() {
+        return userShopAddress;
+    }
+
+    public void setUserShopAddress(AddressDetailDto userShopAddress) {
+        this.userShopAddress = userShopAddress;
+    }
+
+    @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("UserDto{");
         sb.append("id=").append(id);
@@ -239,6 +258,19 @@ public class UserDto {
         sb.append(", mobilePhoneNumber='").append(mobilePhoneNumber).append('\'');
         sb.append(", birthDate=").append(birthDate);
         sb.append(", otp='").append(otp).append('\'');
+        sb.append(", ktpNumber='").append(ktpNumber).append('\'');
+        sb.append(", ktpFilePath='").append(ktpFilePath).append('\'');
+        sb.append(", ktpUrlPath='").append(ktpUrlPath).append('\'');
+        sb.append(", ktpFilePathHome='").append(ktpFilePathHome).append('\'');
+        sb.append(", ktpUrlPathHome='").append(ktpUrlPathHome).append('\'');
+        sb.append(", ktpBase64='").append(ktpBase64).append('\'');
+        sb.append(", profileFilePath='").append(profileFilePath).append('\'');
+        sb.append(", profileUrlPath='").append(profileUrlPath).append('\'');
+        sb.append(", profileFilePathHome='").append(profileFilePathHome).append('\'');
+        sb.append(", profileUrlPathHome='").append(profileUrlPathHome).append('\'');
+        sb.append(", profileBase64='").append(profileBase64).append('\'');
+        sb.append(", userAddress=").append(userAddress);
+        sb.append(", userShopAddress=").append(userShopAddress);
         sb.append('}');
         return sb.toString();
     }

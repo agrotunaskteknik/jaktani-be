@@ -5,8 +5,8 @@ import com.cartas.jaktani.dto.*;
 import com.cartas.jaktani.exceptions.ResourceNotFoundException;
 import com.cartas.jaktani.jwt.JwtUserDetailsService;
 import com.cartas.jaktani.model.OTP;
-import com.cartas.jaktani.service.TokenService;
-import com.cartas.jaktani.service.UserService;
+import com.cartas.jaktani.model.Shop;
+import com.cartas.jaktani.service.*;
 import com.cartas.jaktani.util.MessagesProperties;
 import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
@@ -36,6 +36,10 @@ public class JwtAuthenticationController {
     private TokenService tokenService;
     @Autowired
     UserService userService;
+    @Autowired
+    AddressService addressService;
+    @Autowired
+    ShopService shopService;
 
     @RequestMapping(value = "/authenticate", method = RequestMethod.POST)
     public ResponseEntity<?> createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
@@ -146,6 +150,16 @@ public class JwtAuthenticationController {
             if (null == token) {
                 return ResponseEntity.ok().body(new ParentResponse(new CommonResponse("Error Save Token", "NOT_OK", "")));
             }
+
+            // get user default address
+            AddressDetailDto userAddress = addressService.getDefaultAddressByIdAndRelationType(userDto.getId(), AddressServiceImpl.TYPE_USER);
+            userDto.setUserAddress(userAddress);
+
+            // get shop by user id
+            Shop shop = shopService.getShopObjectByUserID(userDto.getId());
+            // get shop default address
+            AddressDetailDto shopAddress = addressService.getDefaultAddressByIdAndRelationType(shop.getId(), AddressServiceImpl.TYPE_SHOP);
+            userDto.setUserShopAddress(shopAddress);
 
             LoginResponse loginResponse = new LoginResponse("", "OK", "Success login user!", userDto, token);
             return ResponseEntity.ok().body(new ParentResponse(loginResponse));

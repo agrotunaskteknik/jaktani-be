@@ -23,6 +23,16 @@ public class AddressController {
         return addressService.getByAddressId(addressId);
     }
 
+    @GetMapping(path = "/shop/default/{shop_id}")
+    public Object getShopDefaultByAddressId(@PathVariable(name = "shop_id") Integer shopId) {
+        return addressService.getDefaultAddressByIdAndRelationType(shopId, AddressServiceImpl.TYPE_SHOP);
+    }
+
+    @GetMapping(path = "/user/default/{user_id}")
+    public Object getUserDefaultByAddressId(@PathVariable(name = "user_id") Integer userId) {
+        return addressService.getDefaultAddressByIdAndRelationType(userId, AddressServiceImpl.TYPE_USER);
+    }
+
     @GetMapping(path = "/all/shop/{shop_id}")
     public Object getAllShop(@PathVariable(name = "shop_id") Integer shopId) {
         return addressService.getAllShopAddresses(shopId);
@@ -38,8 +48,8 @@ public class AddressController {
     public Object addUserAddress(@RequestBody AddressDetailDto addressDetailDto) {
         addressDetailDto.setType(AddressServiceImpl.TYPE_USER);
         List<AddressDetailDto> addressDetailDtoList = addressService.getAllUserAddresses(addressDetailDto.getRelationId());
-        for(AddressDetailDto address : addressDetailDtoList){
-            if(address.getStatus().equals(AddressServiceImpl.STATUS_DEFAULT)){
+        for (AddressDetailDto address : addressDetailDtoList) {
+            if (address.getStatus().equals(AddressServiceImpl.STATUS_DEFAULT)) {
                 addressDetailDto.setStatus(AddressServiceImpl.STATUS_ACTIVE);
                 break;
             }
@@ -51,8 +61,8 @@ public class AddressController {
     public Object addShopAddress(@RequestBody AddressDetailDto addressDetailDto) {
         addressDetailDto.setType(AddressServiceImpl.TYPE_SHOP);
         List<AddressDetailDto> addressDetailDtoList = addressService.getAllShopAddresses(addressDetailDto.getRelationId());
-        for(AddressDetailDto address : addressDetailDtoList){
-            if(address.getStatus().equals(AddressServiceImpl.STATUS_DEFAULT)){
+        for (AddressDetailDto address : addressDetailDtoList) {
+            if (address.getStatus().equals(AddressServiceImpl.STATUS_DEFAULT)) {
                 addressDetailDto.setStatus(AddressServiceImpl.STATUS_ACTIVE);
                 break;
             }
