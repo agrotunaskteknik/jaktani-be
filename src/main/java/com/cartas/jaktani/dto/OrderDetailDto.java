@@ -15,11 +15,12 @@ public class OrderDetailDto {
     private Long orderTotal;
     private Long orderTotalAmount;
     private Long orderID;
+    private RajaOngkirWaybillResponseDto detailWaybill;
 
     public OrderDetailDto() {
     }
 
-    public OrderDetailDto(VwProductDetails product, Shop shop, String orderStatusTitle, Integer orderStatus, String iconImg, String orderTransactionDateString, Long orderTotal, Long orderTotalAmount, Long orderID) {
+    public OrderDetailDto(VwProductDetails product, Shop shop, String orderStatusTitle, Integer orderStatus, String iconImg, String orderTransactionDateString, Long orderTotal, Long orderTotalAmount, Long orderID, RajaOngkirWaybillResponseDto detailWaybill) {
         this.product = product;
         this.shop = shop;
         this.orderStatusTitle = orderStatusTitle;
@@ -29,6 +30,7 @@ public class OrderDetailDto {
         this.orderTotal = orderTotal;
         this.orderTotalAmount = orderTotalAmount;
         this.orderID = orderID;
+        this.detailWaybill = detailWaybill;
     }
 
     public VwProductDetails getProduct() {
@@ -103,6 +105,14 @@ public class OrderDetailDto {
         this.orderID = orderID;
     }
 
+    public RajaOngkirWaybillResponseDto getDetailWaybill() {
+        return detailWaybill;
+    }
+
+    public void setDetailWaybill(RajaOngkirWaybillResponseDto detailWaybill) {
+        this.detailWaybill = detailWaybill;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("OrderDetailDto{");
@@ -115,6 +125,7 @@ public class OrderDetailDto {
         sb.append(", orderTotal=").append(orderTotal);
         sb.append(", orderTotalAmount=").append(orderTotalAmount);
         sb.append(", orderID=").append(orderID);
+        sb.append(", detailWaybill=").append(detailWaybill);
         sb.append('}');
         return sb.toString();
     }

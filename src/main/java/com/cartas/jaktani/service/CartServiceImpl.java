@@ -1090,6 +1090,14 @@ public class CartServiceImpl implements CartService {
                 orderResp.setOrderTotal(order.getGrossAmount());
                 orderResp.setOrderTotalAmount(order.getQuantity().longValue());
                 orderResp.setOrderID(order.getId());
+                // get detail waybill
+                if (order.getStatus().equals(ORDER_STATUS_SHIPPING)) {
+                    try {
+                        orderResp.setDetailWaybill(addressService.getWaybillDetail(order.getResiCode(), order.getCourier()));
+                    } catch (Exception ex) {
+                        System.out.println("waybill error " + ex.getMessage());
+                    }
+                }
                 Timestamp orderDate = Utils.getTimeStamp(1L);
                 if (order.getCreatedDate() != null) {
                     orderDate = order.getCreatedDate();
@@ -1192,7 +1200,7 @@ public class CartServiceImpl implements CartService {
     @Override
     public void sellerVerifyOrder(VerifyOrderShippingRequest request) {
         if (!request.getStatus().equals(ORDER_VERIFY_STATUS_CONFIRM)
-                || !request.getStatus().equals(ORDER_VERIFY_STATUS_REJECT)) {
+                && !request.getStatus().equals(ORDER_VERIFY_STATUS_REJECT)) {
             logger.debug("status not found");
             return;
         }

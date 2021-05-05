@@ -64,11 +64,17 @@ public class AuthenticationController {
     }
 
     @GetMapping(path = "/logistic/rates")
-    public CostParent getCities(@RequestParam(value = "origin_city_id") String originCityId,
-                                @RequestParam(value = "destination_city_id") String destinationCityId,
-                                @RequestParam(value = "weight") Long weight,
-                                @RequestParam(value = "courier") String courier) throws IOException {
+    public CostParent getRates(@RequestParam(value = "origin_city_id") String originCityId,
+                               @RequestParam(value = "destination_city_id") String destinationCityId,
+                               @RequestParam(value = "weight") Long weight,
+                               @RequestParam(value = "courier") String courier) throws IOException {
         return addressService.getCostByCityId(originCityId, destinationCityId, weight, courier);
+    }
+
+    @GetMapping(path = "/logistic/detail_waybill")
+    public RajaOngkirWaybillResponseDto getDetailWaybill(@RequestParam(value = "waybill") String waybill,
+                                                         @RequestParam(value = "courier") String courier) throws IOException {
+        return addressService.getWaybillDetail(waybill, courier);
     }
 
     @PostMapping(path = "/searchAllProduct")

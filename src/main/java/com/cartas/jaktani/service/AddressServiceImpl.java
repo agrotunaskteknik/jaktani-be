@@ -23,10 +23,12 @@ public class AddressServiceImpl implements AddressService {
     public final static Integer STATUS_DEFAULT = 1;
     public final static Integer STATUS_DELETED = 0;
     public final static Integer STATUS_ACTIVE = 2;
+    public final static String apiKeyOld = "68d3e4ddba14b33ee44d8bc9656f444f";
+    public final static String apiKeyNew = "2b2425cce3083503dbb981c9bd682b5e";
     // one instance, reuse
     private final OkHttpClient httpClient = new OkHttpClient();
 
-    private static final String serviceURL = "https://api.rajaongkir.com/starter/";
+    private static final String serviceURL = "https://pro.rajaongkir.com/api/";
     Gson gson = new Gson();
 
 
@@ -312,7 +314,7 @@ public class AddressServiceImpl implements AddressService {
     public ProvinceParent getProvinces() throws IOException {
         Request request = new Request.Builder()
                 .url(serviceURL + "province")
-                .addHeader("key", "68d3e4ddba14b33ee44d8bc9656f444f")  // add request headers
+                .addHeader("key", apiKeyNew)  // add request headers
                 .build();
 
         try (Response response = httpClient.newCall(request).execute()) {
@@ -336,7 +338,7 @@ public class AddressServiceImpl implements AddressService {
         }
         Request request = new Request.Builder()
                 .url(serviceURL + query)
-                .addHeader("key", "68d3e4ddba14b33ee44d8bc9656f444f")  // add request headers
+                .addHeader("key", apiKeyNew)  // add request headers
                 .build();
 
         try (Response response = httpClient.newCall(request).execute()) {
@@ -359,7 +361,7 @@ public class AddressServiceImpl implements AddressService {
         }
         Request request = new Request.Builder()
                 .url(serviceURL + query)
-                .addHeader("key", "68d3e4ddba14b33ee44d8bc9656f444f")  // add request headers
+                .addHeader("key", apiKeyNew)  // add request headers
                 .build();
         CityParentSingle entity = new CityParentSingle();
         try (Response response = httpClient.newCall(request).execute()) {
@@ -398,11 +400,11 @@ public class AddressServiceImpl implements AddressService {
 
         MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
         RequestBody body = RequestBody.create(mediaType, "origin=" + originCityId + "&destination=" + destinationCityId +
-                "&weight=" + weight + "&courier=" + courier);
+                "&weight=" + weight + "&courier=" + courier+"&originType=city&destinationType=city");
         Request request = new Request.Builder()
-                .url("https://api.rajaongkir.com/starter/cost")
+                .url("https://pro.rajaongkir.com/api/cost")
                 .post(body)
-                .addHeader("key", "68d3e4ddba14b33ee44d8bc9656f444f")  // add request headers
+                .addHeader("key", apiKeyNew)  // add request headers
                 .addHeader("content-type", "application/x-www-form-urlencoded")
                 .build();
 
@@ -414,6 +416,31 @@ public class AddressServiceImpl implements AddressService {
             String jsonString = Objects.requireNonNull(response.body()).string();
             System.out.println(jsonString);
             CostParent entity = gson.fromJson(jsonString, CostParent.class);
+            return entity;
+        }
+
+    }
+
+    @Override
+    public RajaOngkirWaybillResponseDto getWaybillDetail(String waybill, String courier) throws IOException {
+
+        MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
+        RequestBody body = RequestBody.create(mediaType, "waybill=" + waybill + "&courier=" + courier);
+        Request request = new Request.Builder()
+                .url("https://pro.rajaongkir.com/api/waybill")
+                .post(body)
+                .addHeader("key", apiKeyNew)  // add request headers
+                .addHeader("content-type", "application/x-www-form-urlencoded")
+                .build();
+
+        try (Response response = httpClient.newCall(request).execute()) {
+
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+
+            // Get response body
+            String jsonString = Objects.requireNonNull(response.body()).string();
+            System.out.println(jsonString);
+            RajaOngkirWaybillResponseDto entity = gson.fromJson(jsonString, RajaOngkirWaybillResponseDto.class);
             return entity;
         }
 

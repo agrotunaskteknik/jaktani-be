@@ -32,4 +32,6 @@ public interface AddressService {
     List<AddressDetailDto> setDefaultAddress(AddressDetailDto addressDetailDto);
 
     AddressDetailDto getDefaultAddressByIdAndRelationType(Integer id, Integer relationType);
+
+    RajaOngkirWaybillResponseDto getWaybillDetail(String waybill, String courier) throws IOException;
 }
