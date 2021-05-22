@@ -16,11 +16,12 @@ public class OrderDetailDto {
     private Long orderTotalAmount;
     private Long orderID;
     private RajaOngkirWaybillResponseDto detailWaybill;
+    private UserDto userDto;
 
     public OrderDetailDto() {
     }
 
-    public OrderDetailDto(VwProductDetails product, Shop shop, String orderStatusTitle, Integer orderStatus, String iconImg, String orderTransactionDateString, Long orderTotal, Long orderTotalAmount, Long orderID, RajaOngkirWaybillResponseDto detailWaybill) {
+    public OrderDetailDto(VwProductDetails product, Shop shop, String orderStatusTitle, Integer orderStatus, String iconImg, String orderTransactionDateString, Long orderTotal, Long orderTotalAmount, Long orderID, RajaOngkirWaybillResponseDto detailWaybill, UserDto userDto) {
         this.product = product;
         this.shop = shop;
         this.orderStatusTitle = orderStatusTitle;
@@ -31,6 +32,7 @@ public class OrderDetailDto {
         this.orderTotalAmount = orderTotalAmount;
         this.orderID = orderID;
         this.detailWaybill = detailWaybill;
+        this.userDto = userDto;
     }
 
     public VwProductDetails getProduct() {
@@ -113,6 +115,14 @@ public class OrderDetailDto {
         this.detailWaybill = detailWaybill;
     }
 
+    public UserDto getUserDto() {
+        return userDto;
+    }
+
+    public void setUserDto(UserDto userDto) {
+        this.userDto = userDto;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("OrderDetailDto{");
@@ -126,6 +136,7 @@ public class OrderDetailDto {
         sb.append(", orderTotalAmount=").append(orderTotalAmount);
         sb.append(", orderID=").append(orderID);
         sb.append(", detailWaybill=").append(detailWaybill);
+        sb.append(", userDto=").append(userDto);
         sb.append('}');
         return sb.toString();
     }

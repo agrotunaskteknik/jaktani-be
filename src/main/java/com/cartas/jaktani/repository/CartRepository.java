@@ -20,4 +20,6 @@ public interface CartRepository extends JpaRepository<CartItem, Long> {
     Optional<CartItem> findByIdAndStatusAndUserID(Long id, Integer status, Long userID);
 
     List<CartItem> findByStatusAndUserIDAndTransactionID(Integer status, Long userID, Long orderID);
+
+    List<CartItem> findByStatusIsNotAndShopID(Integer status, Long shopID);
 }

@@ -8,9 +8,11 @@ import com.cartas.jaktani.repository.*;
 import com.cartas.jaktani.util.Utils;
 import com.google.gson.Gson;
 import okhttp3.*;
+import org.apache.catalina.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -40,12 +42,12 @@ public class CartServiceImpl implements CartService {
     final static Integer CART_STATUS_CART_PAGE = 1;
     final static Integer CART_STATUS_CHECKOUT = 2;
     final static String MIDTRANS_STATUS_SETTLEMENT = "settlement";
-    final static Integer ORDER_STATUS_WAITING_PAYMENT_METHOD = 99;
+    final static Integer ORDER_STATUS_WAITING_PAYMENT_METHOD = 88;
     final static Integer ORDER_STATUS_WAITING_PAYMENT = 1;
     final static Integer ORDER_STATUS_PAYMENT_SETTLED = 2;
     final static Integer ORDER_STATUS_WAITING_SELLER_CONFIRMATION = 3;
     final static Integer ORDER_STATUS_SELLER_PROCESSING = 4;
-    final static Integer ORDER_STATUS_SELLER_REJECTED = 99;
+    final static Integer ORDER_STATUS_SELLER_REJECTED = 8;
     final static Integer ORDER_STATUS_SHIPPING = 5;
     final static Integer ORDER_STATUS_WAITING_FOR_REVIEW = 6;
     final static Integer ORDER_STATUS_DONE = 7;
@@ -61,6 +63,9 @@ public class CartServiceImpl implements CartService {
     public static String staticKey = "cart_";
     public static Integer ORDER_VERIFY_STATUS_CONFIRM = 1;
     public static Integer ORDER_VERIFY_STATUS_REJECT = 2;
+    final static String XENDIT_URL = "https://api.xendit.co";
+    final static String XENDIT_CALLBACK_VA = "/callback_virtual_accounts";
+    final static String XENDIT_BASIC_TEST = "Basic eG5kX2RldmVsb3BtZW50X1A0cURmT3NzME9DcGw4UnRLclJPSGphUVlOQ2s5ZE41bFNmaytSMWw5V2JlK3JTaUN3WjNqdz09Og==";
 
     // one instance, reuse
     private final OkHttpClient httpClient = new OkHttpClient();
@@ -81,6 +86,11 @@ public class CartServiceImpl implements CartService {
     AddressService addressService;
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    UserService userService;
+    @Autowired
+    ShopService shopService;
 
     @Autowired
     CartCacheRepository cacheRepository;
@@ -925,8 +935,8 @@ public class CartServiceImpl implements CartService {
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
-    @Override
-    public PaymentChargeDtoResponse paymentCharge(PaymentChargeRequest paymentChargeRequest) throws IOException {
+
+    public PaymentChargeDtoResponse paymentChargeMidtrans(PaymentChargeRequest paymentChargeRequest) throws IOException {
         PaymentChargeDtoResponse responseDto;
         String json = "{\n" +
                 "    \"payment_type\": \"{{paymentType}}\",\n" +
@@ -990,6 +1000,77 @@ public class CartServiceImpl implements CartService {
                 System.out.println("error : " + ex);
             }
 
+
+            responseDto = new PaymentChargeDtoResponse(entity.getStatus_message(), entity.getTransaction_id(), entity.getOrder_id(), entity.getMerchant_id(),
+                    grossAmount, entity.getGross_amount() + entity.getCurrency(), entity.getCurrency(), entity.getPayment_type(),
+                    Utils.getCalendar().getTimeInMillis(), entity.getTransaction_status(), vaNumberDtos, entity.getFraud_status());
+            emailForPaymentRequest(paymentChargeRequest, responseDto);
+            return responseDto;
+        }
+    }
+
+    @Override
+    public PaymentChargeDtoResponse paymentCharge(PaymentChargeRequest paymentChargeRequest) throws IOException {
+        // update order
+        Optional<Order> orderOptional = orderRepository.findById(Long.parseLong(paymentChargeRequest.getOrderId()));
+        if (!orderOptional.isPresent()){
+            logger.debug("order id : "+paymentChargeRequest.getOrderId()+" is not found!");
+            return new PaymentChargeDtoResponse();
+        }
+
+        String userFullName = "blank name";
+        Optional<Users> userOptional = userRepository.findById(orderOptional.get().getCustomerId().intValue());
+        if(userOptional.isPresent()){
+            userFullName = userOptional.get().fullName;
+        }
+
+        PaymentChargeDtoResponse responseDto;
+        String json = "{\n" +
+                "    \"external_id\": \"{{orderID}}\",\n" +
+                "    \"bank_code\": \"{{bank}}\",\n" +
+                "    \"name\": \"{{fullName}}\",\n" +
+                "    \"expected_amount\": {{grossAmount}}\n" +
+                "}";
+        json = json.replace("{{fullName}}", userFullName);
+        json = json.replace("{{orderID}}", paymentChargeRequest.getOrderId());
+        json = json.replace("{{grossAmount}}", paymentChargeRequest.getGrossAmount());
+        json = json.replace("{{bank}}", paymentChargeRequest.getBank().toUpperCase());
+        RequestBody body = RequestBody.create(JSON, json);
+        Request request = new Request.Builder()
+                .url(XENDIT_URL+XENDIT_CALLBACK_VA)
+                .post(body)
+                .addHeader("Authorization", XENDIT_BASIC_TEST)  // add request headers
+                .addHeader("content-type", "application/json")
+                .build();
+
+        try (Response response = httpClient.newCall(request).execute()) {
+
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+
+            // Get response body
+            String jsonString = Objects.requireNonNull(response.body()).string();
+            System.out.println(jsonString);
+            CallbackVAXendit entity = gson.fromJson(jsonString, CallbackVAXendit.class);
+            String transactionTimeInMilis = Utils.getCalendar().getTimeInMillis()+"";
+            Double grossAmountDouble = Double.parseDouble(entity.getExpected_amount().toString());
+            Long grossAmount = grossAmountDouble.longValue();
+
+            try {
+                Order order = orderOptional.get();
+                order.setGrossAmount(grossAmount);
+                order.setCreatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+                order.setPaymentType("xendit");
+                order.setMetadata(jsonString);
+                order.setTransactionID(entity.getExternal_id());
+//                order.setTransactionStatus(entity.getTransaction_status());
+//                order.setVaNumber(entity.getVa_numbers().get(0).getVa_number());
+                order.setStatus(ORDER_STATUS_WAITING_PAYMENT);
+                order = orderRepository.save(order);
+                paymentChargeRequest.setUserID(order.getCustomerId().intValue());
+                System.out.println("order = " + order);
+            } catch (Exception ex) {
+                logger.debug("error pas set order : " + ex.getMessage());
+            }
 
             responseDto = new PaymentChargeDtoResponse(entity.getStatus_message(), entity.getTransaction_id(), entity.getOrder_id(), entity.getMerchant_id(),
                     grossAmount, entity.getGross_amount() + entity.getCurrency(), entity.getCurrency(), entity.getPayment_type(),
@@ -1120,7 +1201,13 @@ public class CartServiceImpl implements CartService {
     @Override
     public List<OrderDetailDto> orderStatusByShopID(Long shopID) {
         List<OrderDetailDto> orderDetailDto = new ArrayList<>();
-        List<Order> orderList = orderRepository.findByStatusOrStatusAndShopId(ORDER_STATUS_PAYMENT_SETTLED, ORDER_STATUS_WAITING_SELLER_CONFIRMATION, shopID);
+        List<CartItem> cartItemList = cartRepository.findByStatusIsNotAndShopID(CART_STATUS_DELETED, shopID);
+        List<Long> orderIDs = new ArrayList<>();
+        for (CartItem cartItem : cartItemList) {
+            orderIDs.add(cartItem.getTransactionID());
+        }
+        List<Order> orderList = orderRepository.findByIdIn(orderIDs);
+        HashMap<Long, UserDto> mapUserByID = new HashMap<>();
         for (Order order : orderList) {
             // if waiting for payment then check if already updated (this function can be replaced if there are cron or listener to change status from midtrans)
             if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT)) {
@@ -1162,16 +1249,48 @@ public class CartServiceImpl implements CartService {
                     shopData.setAddressDetailDto(defaultShopDto);
                     orderResp.setShop(shopData);
                 }
+
+                // check map for user detail, if not exist then fetch it from db
+                if (mapUserByID.isEmpty() || !mapUserByID.containsKey(cartItem.getUserID())) {
+                    UserDto userDto = getUserDetail(cartItem.getUserID());
+                    mapUserByID.put(cartItem.getUserID(), userDto);
+                    logger.debug(userDto.toString());
+                }
+
+                orderResp.setUserDto(mapUserByID.get(cartItem.getUserID()));
                 orderDetailDto.add(orderResp);
             }
         }
         return orderDetailDto;
     }
 
+    public UserDto getUserDetail(Long userID) {
+        //get user by username
+        UserDto userDto = userService.getUserByID(userID);
+        if (null == userDto) {
+            return new UserDto();
+        }
+
+        // get user default address
+        AddressDetailDto userAddress = addressService.getDefaultAddressByIdAndRelationType(userDto.getId(), AddressServiceImpl.TYPE_USER);
+        userDto.setUserAddress(userAddress);
+
+        // get shop by user id
+        Shop shop = shopService.getShopObjectByUserID(userDto.getId());
+        // get shop default address
+        AddressDetailDto shopAddress = addressService.getDefaultAddressByIdAndRelationType(shop.getId(), AddressServiceImpl.TYPE_SHOP);
+        userDto.setUserShopAddress(shopAddress);
+
+        return userDto;
+    }
+
     public String getStatusTitleByStatusId(Integer statusID) {
         String statusTitle = "";
         if (statusID.equals(ORDER_STATUS_WAITING_PAYMENT_METHOD)) {
             statusTitle = ORDER_STATUS_WAITING_PAYMENT_METHOD_TITLE;
+        }
+        if (statusID.equals(ORDER_STATUS_WAITING_PAYMENT)) {
+            statusTitle = ORDER_STATUS_WAITING_PAYMENT_TITLE;
         }
         if (statusID.equals(ORDER_STATUS_PAYMENT_SETTLED)) {
             statusTitle = ORDER_STATUS_PAYMENT_SETTLED_TITLE;
