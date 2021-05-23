@@ -5,6 +5,8 @@ import com.cartas.jaktani.model.Student;
 import com.cartas.jaktani.repository.StudentRepository;
 import com.cartas.jaktani.service.*;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +18,9 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/authentication")
 public class AuthenticationController {
+    Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
+
+
     @Autowired
     VwProductDetailsService vwProductDetailsService;
     @Autowired
@@ -29,6 +34,29 @@ public class AuthenticationController {
     public static String staticKey = "Eng000";
     @Autowired
     StudentRepository studentRepository;
+
+    List<CallbackFVA> callbackFVAS = new ArrayList<>();
+
+    @PostMapping(path = "/callback_fva")
+    public Object callbackFVA(@RequestBody CallbackFVA callbackFVA) {
+        logger.debug("called callback_fva");
+        callbackFVAS.add(callbackFVA);
+
+        cartService.verifyCallBackFVA(callbackFVA);
+
+        return callbackFVAS;
+    }
+
+    @GetMapping(path = "/list_callback_fva")
+    public Object listCallbackFVA() {
+        return callbackFVAS;
+    }
+
+    @GetMapping(path = "/simulate_payment")
+    public SimulatePaymentFVA simulatePayment(@RequestParam(value = "transfer_amount") Long transferAmount,
+                                              @RequestParam(value = "order_id") String orderID) {
+        return cartService.simulatePaymentFVA(transferAmount, orderID);
+    }
 
     @GetMapping(path = "/student/insert_data")
     public String insertDatas() {

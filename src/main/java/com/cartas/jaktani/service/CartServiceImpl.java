@@ -2,21 +2,19 @@ package com.cartas.jaktani.service;
 
 import com.cartas.jaktani.controller.SendMail;
 import com.cartas.jaktani.dto.*;
-import com.cartas.jaktani.exceptions.ResourceNotFoundException;
 import com.cartas.jaktani.model.*;
 import com.cartas.jaktani.repository.*;
 import com.cartas.jaktani.util.Utils;
 import com.google.gson.Gson;
 import okhttp3.*;
-import org.apache.catalina.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -65,7 +63,9 @@ public class CartServiceImpl implements CartService {
     public static Integer ORDER_VERIFY_STATUS_REJECT = 2;
     final static String XENDIT_URL = "https://api.xendit.co";
     final static String XENDIT_CALLBACK_VA = "/callback_virtual_accounts";
-    final static String XENDIT_BASIC_TEST = "Basic eG5kX2RldmVsb3BtZW50X1A0cURmT3NzME9DcGw4UnRLclJPSGphUVlOQ2s5ZE41bFNmaytSMWw5V2JlK3JTaUN3WjNqdz09Og==";
+    final static String XENDIT_FVA_SIMULATE_PAYMENT = "callback_virtual_accounts/external_id={external_id}/simulate_payment";
+    final static String XENDIT_VERIFY_CALLBACK_VA = "/callback_virtual_account_payments/payment_id={{payment_id}}";
+    final static String XENDIT_BASIC_AUTH = "Basic eG5kX2RldmVsb3BtZW50X2s5QVJaczVkRVljdno2WXo5NDJwUnBLSkJHQlV2ZFE2YW5zcVhDUm03R2dkTm5peHJaV3JtdHYxVkJ0QjVwNTo=";
 
     // one instance, reuse
     private final OkHttpClient httpClient = new OkHttpClient();
@@ -959,7 +959,7 @@ public class CartServiceImpl implements CartService {
                 .addHeader("Authorization", "Basic U0ItTWlkLXNlcnZlci1mY0V3R2kyb2xseldrU0xMVGtoSUpqYnc6")  // add request headers
                 .addHeader("content-type", "application/json")
                 .build();
-
+        Order orderTop = new Order();
         try (Response response = httpClient.newCall(request).execute()) {
 
             if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
@@ -984,6 +984,7 @@ public class CartServiceImpl implements CartService {
                 Optional<Order> orderOptional = orderRepository.findById(Long.parseLong(entity.getOrder_id()));
                 if (orderOptional.isPresent()) {
                     Order order = orderOptional.get();
+                    orderTop = order;
                     order.setGrossAmount(grossAmount);
                     order.setCreatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
                     order.setPaymentType(entity.getPayment_type());
@@ -1004,7 +1005,13 @@ public class CartServiceImpl implements CartService {
             responseDto = new PaymentChargeDtoResponse(entity.getStatus_message(), entity.getTransaction_id(), entity.getOrder_id(), entity.getMerchant_id(),
                     grossAmount, entity.getGross_amount() + entity.getCurrency(), entity.getCurrency(), entity.getPayment_type(),
                     Utils.getCalendar().getTimeInMillis(), entity.getTransaction_status(), vaNumberDtos, entity.getFraud_status());
-            emailForPaymentRequest(paymentChargeRequest, responseDto);
+            List<CartItem> cartItems = cartRepository.findByStatusAndUserIDAndTransactionID(CART_STATUS_CHECKOUT, orderTop.getCustomerId(), orderTop.getId());
+            HashMap<Long, Product> productByID = new HashMap<>();
+            for (CartItem item : cartItems) {
+                Optional<Product> productOptional = productRepository.findById(item.getProductID().intValue());
+                productOptional.ifPresent(product -> productByID.put(product.id.longValue(), product));
+            }
+            emailForPaymentRequest(paymentChargeRequest, responseDto, cartItems, productByID);
             return responseDto;
         }
     }
@@ -1013,14 +1020,14 @@ public class CartServiceImpl implements CartService {
     public PaymentChargeDtoResponse paymentCharge(PaymentChargeRequest paymentChargeRequest) throws IOException {
         // update order
         Optional<Order> orderOptional = orderRepository.findById(Long.parseLong(paymentChargeRequest.getOrderId()));
-        if (!orderOptional.isPresent()){
-            logger.debug("order id : "+paymentChargeRequest.getOrderId()+" is not found!");
+        if (!orderOptional.isPresent()) {
+            logger.debug("order id : " + paymentChargeRequest.getOrderId() + " is not found!");
             return new PaymentChargeDtoResponse();
         }
 
         String userFullName = "blank name";
         Optional<Users> userOptional = userRepository.findById(orderOptional.get().getCustomerId().intValue());
-        if(userOptional.isPresent()){
+        if (userOptional.isPresent()) {
             userFullName = userOptional.get().fullName;
         }
 
@@ -1037,9 +1044,9 @@ public class CartServiceImpl implements CartService {
         json = json.replace("{{bank}}", paymentChargeRequest.getBank().toUpperCase());
         RequestBody body = RequestBody.create(JSON, json);
         Request request = new Request.Builder()
-                .url(XENDIT_URL+XENDIT_CALLBACK_VA)
+                .url(XENDIT_URL + XENDIT_CALLBACK_VA)
                 .post(body)
-                .addHeader("Authorization", XENDIT_BASIC_TEST)  // add request headers
+                .addHeader("Authorization", XENDIT_BASIC_AUTH)  // add request headers
                 .addHeader("content-type", "application/json")
                 .build();
 
@@ -1051,7 +1058,7 @@ public class CartServiceImpl implements CartService {
             String jsonString = Objects.requireNonNull(response.body()).string();
             System.out.println(jsonString);
             CallbackVAXendit entity = gson.fromJson(jsonString, CallbackVAXendit.class);
-            String transactionTimeInMilis = Utils.getCalendar().getTimeInMillis()+"";
+            String transactionTimeInMilis = Utils.getCalendar().getTimeInMillis() + "";
             Double grossAmountDouble = Double.parseDouble(entity.getExpected_amount().toString());
             Long grossAmount = grossAmountDouble.longValue();
 
@@ -1059,11 +1066,11 @@ public class CartServiceImpl implements CartService {
                 Order order = orderOptional.get();
                 order.setGrossAmount(grossAmount);
                 order.setCreatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
-                order.setPaymentType("xendit");
+                order.setPaymentType(entity.getBank_code());
                 order.setMetadata(jsonString);
                 order.setTransactionID(entity.getExternal_id());
-//                order.setTransactionStatus(entity.getTransaction_status());
-//                order.setVaNumber(entity.getVa_numbers().get(0).getVa_number());
+                order.setTransactionStatus(entity.getStatus());
+                order.setVaNumber(entity.getAccount_number());
                 order.setStatus(ORDER_STATUS_WAITING_PAYMENT);
                 order = orderRepository.save(order);
                 paymentChargeRequest.setUserID(order.getCustomerId().intValue());
@@ -1072,16 +1079,23 @@ public class CartServiceImpl implements CartService {
                 logger.debug("error pas set order : " + ex.getMessage());
             }
 
-            responseDto = new PaymentChargeDtoResponse(entity.getStatus_message(), entity.getTransaction_id(), entity.getOrder_id(), entity.getMerchant_id(),
-                    grossAmount, entity.getGross_amount() + entity.getCurrency(), entity.getCurrency(), entity.getPayment_type(),
-                    Utils.getCalendar().getTimeInMillis(), entity.getTransaction_status(), vaNumberDtos, entity.getFraud_status());
-            emailForPaymentRequest(paymentChargeRequest, responseDto);
+            List<VaNumberDto> vaNumberDtos = new ArrayList<>();
+            vaNumberDtos.add(new VaNumberDto(entity.getBank_code(), entity.getAccount_number(), "", ""));
+            responseDto = new PaymentChargeDtoResponse(entity.getStatus(), entity.getExternal_id(), orderOptional.get().getId() + "", "merchant_id",
+                    grossAmount, entity.getExpected_amount() + "Rp.", "Rp.", "xendit",
+                    Utils.getCalendar().getTimeInMillis(), entity.getStatus(), vaNumberDtos, "fraud_status");
+            List<CartItem> cartItems = cartRepository.findByStatusAndUserIDAndTransactionID(CART_STATUS_CHECKOUT, orderOptional.get().getCustomerId(), orderOptional.get().getId());
+            HashMap<Long, Product> productByID = new HashMap<>();
+            for (CartItem item : cartItems) {
+                Optional<Product> productOptional = productRepository.findById(item.getProductID().intValue());
+                productOptional.ifPresent(product -> productByID.put(product.id.longValue(), product));
+            }
+            emailForPaymentRequest(paymentChargeRequest, responseDto, cartItems, productByID);
             return responseDto;
         }
     }
 
-    @Override
-    public PaymentChargeDtoResponse paymentCheckStatus(String orderId) throws IOException {
+    public PaymentChargeDtoResponse paymentCheckMidtrans(String orderId) throws IOException {
         PaymentChargeDtoResponse responseDto;
         String url = "https://api.sandbox.midtrans.com/v2/{{orderId}}/status";
         url = url.replace("{{orderId}}", orderId);
@@ -1120,6 +1134,57 @@ public class CartServiceImpl implements CartService {
         }
     }
 
+
+    @Override
+    // check via Backend
+    public PaymentChargeDtoResponse paymentCheckStatus(String orderId) throws IOException {
+        PaymentChargeDtoResponse responseDto;
+        Optional<Order> orderOptional = orderRepository.findById(Long.parseLong(orderId));
+        if (!orderOptional.isPresent()) {
+            logger.debug("empty payment status for order id : " + orderId);
+            return new PaymentChargeDtoResponse();
+        }
+
+        Order order = orderOptional.get();
+        String transactionTimeInMilis = order.getCreatedDate().getTime() + "";
+        Long grossAmount = order.getGrossAmount();
+        List<VaNumberDto> vaNumberDtos = new ArrayList<>();
+        vaNumberDtos.add(new VaNumberDto(order.getPaymentType(), order.getVaNumber(), "", ""));
+
+        responseDto = new PaymentChargeDtoResponse(order.getStatus() + "", order.getTransactionID(), order.getId() + "", "xendit",
+                grossAmount, grossAmount + "Rp.", "Rp.", order.getPaymentType(),
+                Utils.getCalendar().getTimeInMillis(), order.getTransactionStatus(), vaNumberDtos, "fraud_status");
+        if (responseDto.getTransactionStatus().equalsIgnoreCase(MIDTRANS_STATUS_SETTLEMENT)) {
+            updateOrderToSettlement(orderId);
+        }
+        return responseDto;
+
+    }
+
+    public void updateOrderToSettlementMidtrans(String orderId) {
+        Optional<Order> orderOptional = orderRepository.findById(Long.parseLong(orderId));
+        if (orderOptional.isPresent()) {
+            Order order = orderOptional.get();
+            Timestamp transactiontime = Utils.getTimeStamp(1L);
+            if (order.getTransactionTime() != null) {
+                transactiontime = order.getTransactionTime();
+            }
+            List<CartItem> cartItems = cartRepository.findByStatusAndUserIDAndTransactionID(CART_STATUS_CHECKOUT, order.getCustomerId(), order.getId());
+            HashMap<Long, Product> productByID = new HashMap<>();
+            for (CartItem item : cartItems) {
+                Optional<Product> productOptional = productRepository.findById(item.getProductID().intValue());
+                productOptional.ifPresent(product -> productByID.put(product.id.longValue(), product));
+            }
+            emailForPaymentAccepted("mockBCA", transactiontime.getTime(), order.getCustomerId().intValue(), order.getGrossAmount(), cartItems, productByID);
+            if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT)) {
+                order.setStatus(ORDER_STATUS_PAYMENT_SETTLED);
+                order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+                orderRepository.save(order);
+                logger.debug("Success Update to Settlement: order id : " + orderId);
+            }
+        }
+    }
+
     public void updateOrderToSettlement(String orderId) {
         Optional<Order> orderOptional = orderRepository.findById(Long.parseLong(orderId));
         if (orderOptional.isPresent()) {
@@ -1128,7 +1193,13 @@ public class CartServiceImpl implements CartService {
             if (order.getTransactionTime() != null) {
                 transactiontime = order.getTransactionTime();
             }
-            emailForPaymentAccepted("mockBCA", transactiontime.toString(), order.getCustomerId().intValue(), order.getGrossAmount());
+            List<CartItem> cartItems = cartRepository.findByStatusAndUserIDAndTransactionID(CART_STATUS_CHECKOUT, order.getCustomerId(), order.getId());
+            HashMap<Long, Product> productByID = new HashMap<>();
+            for (CartItem item : cartItems) {
+                Optional<Product> productOptional = productRepository.findById(item.getProductID().intValue());
+                productOptional.ifPresent(product -> productByID.put(product.id.longValue(), product));
+            }
+            emailForPaymentAccepted(order.getPaymentType(), transactiontime.getTime(), order.getCustomerId().intValue(), order.getGrossAmount(), cartItems, productByID);
             if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT)) {
                 order.setStatus(ORDER_STATUS_PAYMENT_SETTLED);
                 order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
@@ -1362,7 +1433,9 @@ public class CartServiceImpl implements CartService {
             List<CartItem> cartItems = cartRepository.findByStatusAndUserIDAndTransactionID(CART_STATUS_CHECKOUT, order.getCustomerId(), order.getId());
             for (CartItem cartItem : cartItems) {
                 Optional<Product> product = productRepository.findById(cartItem.getProductID().intValue());
-                product.ifPresent(value -> emailForOrderDone(order.getCustomerId().intValue(), value.getName()));
+                HashMap<Long, Product> productByID = new HashMap<>();
+                product.ifPresent(value -> productByID.put(cartItem.getProductID(), value));
+                product.ifPresent(value -> emailForOrderDone(order.getCustomerId().intValue(), value.getName(), cartItem.getProductID(), cartItems, productByID));
             }
         }
     }
@@ -1467,8 +1540,21 @@ public class CartServiceImpl implements CartService {
         return response;
     }
 
-    public void emailForPaymentRequest(PaymentChargeRequest paymentChargeRequest, PaymentChargeDtoResponse paymentChargeDtoResponse) {
+    public void emailForPaymentRequest(PaymentChargeRequest paymentChargeRequest, PaymentChargeDtoResponse paymentChargeDtoResponse,
+                                       List<CartItem> cartItems, HashMap<Long, Product> productByID) {
+        StringBuilder rincianPesanan = new StringBuilder();
+        for (CartItem cartItem : cartItems) {
+            String productName = productByID.get(cartItem.getProductID()) == null ? cartItem.getProductID() + "" : productByID.get(cartItem.getProductID()).getName();
+            rincianPesanan.append("Produk : ").append(productName).append(", Qty : ").append(cartItem.getQuantity()).append(", Harga : ").append(cartItem.getPrice()).append(" \n");
+        }
         Optional<Users> user = userRepository.findById(paymentChargeRequest.getUserID());
+
+        Calendar calendar = Utils.getCalendar();
+        calendar.setTimeInMillis(paymentChargeDtoResponse.getTransactionTimeInMilis());
+        calendar.add(Calendar.DATE, 1);
+        String dateTimeString = "2008-01-01";  // Start date
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+        dateTimeString = sdf.format(calendar.getTime());
         if (user.isPresent()) {
             String messageBodyRegister = "Halo! Terimakasih telah melakukan transaksi checkout\n" +
                     "Silahkan lakukan pembayaran " + paymentChargeRequest.getBank().toUpperCase() + " dengan detail sebagai berikut :\n" +
@@ -1481,8 +1567,9 @@ public class CartServiceImpl implements CartService {
                     "\n" +
                     "Rincian Pesanan : \n" +
                     "\n" +
+                    rincianPesanan +
                     "\n" +
-                    "Mohon melakukan pembayaran sebelum :" + paymentChargeDtoResponse.getTransactionTimeInMilis() + " \n" +
+                    "Mohon melakukan pembayaran sebelum :" + dateTimeString + " \n" +
                     "\n" +
                     "Terima Kasih,\n" +
                     "Team Jak Tani\n" +
@@ -1494,7 +1581,19 @@ public class CartServiceImpl implements CartService {
         }
     }
 
-    public void emailForPaymentAccepted(String kodeBank, String tanggalBayar, Integer userID, Long totalBayar) {
+    public void emailForPaymentAccepted(String kodeBank, Long tanggalBayar, Integer userID, Long totalBayar,
+                                        List<CartItem> cartItems, HashMap<Long, Product> productByID) {
+        StringBuilder rincianPesanan = new StringBuilder();
+        for (CartItem cartItem : cartItems) {
+            String productName = productByID.get(cartItem.getProductID()) == null ? cartItem.getProductID() + "" : productByID.get(cartItem.getProductID()).getName();
+            rincianPesanan.append("Produk : ").append(productName).append(", Qty : ").append(cartItem.getQuantity()).append(", Harga : ").append(cartItem.getPrice()).append(" \n");
+        }
+        Calendar calendar = Utils.getCalendar();
+        calendar.setTimeInMillis(tanggalBayar);
+        calendar.add(Calendar.DATE, 1);
+        String dateTimeString = "2008-01-01";  // Start date
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+        dateTimeString = sdf.format(calendar.getTime());
         Optional<Users> user = userRepository.findById(userID);
         if (user.isPresent()) {
             String messageBodyRegister = "Halo! Pembayaran terverifikasi dan pesanan telah diteruskan ke penjual \n" +
@@ -1504,10 +1603,11 @@ public class CartServiceImpl implements CartService {
                     "\n" +
                     "Metode Pembayaran : " + kodeBank.toUpperCase() + "\n" +
                     "\n" +
-                    "Waktu Pembayaran : " + tanggalBayar + "\n" +
+                    "Waktu Pembayaran : " + dateTimeString + "\n" +
                     "\n" +
                     "Rincian Pesanan : \n" +
                     "\n" +
+                    rincianPesanan +
                     "\n" +
                     "Terima Kasih,\n" +
                     "Team Jak Tani\n" +
@@ -1519,7 +1619,16 @@ public class CartServiceImpl implements CartService {
         }
     }
 
-    public void emailForOrderDone(Integer userID, String productName) {
+    public void emailForOrderDone(Integer userID, String productName, Long productID, List<CartItem> cartItems, HashMap<Long, Product> productByID) {
+        StringBuilder rincianPesanan = new StringBuilder();
+        for (CartItem cartItem : cartItems) {
+            if (!cartItem.getProductID().equals(productID)) {
+                continue;
+            }
+            String productNameDetail = productByID.get(cartItem.getProductID()) == null ? cartItem.getProductID() + "" : productByID.get(cartItem.getProductID()).getName();
+            rincianPesanan.append("Produk : ").append(productNameDetail).append(", Qty : ").append(cartItem.getQuantity()).append(", Harga : ").append(cartItem.getPrice()).append(" \n");
+            break;
+        }
         Optional<Users> user = userRepository.findById(userID);
         if (user.isPresent()) {
             String messageBodyRegister = "Halo! Yeay barangmu sudah sampai! \n" +
@@ -1527,6 +1636,7 @@ public class CartServiceImpl implements CartService {
                     "\n" +
                     "Rincian Pesanan : \n" +
                     "\n" +
+                    rincianPesanan +
                     "\n" +
                     "Terima Kasih,\n" +
                     "Team Jak Tani\n" +
@@ -1553,5 +1663,91 @@ public class CartServiceImpl implements CartService {
             logger.debug("Error caught : " + e.getMessage());
         }
 
+    }
+
+    public Order verifyCallBackFVA(CallbackFVA callbackFVA) {
+        Order order = new Order();
+        // get order by order id and update the status
+        Optional<Order> optionalOrder = orderRepository.findById(Long.parseLong(callbackFVA.getExternal_id()));
+        if (!optionalOrder.isPresent()) {
+            logger.debug("empty order id for : " + callbackFVA.getExternal_id());
+            return order;
+        }
+        order = optionalOrder.get();
+        if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT)) {
+            order.setStatus(ORDER_STATUS_PAYMENT_SETTLED);
+            order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+            order.setTransactionID(callbackFVA.getPayment_id());
+            order.setTransactionStatus(MIDTRANS_STATUS_SETTLEMENT);
+            orderRepository.save(order);
+            logger.debug("Success Update to Settlement: order id : " + order.getId());
+            List<CartItem> cartItems = cartRepository.findByStatusAndUserIDAndTransactionID(CART_STATUS_CHECKOUT, order.getCustomerId(), order.getId());
+            HashMap<Long, Product> productByID = new HashMap<>();
+            for (CartItem item : cartItems) {
+                Optional<Product> productOptional = productRepository.findById(item.getProductID().intValue());
+                productOptional.ifPresent(product -> productByID.put(product.id.longValue(), product));
+            }
+            emailForPaymentAccepted(callbackFVA.getBank_code(), Utils.getCalendar().getTimeInMillis(), order.getCustomerId().intValue(), order.getGrossAmount(), cartItems, productByID);
+        }
+        // after received need to verify it to xendit
+        verifyCallbackXendit(callbackFVA);
+        return order;
+    }
+
+    public void verifyCallbackXendit(CallbackFVA callbackFVA) {
+        String urlHitVerifyXendit = XENDIT_URL + XENDIT_VERIFY_CALLBACK_VA;
+        urlHitVerifyXendit = urlHitVerifyXendit.replace("{{payment_id}}", callbackFVA.getPayment_id());
+        Request request = new Request.Builder()
+                .url(urlHitVerifyXendit)
+                .addHeader("Authorization", XENDIT_BASIC_AUTH)  // add request headers
+                .addHeader("content-type", "application/json")
+                .build();
+        logger.debug("url xendit : " + urlHitVerifyXendit);
+
+        try (Response response = httpClient.newCall(request).execute()) {
+
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+            logger.debug("success callback verify");
+            // Get response body
+            String jsonString = Objects.requireNonNull(response.body()).string();
+            logger.debug(jsonString);
+            CallbackVerifyFVA entity = gson.fromJson(jsonString, CallbackVerifyFVA.class);
+            logger.debug(entity.toString());
+        } catch (Exception ex) {
+            logger.debug("error when execute verify payment");
+        }
+    }
+
+    public SimulatePaymentFVA simulatePaymentFVA(Long transferAmount, String orderID) {
+        SimulatePaymentFVA resp = new SimulatePaymentFVA();
+        String json = "{\n" +
+                "    \"amount\": \"{{transferAmount}}\"\n" +
+                "}";
+        json = json.replace("{{transferAmount}}", transferAmount + "");
+        RequestBody body = RequestBody.create(JSON, json);
+        String urlSimulatePayment = XENDIT_URL + XENDIT_FVA_SIMULATE_PAYMENT;
+        urlSimulatePayment = urlSimulatePayment.replace("{external_id}", orderID);
+        logger.debug("debug url simulate payment = " + urlSimulatePayment);
+        logger.info("info url simulate payment = " + urlSimulatePayment);
+        logger.error("error url simulate payment = " + urlSimulatePayment);
+        Request request = new Request.Builder()
+                .url(urlSimulatePayment)
+                .post(body)
+                .addHeader("Authorization", XENDIT_BASIC_AUTH)  // add request headers
+                .addHeader("content-type", "application/json")
+                .build();
+
+        try (Response response = httpClient.newCall(request).execute()) {
+
+            if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
+
+            // Get response body
+            String jsonString = Objects.requireNonNull(response.body()).string();
+            System.out.println(jsonString);
+            return gson.fromJson(jsonString, SimulatePaymentFVA.class);
+        } catch (Exception ex) {
+            logger.debug("failed simulate payment for order id = " + orderID);
+        }
+        return resp;
     }
 }
