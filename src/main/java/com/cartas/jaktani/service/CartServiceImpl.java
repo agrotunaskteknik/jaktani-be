@@ -1552,18 +1552,19 @@ public class CartServiceImpl implements CartService {
         Calendar calendar = Utils.getCalendar();
         calendar.setTimeInMillis(paymentChargeDtoResponse.getTransactionTimeInMilis());
         calendar.add(Calendar.DATE, 1);
-        String dateTimeString = "2008-01-01";  // Start date
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+        calendar.add(Calendar.HOUR_OF_DAY, 7);
+        String dateTimeString = "2008-01-01 13:30:10";  // Start date
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         dateTimeString = sdf.format(calendar.getTime());
         if (user.isPresent()) {
             String messageBodyRegister = "Halo! Terimakasih telah melakukan transaksi checkout\n" +
                     "Silahkan lakukan pembayaran " + paymentChargeRequest.getBank().toUpperCase() + " dengan detail sebagai berikut :\n" +
                     "\n" +
-                    "Total Bayar : " + paymentChargeDtoResponse.getGrossAmount() + "\n" +
+                    "Total Bayar : Rp." + paymentChargeDtoResponse.getGrossAmount() + "\n" +
                     "\n" +
                     "Metode Pembayaran : " + paymentChargeRequest.getBank().toUpperCase() + "\n" +
                     "\n" +
-                    "Kode Virtual Account : " + paymentChargeDtoResponse.getVaNumberDto().get(0) + "\n" +
+                    "Kode Virtual Account : " + paymentChargeDtoResponse.getVaNumberDto().get(0).getVaNumber() + "\n" +
                     "\n" +
                     "Rincian Pesanan : \n" +
                     "\n" +
@@ -1591,15 +1592,16 @@ public class CartServiceImpl implements CartService {
         Calendar calendar = Utils.getCalendar();
         calendar.setTimeInMillis(tanggalBayar);
         calendar.add(Calendar.DATE, 1);
-        String dateTimeString = "2008-01-01";  // Start date
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+        calendar.add(Calendar.HOUR_OF_DAY, 7);
+        String dateTimeString = "2008-01-01 13:30:10";  // Start date
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
         dateTimeString = sdf.format(calendar.getTime());
         Optional<Users> user = userRepository.findById(userID);
         if (user.isPresent()) {
             String messageBodyRegister = "Halo! Pembayaran terverifikasi dan pesanan telah diteruskan ke penjual \n" +
                     "Terima kasih, ya! Berikut detail pembayaranmu :\n" +
                     "\n" +
-                    "Total Bayar : " + totalBayar + "\n" +
+                    "Total Bayar : Rp." + totalBayar + "\n" +
                     "\n" +
                     "Metode Pembayaran : " + kodeBank.toUpperCase() + "\n" +
                     "\n" +
