@@ -65,7 +65,7 @@ public class CartServiceImpl implements CartService {
     final static String XENDIT_CALLBACK_VA = "/callback_virtual_accounts";
     final static String XENDIT_FVA_SIMULATE_PAYMENT = "callback_virtual_accounts/external_id={external_id}/simulate_payment";
     final static String XENDIT_VERIFY_CALLBACK_VA = "/callback_virtual_account_payments/payment_id={{payment_id}}";
-    final static String XENDIT_BASIC_AUTH = "Basic eG5kX2RldmVsb3BtZW50X2s5QVJaczVkRVljdno2WXo5NDJwUnBLSkJHQlV2ZFE2YW5zcVhDUm03R2dkTm5peHJaV3JtdHYxVkJ0QjVwNTo=";
+    final static String XENDIT_BASIC_AUTH = "Basic eG5kX3Byb2R1Y3Rpb25fa080ZXRGaGt1R1Nzem94N1JvRENSSFE4WFhjSnhPOHVucHhjcmcxZXBOR2cwVlQ4MWdiYmhhRWxtdE51TTo=";
 
     // one instance, reuse
     private final OkHttpClient httpClient = new OkHttpClient();
@@ -1343,13 +1343,13 @@ public class CartServiceImpl implements CartService {
         }
 
         // get user default address
-        AddressDetailDto userAddress = addressService.getDefaultAddressByIdAndRelationType(userDto.getId(), AddressServiceImpl.TYPE_USER);
+        AddressDetailDto userAddress = addressService.getDefaultAddressByRelationIdAndType(userDto.getId(), AddressServiceImpl.TYPE_USER);
         userDto.setUserAddress(userAddress);
 
         // get shop by user id
         Shop shop = shopService.getShopObjectByUserID(userDto.getId());
         // get shop default address
-        AddressDetailDto shopAddress = addressService.getDefaultAddressByIdAndRelationType(shop.getId(), AddressServiceImpl.TYPE_SHOP);
+        AddressDetailDto shopAddress = addressService.getDefaultAddressByRelationIdAndType(shop.getId(), AddressServiceImpl.TYPE_SHOP);
         userDto.setUserShopAddress(shopAddress);
 
         return userDto;
@@ -1614,7 +1614,7 @@ public class CartServiceImpl implements CartService {
                     "Terima Kasih,\n" +
                     "Team Jak Tani\n" +
                     "\n";
-            String messageSubjectRegister = "Checkout Pesanan dengan " + kodeBank.toUpperCase() + " Berhasil tanggal " + tanggalBayar;
+            String messageSubjectRegister = "Checkout Pesanan dengan " + kodeBank.toUpperCase() + " Berhasil tanggal " + dateTimeString;
             sentEmail(user.get().getEmail(), messageBodyRegister, messageSubjectRegister);
         } else {
             logger.debug("Username/Email tidak ditemukan");

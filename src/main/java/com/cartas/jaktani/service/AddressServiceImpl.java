@@ -91,7 +91,7 @@ public class AddressServiceImpl implements AddressService {
     }
 
     @Override
-    public AddressDetailDto getDefaultAddressByIdAndRelationType(Integer id, Integer relationType) {
+    public AddressDetailDto getDefaultAddressByRelationIdAndType(Integer id, Integer relationType) {
         Optional<Address> addressOptional = addressRepository.findByTypeAndRelationIdAndStatusIs(relationType, id, STATUS_DEFAULT);
         if (!addressOptional.isPresent()) {
             logger.debug("address for id = " + id + " not found");

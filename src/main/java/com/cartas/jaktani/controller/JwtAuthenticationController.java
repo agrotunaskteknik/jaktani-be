@@ -2,13 +2,10 @@ package com.cartas.jaktani.controller;
 
 import com.cartas.jaktani.config.JwtTokenUtil;
 import com.cartas.jaktani.dto.*;
-import com.cartas.jaktani.exceptions.ResourceNotFoundException;
 import com.cartas.jaktani.jwt.JwtUserDetailsService;
 import com.cartas.jaktani.model.OTP;
 import com.cartas.jaktani.model.Shop;
 import com.cartas.jaktani.service.*;
-import com.cartas.jaktani.util.MessagesProperties;
-import io.jsonwebtoken.Claims;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -151,20 +148,37 @@ public class JwtAuthenticationController {
                 return ResponseEntity.ok().body(new ParentResponse(new CommonResponse("Error Save Token", "NOT_OK", "")));
             }
 
-            // get user default address
-            AddressDetailDto userAddress = addressService.getDefaultAddressByIdAndRelationType(userDto.getId(), AddressServiceImpl.TYPE_USER);
-            userDto.setUserAddress(userAddress);
+            try {
+                // get user default address
+                AddressDetailDto userAddress = addressService.getDefaultAddressByRelationIdAndType(userDto.getId(), AddressServiceImpl.TYPE_USER);
+                userDto.setUserAddress(userAddress);
+            } catch (Exception e) {
+                logger.error("Caught Error : " + e.getMessage());
+                return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
+            }
+            Shop shop = new Shop();
+            try {
+                // get shop by user id
+                shop = shopService.getShopObjectByUserID(userDto.getId());
+            } catch (Exception e) {
+                logger.error("Caught Error : " + e.getMessage());
+                return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
+            }
 
-            // get shop by user id
-            Shop shop = shopService.getShopObjectByUserID(userDto.getId());
-            // get shop default address
-            AddressDetailDto shopAddress = addressService.getDefaultAddressByIdAndRelationType(shop.getId(), AddressServiceImpl.TYPE_SHOP);
-            userDto.setUserShopAddress(shopAddress);
+            try {
+                // get shop default address
+                AddressDetailDto shopAddress = addressService.getDefaultAddressByRelationIdAndType(shop.getId(), AddressServiceImpl.TYPE_SHOP);
+                userDto.setUserShopAddress(shopAddress);
+            } catch (Exception e) {
+                logger.error("Caught Error : " + e.getMessage());
+                return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
+            }
+
 
             LoginResponse loginResponse = new LoginResponse("", "OK", "Success login user!", userDto, token);
             return ResponseEntity.ok().body(new ParentResponse(loginResponse));
         } catch (Exception e) {
-            logger.debug("Caught Error : " + e.getMessage());
+            logger.error("Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
 

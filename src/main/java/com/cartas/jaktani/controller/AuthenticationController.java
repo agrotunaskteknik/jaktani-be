@@ -238,17 +238,20 @@ public class AuthenticationController {
         PaymentGatewayDetail paymentGatewayDetailBCA = new PaymentGatewayDetail("bca");
         PaymentGatewayDetail paymentGatewayDetailBNI = new PaymentGatewayDetail("bni");
         PaymentGatewayDetail paymentGatewayDetailBRI = new PaymentGatewayDetail("bri");
+        PaymentGatewayDetail paymentGatewayDetailMandiri = new PaymentGatewayDetail("mandiri");
+        PaymentGatewayDetail paymentGatewayDetailPermata = new PaymentGatewayDetail("permata");
         String paymentType = "bank_transfer";
-        PaymentGatewayDto paymentGatewayDtoBCA = new PaymentGatewayDto(paymentType, "bca_image", "Deskripsi pembayaran dengan Virtual Account BCA",
-                "Virtual Account BCA", paymentGatewayDetailBCA);
+        PaymentGatewayDto paymentGatewayDtoMandiri = new PaymentGatewayDto(paymentType, "mandiri_image", "Deskripsi pembayaran dengan Virtual Account Mandiri",
+                "Virtual Account Mandiri", paymentGatewayDetailMandiri);
         PaymentGatewayDto paymentGatewayDtoBNI = new PaymentGatewayDto(paymentType, "bni_image", "Deskripsi pembayaran dengan Virtual Account BNI",
                 "Virtual Account BNI", paymentGatewayDetailBNI);
         PaymentGatewayDto paymentGatewayDtoBRI = new PaymentGatewayDto(paymentType, "bri_image", "Deskripsi pembayaran dengan Virtual Account BRI",
                 "Virtual Account BRI", paymentGatewayDetailBRI);
-        PaymentGatewayDto paymentGatewayDtoMandiri = new PaymentGatewayDto("echannel", "mandiri_image", "Deskripsi pembayaran dengan E-Channel Mandiri",
-                "E-Channel Mandiri", new PaymentGatewayDetail());
-        PaymentGatewayDto paymentGatewayDtoPermata = new PaymentGatewayDto("permata", "permata_image", "Deskripsi pembayaran dengan Virtual Account Permata",
-                "Virtual Account Permata", new PaymentGatewayDetail());
+        PaymentGatewayDto paymentGatewayDtoPermata = new PaymentGatewayDto(paymentType, "permata_image", "Deskripsi pembayaran dengan Virtual Account BRI",
+                "Virtual Account Permata", paymentGatewayDetailPermata);
+        PaymentGatewayDto paymentGatewayDtoBCA = new PaymentGatewayDto(paymentType, "bca_image", "Deskripsi pembayaran dengan Virtual Account BCA",
+                "Virtual Account BCA", paymentGatewayDetailBCA);
+
         paymentGatewayDtos.add(paymentGatewayDtoBCA);
         paymentGatewayDtos.add(paymentGatewayDtoBNI);
         paymentGatewayDtos.add(paymentGatewayDtoBRI);
@@ -263,6 +266,28 @@ public class AuthenticationController {
         courierDetailDtos.add(new CourierDetailDto("jne_image", "JNE", "jne", "Pengiriman menggunakan JNE"));
         courierDetailDtos.add(new CourierDetailDto("pos_image", "POS", "pos", "Pengiriman menggunakan POS"));
         courierDetailDtos.add(new CourierDetailDto("tiki_image", "TIKI", "tiki", "Pengiriman menggunakan TIKI"));
+        courierDetailDtos.add(new CourierDetailDto("rpx_image", "RPX Holding", "rpx", "Pengiriman menggunakan RPX Holding"));
+        courierDetailDtos.add(new CourierDetailDto("pandu_image", "PANDU Logistic", "pandu", "Pengiriman menggunakan PANDU Logistic"));
+        courierDetailDtos.add(new CourierDetailDto("wahana_image", "WAHANA", "wahana", "Pengiriman menggunakan WAHANA"));
+        courierDetailDtos.add(new CourierDetailDto("sicepat_image", "SiCepat Express", "sicepat", "Pengiriman menggunakan SiCepat Express"));
+        courierDetailDtos.add(new CourierDetailDto("jnt_image", "J&T Express", "jnt", "Pengiriman menggunakan J&T Express"));
+        courierDetailDtos.add(new CourierDetailDto("pahala_image", "Pahala Kencana Express", "pahala", "Pengiriman menggunakan Pahala Kencana Express"));
+        courierDetailDtos.add(new CourierDetailDto("sap_image", "SAP Express", "sap", "Pengiriman menggunakan SAP Express"));
+        courierDetailDtos.add(new CourierDetailDto("jet_image", "JET Express", "jet", "Pengiriman menggunakan JET Express"));
+        courierDetailDtos.add(new CourierDetailDto("indah_image", "Indah Kargo", "indah", "Pengiriman menggunakan Indah Kargo"));
+        courierDetailDtos.add(new CourierDetailDto("dse_image", "21 Express", "dse", "Pengiriman menggunakan 21 Express"));
+        courierDetailDtos.add(new CourierDetailDto("slis_image", "Solusi Ekspres", "slis", "Pengiriman menggunakan Solusi Ekspres"));
+        courierDetailDtos.add(new CourierDetailDto("first_image", "First Logistics", "first", "Pengiriman menggunakan First Logistics"));
+        courierDetailDtos.add(new CourierDetailDto("ncs_image", "Nusantara Card Semesta", "ncs", "Pengiriman menggunakan Nusantara Card Semesta"));
+        courierDetailDtos.add(new CourierDetailDto("star_image", "Star Cargo", "star", "Pengiriman menggunakan Star Cargo"));
+        courierDetailDtos.add(new CourierDetailDto("ninja_image", "Ninja Xpress", "ninja", "Pengiriman menggunakan Ninja Xpress"));
+        courierDetailDtos.add(new CourierDetailDto("lion_image", "Lion Parcel", "lion", "Pengiriman menggunakan Lion Parcel"));
+        courierDetailDtos.add(new CourierDetailDto("idl_image", "IDL", "idl", "Pengiriman menggunakan IDL"));
+        courierDetailDtos.add(new CourierDetailDto("rex_image", "Royal Express Indonesia", "rex", "Pengiriman menggunakan Royal Express Indonesia"));
+        courierDetailDtos.add(new CourierDetailDto("ide_image", "ID Express", "ide", "Pengiriman menggunakan ID Express"));
+        courierDetailDtos.add(new CourierDetailDto("sentral_image", "Sentral Cargo", "sentral", "Pengiriman menggunakan Sentral Cargo"));
+        courierDetailDtos.add(new CourierDetailDto("anteraja_image", "AnterAja", "anteraja", "Pengiriman menggunakan AnterAja"));
+
         return courierDetailDtos;
     }
 
@@ -292,6 +317,18 @@ public class AuthenticationController {
     public Object addShopAddress(@RequestBody AddressDetailDto addressDetailDto) {
         addressDetailDto.setType(AddressServiceImpl.TYPE_SHOP);
         return addressService.saveAddress(addressDetailDto);
+    }
+
+    @PostMapping(path = "/edit/shop")
+    public Object editShopAddress(@RequestBody AddressDetailDto addressDetailDto) {
+        addressDetailDto.setType(AddressServiceImpl.TYPE_SHOP);
+        return addressService.updateAddress(addressDetailDto);
+    }
+
+    @PostMapping(path = "/edit/user")
+    public Object editUserAddress(@RequestBody AddressDetailDto addressDetailDto) {
+        addressDetailDto.setType(AddressServiceImpl.TYPE_USER);
+        return addressService.updateAddress(addressDetailDto);
     }
 
 }

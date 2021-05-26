@@ -1,11 +1,8 @@
 package com.cartas.jaktani.controller;
 
 import com.cartas.jaktani.dto.AddressDetailDto;
-import com.cartas.jaktani.dto.ShopDto;
-import com.cartas.jaktani.exceptions.ResourceNotFoundException;
 import com.cartas.jaktani.service.AddressService;
 import com.cartas.jaktani.service.AddressServiceImpl;
-import com.cartas.jaktani.service.ShopService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,12 +22,12 @@ public class AddressController {
 
     @GetMapping(path = "/shop/default/{shop_id}")
     public Object getShopDefaultByAddressId(@PathVariable(name = "shop_id") Integer shopId) {
-        return addressService.getDefaultAddressByIdAndRelationType(shopId, AddressServiceImpl.TYPE_SHOP);
+        return addressService.getDefaultAddressByRelationIdAndType(shopId, AddressServiceImpl.TYPE_SHOP);
     }
 
     @GetMapping(path = "/user/default/{user_id}")
     public Object getUserDefaultByAddressId(@PathVariable(name = "user_id") Integer userId) {
-        return addressService.getDefaultAddressByIdAndRelationType(userId, AddressServiceImpl.TYPE_USER);
+        return addressService.getDefaultAddressByRelationIdAndType(userId, AddressServiceImpl.TYPE_USER);
     }
 
     @GetMapping(path = "/all/shop/{shop_id}")
