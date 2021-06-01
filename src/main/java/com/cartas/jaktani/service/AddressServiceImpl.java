@@ -177,7 +177,7 @@ public class AddressServiceImpl implements AddressService {
             return new AddressDetailDto();
         }
         Address address = addressOptional.get();
-        if (addressDetailDto.getStatus().equals(STATUS_DELETED)) {
+        if (address.getStatus().equals(STATUS_DELETED)) {
             logger.debug("address already deleted");
             return new AddressDetailDto();
         }
@@ -189,6 +189,7 @@ public class AddressServiceImpl implements AddressService {
             logger.debug("relation id is not the same");
             return new AddressDetailDto();
         }
+        address.setStatus(addressDetailDto.getStatus());
         address.setCity(addressDetailDto.getCityId());
         address.setDescription(addressDetailDto.getDescription());
         address.setProvince(addressDetailDto.getProvinceId());
@@ -226,7 +227,7 @@ public class AddressServiceImpl implements AddressService {
     public AddressDetailDto getShopDefaultAddress(Integer shopId) {
         Optional<Address> addressOptional = addressRepository.findByTypeAndRelationIdAndStatusIs(TYPE_SHOP, shopId, STATUS_DEFAULT);
         if (!addressOptional.isPresent()) {
-            logger.debug("Empty shop default Address");
+            logger.error("Empty shop default Address");
             return new AddressDetailDto();
         }
         Address address = addressOptional.get();
@@ -244,7 +245,7 @@ public class AddressServiceImpl implements AddressService {
             addressDetailDto.setCityName(cityParentSingle.getRajaongkir().getResults().getCity_name());
             addressDetailDto.setProvinceName(cityParentSingle.getRajaongkir().getResults().getProvince());
         } catch (Exception ex) {
-            logger.debug("error get detail ex: " + ex.getMessage());
+            logger.error("error get detail ex: " + ex.getMessage());
         }
         return addressDetailDto;
     }
@@ -381,7 +382,7 @@ public class AddressServiceImpl implements AddressService {
                 return entity;
 
             } catch (Exception ex) {
-                System.out.println(ex.getMessage());
+                logger.error("error when entity list : " + ex.getMessage());
                 CityParentSingle entity2 = gson.fromJson(jsonString, CityParentSingle.class);
                 if (entity2 != null && entity2.getRajaongkir() != null) {
                     RajaOngkirCitySingle citySingle = entity2.getRajaongkir();
@@ -390,7 +391,7 @@ public class AddressServiceImpl implements AddressService {
                 return entity;
             }
         } catch (Exception ex) {
-            System.out.println(ex.getMessage());
+            logger.error("error http client getCitiesByProvinceIdAndCityId : " + ex.getMessage());
         }
         return entity;
     }
@@ -400,7 +401,7 @@ public class AddressServiceImpl implements AddressService {
 
         MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
         RequestBody body = RequestBody.create(mediaType, "origin=" + originCityId + "&destination=" + destinationCityId +
-                "&weight=" + weight + "&courier=" + courier+"&originType=city&destinationType=city");
+                "&weight=" + weight + "&courier=" + courier + "&originType=city&destinationType=city");
         Request request = new Request.Builder()
                 .url("https://pro.rajaongkir.com/api/cost")
                 .post(body)

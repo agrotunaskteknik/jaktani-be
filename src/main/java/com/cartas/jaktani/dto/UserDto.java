@@ -1,5 +1,6 @@
 package com.cartas.jaktani.dto;
 
+import com.cartas.jaktani.model.Shop;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -35,6 +36,8 @@ public class UserDto {
 
     public AddressDetailDto userAddress;
     public AddressDetailDto userShopAddress;
+
+    public Shop shop;
 
     public String getOtp() {
         return otp;
@@ -244,6 +247,14 @@ public class UserDto {
         this.userShopAddress = userShopAddress;
     }
 
+    public Shop getShop() {
+        return shop;
+    }
+
+    public void setShop(Shop shop) {
+        this.shop = shop;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("UserDto{");
@@ -271,6 +282,7 @@ public class UserDto {
         sb.append(", profileBase64='").append(profileBase64).append('\'');
         sb.append(", userAddress=").append(userAddress);
         sb.append(", userShopAddress=").append(userShopAddress);
+        sb.append(", shop=").append(shop);
         sb.append('}');
         return sb.toString();
     }

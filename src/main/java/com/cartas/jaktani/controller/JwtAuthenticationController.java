@@ -6,6 +6,8 @@ import com.cartas.jaktani.jwt.JwtUserDetailsService;
 import com.cartas.jaktani.model.OTP;
 import com.cartas.jaktani.model.Shop;
 import com.cartas.jaktani.service.*;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +19,21 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Collections;
+
+
 @RestController
 @CrossOrigin
 public class JwtAuthenticationController {
     Logger logger = LoggerFactory.getLogger(JwtAuthenticationController.class);
-
+    String CLIENT_ID = "259775443073-913e3g72jft5kablf8ejhq5f67d16vio.apps.googleusercontent.com";
+    String prefixGooglePassword = "prefixMaster";
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -130,58 +142,158 @@ public class JwtAuthenticationController {
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse("Username atau password yang Anda masukkan tidak valid", "REQUEST_DENIED", "")));
         }
 
-        try {
-            final UserDetails userDetails = userDetailsService
-                    .loadUserByUsername(authenticationRequest.getUsername());
+        return getLoginResponseDetailToken(authenticationRequest);
+    }
 
-            //get user by username
-            UserDto userDto = userService.getUserByUsername(userDetails.getUsername());
-            if (null == userDto) {
+    public ResponseEntity<?> getLoginResponseDetailToken(UserDto authenticationRequest) {
+        try {
+            LoginResponse loginResponseDetail = getDetailLoginToken(authenticationRequest);
+            if (loginResponseDetail.getUser() == null) {
                 return ResponseEntity.ok().body(new ParentResponse(new CommonResponse("Maaf,  akun dengan username/email tersebut tidak ditemukan",
                         "NOT_OK", "")));
             }
-
-            //save token with user id
-            final String generatedToken = jwtTokenUtil.generateTokenWithUserDetails(userDetails, userDto);
-            JwtResponse token = tokenService.save(generatedToken, userDto, "");
-            if (null == token) {
+            if (loginResponseDetail.getToken() == null) {
                 return ResponseEntity.ok().body(new ParentResponse(new CommonResponse("Error Save Token", "NOT_OK", "")));
             }
 
-            try {
-                // get user default address
-                AddressDetailDto userAddress = addressService.getDefaultAddressByRelationIdAndType(userDto.getId(), AddressServiceImpl.TYPE_USER);
-                userDto.setUserAddress(userAddress);
-            } catch (Exception e) {
-                logger.error("Caught Error : " + e.getMessage());
-                return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
-            }
-            Shop shop = new Shop();
-            try {
-                // get shop by user id
-                shop = shopService.getShopObjectByUserID(userDto.getId());
-            } catch (Exception e) {
-                logger.error("Caught Error : " + e.getMessage());
-                return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
-            }
-
-            try {
-                // get shop default address
-                AddressDetailDto shopAddress = addressService.getDefaultAddressByRelationIdAndType(shop.getId(), AddressServiceImpl.TYPE_SHOP);
-                userDto.setUserShopAddress(shopAddress);
-            } catch (Exception e) {
-                logger.error("Caught Error : " + e.getMessage());
-                return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
-            }
-
-
-            LoginResponse loginResponse = new LoginResponse("", "OK", "Success login user!", userDto, token);
+            LoginResponse loginResponse = new LoginResponse("", "OK", "Success login user!", loginResponseDetail.getUser(), loginResponseDetail.getToken());
             return ResponseEntity.ok().body(new ParentResponse(loginResponse));
         } catch (Exception e) {
             logger.error("Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
+    }
 
+    public LoginResponse getDetailLoginToken(UserDto authenticationRequest) throws Exception {
+        LoginResponse loginResponse = new LoginResponse();
+        final UserDetails userDetails = userDetailsService
+                .loadUserByUsername(authenticationRequest.getUsername());
+
+        //get user by username
+        UserDto userDto = userService.getUserByUsername(userDetails.getUsername());
+        if (null == userDto) {
+            return loginResponse;
+        }
+        loginResponse.setUser(userDto);
+        //save token with user id
+        final String generatedToken = jwtTokenUtil.generateTokenWithUserDetails(userDetails, userDto);
+        JwtResponse token = tokenService.save(generatedToken, userDto, "");
+        if (null == token) {
+            return loginResponse;
+        }
+
+        try {
+            // get user default address
+            AddressDetailDto userAddress = addressService.getDefaultAddressByRelationIdAndType(userDto.getId(), AddressServiceImpl.TYPE_USER);
+            userDto.setUserAddress(userAddress);
+        } catch (Exception e) {
+            logger.error("Caught Error : " + e.getMessage());
+            throw e;
+        }
+        Shop shop = new Shop();
+        try {
+            // get shop by user id
+            shop = shopService.getShopObjectByUserID(userDto.getId());
+            userDto.setShop(shop);
+        } catch (Exception e) {
+            logger.error("Caught Error : " + e.getMessage());
+            throw e;
+        }
+
+        try {
+            // get shop default address
+            AddressDetailDto shopAddress = addressService.getDefaultAddressByRelationIdAndType(shop.getId(), AddressServiceImpl.TYPE_SHOP);
+            userDto.setUserShopAddress(shopAddress);
+        } catch (Exception e) {
+            logger.error("Caught Error : " + e.getMessage());
+            throw e;
+        }
+
+        loginResponse.setToken(token);
+        loginResponse.setUser(userDto);
+        return loginResponse;
+    }
+
+    @RequestMapping(value = "/authentication/login_google", method = RequestMethod.POST)
+    public ResponseEntity<?> loginGoogle(@RequestBody LoginGoogleRequest googleRequest) throws GeneralSecurityException, IOException {
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new JacksonFactory())
+                // Specify the CLIENT_ID of the app that accesses the backend:
+                .setAudience(Collections.singletonList(CLIENT_ID))
+                // Or, if multiple clients access the backend:
+                //.setAudience(Arrays.asList(CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3))
+                .build();
+        UserGooglePayloadDto userGooglePayloadDto = getDetailUser(verifier, googleRequest);
+        // login by password with prefix+userid, username = userid google
+        UserDto authenticationRequest = setupUserDTOFromUserGoogle(userGooglePayloadDto);
+        return getLoginResponseDetailToken(authenticationRequest);
+    }
+
+    public UserDto setupUserDTOFromUserGoogle(UserGooglePayloadDto userGooglePayloadDto) {
+        String password = prefixGooglePassword + userGooglePayloadDto.getGoogleUserID();
+        UserDto userDto = new UserDto();
+        userDto.setEmail(userGooglePayloadDto.getEmail());
+        userDto.setUsername(userGooglePayloadDto.getGoogleUserID() + "");
+        userDto.setFullName(userGooglePayloadDto.getName());
+        userDto.setPassword(password);
+        return userDto;
+    }
+
+    @RequestMapping(value = "/authentication/register_google", method = RequestMethod.POST)
+    public ResponseEntity<?> registerGoogle(@RequestBody LoginGoogleRequest googleRequest) throws GeneralSecurityException, IOException {
+        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new JacksonFactory())
+                // Specify the CLIENT_ID of the app that accesses the backend:
+                .setAudience(Collections.singletonList(CLIENT_ID))
+                // Or, if multiple clients access the backend:
+                //.setAudience(Arrays.asList(CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3))
+                .build();
+        UserGooglePayloadDto userGooglePayloadDto = getDetailUser(verifier, googleRequest);
+        // save user with password prefix+userid, username = userid google
+        UserDto userDto = setupUserDTOFromUserGoogle(userGooglePayloadDto);
+
+        UserDto userSaved = userService.addUser(userDto);
+        if (userSaved == null) {
+            return ResponseEntity.ok().body(new ParentResponse(new CommonResponse("Failed Register User", "NOT_OK", "")));
+        }
+
+        LoginResponse loginResponse = new LoginResponse("", "OK", "Success login user!", userSaved, new JwtResponse());
+        return ResponseEntity.ok().body(new ParentResponse(loginResponse));
+
+    }
+
+    public UserGooglePayloadDto getDetailUser(GoogleIdTokenVerifier verifier, LoginGoogleRequest googleRequest) throws GeneralSecurityException, IOException {
+        UserGooglePayloadDto userGooglePayloadDto = new UserGooglePayloadDto();
+        // (Receive idTokenString by HTTPS POST)
+        GoogleIdToken idToken = verifier.verify(googleRequest.getGoogleJwtToken());
+        if (idToken != null) {
+            Payload payload = idToken.getPayload();
+
+            // Print user identifier
+            String userId = payload.getSubject();
+            System.out.println("User ID: " + userId);
+
+            // Get profile information from payload
+            String email = payload.getEmail();
+            boolean emailVerified = Boolean.valueOf(payload.getEmailVerified());
+            String name = (String) payload.get("name");
+            String pictureUrl = (String) payload.get("picture");
+            String locale = (String) payload.get("locale");
+            String familyName = (String) payload.get("family_name");
+            String givenName = (String) payload.get("given_name");
+
+            // Use or store profile information
+            userGooglePayloadDto.setGoogleUserID(Long.parseLong(userId));
+            userGooglePayloadDto.setEmail(email);
+            userGooglePayloadDto.setEmailVerified(emailVerified);
+            userGooglePayloadDto.setName(name);
+            userGooglePayloadDto.setPictureUrl(pictureUrl);
+            userGooglePayloadDto.setLocale(locale);
+            userGooglePayloadDto.setFamilyName(familyName);
+            userGooglePayloadDto.setGivenName(givenName);
+
+        } else {
+            logger.error("id token user not found");
+        }
+        return userGooglePayloadDto;
     }
 
 }

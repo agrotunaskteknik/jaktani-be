@@ -1,7 +1,7 @@
 package com.cartas.jaktani.dto;
 
 public class ManifestWaybill {
-    private float manifest_code;
+    private String manifest_code;
     private String manifest_description;
     private String manifest_date;
     private String manifest_time;
@@ -10,7 +10,7 @@ public class ManifestWaybill {
 
     // Getter Methods
 
-    public float getManifest_code() {
+    public String getManifest_code() {
         return manifest_code;
     }
 
@@ -32,7 +32,7 @@ public class ManifestWaybill {
 
     // Setter Methods
 
-    public void setManifest_code(float manifest_code) {
+    public void setManifest_code(String manifest_code) {
         this.manifest_code = manifest_code;
     }
 

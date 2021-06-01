@@ -82,13 +82,13 @@ public class AddressController {
     @PostMapping(path = "/delete/shop")
     public Object deleteShopByID(@RequestBody AddressDetailDto addressDetailDto) {
         addressDetailDto.setType(AddressServiceImpl.TYPE_SHOP);
-        return addressService.updateAddress(addressDetailDto);
+        return addressService.deleteAddress(addressDetailDto);
     }
 
     @PostMapping(path = "/delete/user")
     public Object deleteUserByID(@RequestBody AddressDetailDto addressDetailDto) {
         addressDetailDto.setType(AddressServiceImpl.TYPE_USER);
-        return addressService.updateAddress(addressDetailDto);
+        return addressService.deleteAddress(addressDetailDto);
     }
 
     @PostMapping(path = "/shop/set_default")

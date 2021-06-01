@@ -1245,8 +1245,13 @@ public class CartServiceImpl implements CartService {
                 // get detail waybill
                 if (order.getStatus().equals(ORDER_STATUS_SHIPPING)) {
                     try {
+                        if (order.getId() == 1057L) {
+                            logger.info("isi resi code = " + order.getResiCode() + " couriernya : " + order.getCourier());
+                        }
                         orderResp.setDetailWaybill(addressService.getWaybillDetail(order.getResiCode(), order.getCourier()));
                     } catch (Exception ex) {
+                        logger.info("waybill error info : "+ex.getMessage());
+                        logger.error("waybill error error : "+ex.getMessage());
                         System.out.println("waybill error " + ex.getMessage());
                     }
                 }
