@@ -17,11 +17,15 @@ public class OrderDetailDto {
     private Long orderID;
     private RajaOngkirWaybillResponseDto detailWaybill;
     private UserDto userDto;
+    private String vaNumber;
+    private String bank;
+    private String courier;
+    private String service;
 
     public OrderDetailDto() {
     }
 
-    public OrderDetailDto(VwProductDetails product, Shop shop, String orderStatusTitle, Integer orderStatus, String iconImg, String orderTransactionDateString, Long orderTotal, Long orderTotalAmount, Long orderID, RajaOngkirWaybillResponseDto detailWaybill, UserDto userDto) {
+    public OrderDetailDto(VwProductDetails product, Shop shop, String orderStatusTitle, Integer orderStatus, String iconImg, String orderTransactionDateString, Long orderTotal, Long orderTotalAmount, Long orderID, RajaOngkirWaybillResponseDto detailWaybill, UserDto userDto, String vaNumber, String bank, String courier, String service) {
         this.product = product;
         this.shop = shop;
         this.orderStatusTitle = orderStatusTitle;
@@ -33,6 +37,10 @@ public class OrderDetailDto {
         this.orderID = orderID;
         this.detailWaybill = detailWaybill;
         this.userDto = userDto;
+        this.vaNumber = vaNumber;
+        this.bank = bank;
+        this.courier = courier;
+        this.service = service;
     }
 
     public VwProductDetails getProduct() {
@@ -123,6 +131,38 @@ public class OrderDetailDto {
         this.userDto = userDto;
     }
 
+    public String getVaNumber() {
+        return vaNumber;
+    }
+
+    public void setVaNumber(String vaNumber) {
+        this.vaNumber = vaNumber;
+    }
+
+    public String getBank() {
+        return bank;
+    }
+
+    public void setBank(String bank) {
+        this.bank = bank;
+    }
+
+    public String getCourier() {
+        return courier;
+    }
+
+    public void setCourier(String courier) {
+        this.courier = courier;
+    }
+
+    public String getService() {
+        return service;
+    }
+
+    public void setService(String service) {
+        this.service = service;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("OrderDetailDto{");
@@ -137,6 +177,10 @@ public class OrderDetailDto {
         sb.append(", orderID=").append(orderID);
         sb.append(", detailWaybill=").append(detailWaybill);
         sb.append(", userDto=").append(userDto);
+        sb.append(", vaNumber='").append(vaNumber).append('\'');
+        sb.append(", bank='").append(bank).append('\'');
+        sb.append(", courier='").append(courier).append('\'');
+        sb.append(", service='").append(service).append('\'');
         sb.append('}');
         return sb.toString();
     }

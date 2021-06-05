@@ -1,5 +1,6 @@
 package com.cartas.jaktani.service;
 
+import com.cartas.jaktani.dto.AddressDetailDto;
 import com.cartas.jaktani.dto.ShopDto;
 import com.cartas.jaktani.dto.UserDto;
 import com.cartas.jaktani.model.Photo;
@@ -59,9 +60,12 @@ public class ShopServiceImpl implements ShopService {
     private ShopRepository repository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    AddressService addressService;
 
     @Override
     public Object getShopByID(Integer id) {
+        Shop shopResp = new Shop();
         Optional<Shop> shop = repository.findByIdAndStatusIsNot(id, STATUS_DELETED);
         if (!shop.isPresent()) {
             response.setResponseCode("FAILED");
@@ -69,12 +73,21 @@ public class ShopServiceImpl implements ShopService {
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
         }
         Optional<Users> user = userRepository.findById(shop.get().getUserID());
-        shop.get().setUser(user.get());
-        return new ResponseEntity<String>(JSONUtil.createJSON(shop.get()), HttpStatus.OK);
+        user.ifPresent(users -> shop.get().setUser(users));
+        shopResp = shop.get();
+        try {
+            // get shop default address
+            AddressDetailDto shopAddress = addressService.getDefaultAddressByRelationIdAndType(shopResp.getId(), AddressServiceImpl.TYPE_SHOP);
+            shopResp.setAddressDetailDto(shopAddress);
+        } catch (Exception e) {
+            logger.error("Caught Error : " + e.getMessage());
+        }
+        return new ResponseEntity<String>(JSONUtil.createJSON(shopResp), HttpStatus.OK);
     }
 
     @Override
     public Object getShopByUserID(Integer userId) {
+        Shop shopResp = new Shop();
         Optional<Shop> shop = repository.findByUserIDAndStatusIsNot(userId, STATUS_DELETED);
         if (!shop.isPresent()) {
             response.setResponseCode("FAILED");
@@ -82,8 +95,16 @@ public class ShopServiceImpl implements ShopService {
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
         }
         Optional<Users> user = userRepository.findById(shop.get().getUserID());
-        shop.get().setUser(user.get());
-        return new ResponseEntity<String>(JSONUtil.createJSON(shop.get()), HttpStatus.OK);
+        user.ifPresent(users -> shop.get().setUser(users));
+        shopResp = shop.get();
+        try {
+            // get shop default address
+            AddressDetailDto shopAddress = addressService.getDefaultAddressByRelationIdAndType(shopResp.getId(), AddressServiceImpl.TYPE_SHOP);
+            shopResp.setAddressDetailDto(shopAddress);
+        } catch (Exception e) {
+            logger.error("Caught Error : " + e.getMessage());
+        }
+        return new ResponseEntity<String>(JSONUtil.createJSON(shopResp), HttpStatus.OK);
     }
 
     @Override

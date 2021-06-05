@@ -39,7 +39,7 @@ public class AddressServiceImpl implements AddressService {
     public AddressDetailDto getUserDefaultAddress(Integer userId) {
         Optional<Address> addressOptional = addressRepository.findByTypeAndRelationIdAndStatusIs(TYPE_USER, userId, STATUS_DEFAULT);
         if (!addressOptional.isPresent()) {
-            logger.debug("Empty default user Address");
+            logger.info("Empty default user Address");
             return new AddressDetailDto();
         }
         Address address = addressOptional.get();
@@ -57,7 +57,7 @@ public class AddressServiceImpl implements AddressService {
             addressDetailDto.setCityName(cityParentSingle.getRajaongkir().getResults().getCity_name());
             addressDetailDto.setProvinceName(cityParentSingle.getRajaongkir().getResults().getProvince());
         } catch (Exception ex) {
-            logger.debug("error get detail ex: " + ex.getMessage());
+            logger.info("error get detail ex: " + ex.getMessage());
         }
 
         return addressDetailDto;
@@ -67,7 +67,7 @@ public class AddressServiceImpl implements AddressService {
     public AddressDetailDto getByAddressId(Integer addressId) {
         Optional<Address> addressOptional = addressRepository.findByIdAndStatusIsNot(addressId, STATUS_DELETED);
         if (!addressOptional.isPresent()) {
-            logger.debug("address = " + addressId + " not found");
+            logger.info("address = " + addressId + " not found");
             return new AddressDetailDto();
         }
         Address address = addressOptional.get();
@@ -85,7 +85,7 @@ public class AddressServiceImpl implements AddressService {
             addressDetailDto.setCityName(cityParentSingle.getRajaongkir().getResults().getCity_name());
             addressDetailDto.setProvinceName(cityParentSingle.getRajaongkir().getResults().getProvince());
         } catch (Exception ex) {
-            logger.debug("error get detail ex: " + ex.getMessage());
+            logger.info("error get detail ex: " + ex.getMessage());
         }
         return addressDetailDto;
     }
@@ -94,7 +94,7 @@ public class AddressServiceImpl implements AddressService {
     public AddressDetailDto getDefaultAddressByRelationIdAndType(Integer id, Integer relationType) {
         Optional<Address> addressOptional = addressRepository.findByTypeAndRelationIdAndStatusIs(relationType, id, STATUS_DEFAULT);
         if (!addressOptional.isPresent()) {
-            logger.debug("address for id = " + id + " not found");
+            logger.info("address for id = " + id + " not found");
             return new AddressDetailDto();
         }
         Address address = addressOptional.get();
@@ -112,7 +112,7 @@ public class AddressServiceImpl implements AddressService {
             addressDetailDto.setCityName(cityParentSingle.getRajaongkir().getResults().getCity_name());
             addressDetailDto.setProvinceName(cityParentSingle.getRajaongkir().getResults().getProvince());
         } catch (Exception ex) {
-            logger.debug("error get detail ex: " + ex.getMessage());
+            logger.info("error get detail ex: " + ex.getMessage());
         }
         return addressDetailDto;
     }
@@ -120,23 +120,23 @@ public class AddressServiceImpl implements AddressService {
     @Override
     public AddressDetailDto saveAddress(AddressDetailDto addressDetailDto) {
         if (addressDetailDto.getStatus().equals(STATUS_DELETED)) {
-            logger.debug("address status deleted");
+            logger.info("address status deleted");
             return new AddressDetailDto();
         }
         if (addressDetailDto.getType().equals(0)) {
-            logger.debug("type is empty");
+            logger.info("type is empty");
             return new AddressDetailDto();
         }
         if (addressDetailDto.getRelationId().equals(0)) {
-            logger.debug("relation id is empty");
+            logger.info("relation id is empty");
             return new AddressDetailDto();
         }
         if (addressDetailDto.getCityId().trim().equalsIgnoreCase("")) {
-            logger.debug("city id is empty");
+            logger.info("city id is empty");
             return new AddressDetailDto();
         }
         if (addressDetailDto.getProvinceId().trim().equalsIgnoreCase("")) {
-            logger.debug("province id is empty");
+            logger.info("province id is empty");
             return new AddressDetailDto();
         }
         Address address = new Address();
@@ -163,7 +163,7 @@ public class AddressServiceImpl implements AddressService {
             addressDetailDtoSaved.setCityName(cityParentSingle.getRajaongkir().getResults().getCity_name());
             addressDetailDtoSaved.setProvinceName(cityParentSingle.getRajaongkir().getResults().getProvince());
         } catch (Exception ex) {
-            logger.debug("error get detail ex: " + ex.getMessage());
+            logger.info("error get detail ex: " + ex.getMessage());
         }
         return addressDetailDtoSaved;
     }
@@ -173,20 +173,20 @@ public class AddressServiceImpl implements AddressService {
         Integer addressId = Integer.valueOf(addressDetailDto.getAddressId());
         Optional<Address> addressOptional = addressRepository.findByIdAndStatusIsNot(addressId, STATUS_DELETED);
         if (!addressOptional.isPresent()) {
-            logger.debug("address = " + addressId + " not found");
+            logger.info("address = " + addressId + " not found");
             return new AddressDetailDto();
         }
         Address address = addressOptional.get();
         if (address.getStatus().equals(STATUS_DELETED)) {
-            logger.debug("address already deleted");
+            logger.info("address already deleted");
             return new AddressDetailDto();
         }
         if (!addressDetailDto.getType().equals(address.getType())) {
-            logger.debug("type is not the same");
+            logger.info("type is not the same");
             return new AddressDetailDto();
         }
         if (!addressDetailDto.getRelationId().equals(address.getRelationId())) {
-            logger.debug("relation id is not the same");
+            logger.info("relation id is not the same");
             return new AddressDetailDto();
         }
         address.setStatus(addressDetailDto.getStatus());
@@ -211,7 +211,7 @@ public class AddressServiceImpl implements AddressService {
             addressDetailDtoUpdated.setCityName(cityParentSingle.getRajaongkir().getResults().getCity_name());
             addressDetailDtoUpdated.setProvinceName(cityParentSingle.getRajaongkir().getResults().getProvince());
         } catch (Exception ex) {
-            logger.debug("error get detail ex: " + ex.getMessage());
+            logger.info("error get detail ex: " + ex.getMessage());
         }
         return addressDetailDtoUpdated;
     }
@@ -255,7 +255,7 @@ public class AddressServiceImpl implements AddressService {
         List<Address> addresses = addressRepository.findAllByTypeAndRelationIdAndStatusIsNot(TYPE_USER, userId, STATUS_DELETED);
         List<AddressDetailDto> addressDetailDtos = new ArrayList<>();
         if (addresses == null || addresses.size() == 0) {
-            logger.debug("Empty user Address");
+            logger.info("Empty user Address");
             return addressDetailDtos;
         }
         for (Address address : addresses) {
@@ -273,7 +273,7 @@ public class AddressServiceImpl implements AddressService {
                 addressDetailDto.setCityName(cityParentSingle.getRajaongkir().getResults().getCity_name());
                 addressDetailDto.setProvinceName(cityParentSingle.getRajaongkir().getResults().getProvince());
             } catch (Exception ex) {
-                logger.debug("error get detail ex: " + ex.getMessage());
+                logger.info("error get detail ex: " + ex.getMessage());
             }
             addressDetailDtos.add(addressDetailDto);
         }
@@ -286,7 +286,7 @@ public class AddressServiceImpl implements AddressService {
         List<AddressDetailDto> addressDetailDtos = new ArrayList<>();
 
         if (addresses == null || addresses.size() == 0) {
-            logger.debug("Empty shop Address");
+            logger.info("Empty shop Address");
             return new ArrayList<>();
         }
         for (Address address : addresses) {
@@ -304,7 +304,7 @@ public class AddressServiceImpl implements AddressService {
                 addressDetailDto.setCityName(cityParentSingle.getRajaongkir().getResults().getCity_name());
                 addressDetailDto.setProvinceName(cityParentSingle.getRajaongkir().getResults().getProvince());
             } catch (Exception ex) {
-                logger.debug("error get detail ex: " + ex.getMessage());
+                logger.info("error get detail ex: " + ex.getMessage());
             }
             addressDetailDtos.add(addressDetailDto);
         }
@@ -454,20 +454,20 @@ public class AddressServiceImpl implements AddressService {
         // address need to changed
         Optional<Address> addressOptional = addressRepository.findByIdAndStatusIsNot(addressId, STATUS_DELETED);
         if (!addressOptional.isPresent()) {
-            logger.debug("address = " + addressId + " not found");
+            logger.info("address = " + addressId + " not found");
             return addressDetailDtos;
         }
         Address address = addressOptional.get();
         if (addressDetailDto.getStatus().equals(STATUS_DELETED)) {
-            logger.debug("address already deleted");
+            logger.info("address already deleted");
             return addressDetailDtos;
         }
         if (!addressDetailDto.getType().equals(address.getType())) {
-            logger.debug("type is not the same");
+            logger.info("type is not the same");
             return addressDetailDtos;
         }
         if (!addressDetailDto.getRelationId().equals(address.getRelationId())) {
-            logger.debug("relation id is not the same");
+            logger.info("relation id is not the same");
             return addressDetailDtos;
         }
         address.setCity(addressDetailDto.getCityId());
@@ -479,21 +479,22 @@ public class AddressServiceImpl implements AddressService {
         address.setStatus(STATUS_DEFAULT);
         // get default address
         Optional<Address> addressDefaultOptional = addressRepository.findByTypeAndRelationIdAndStatusIs(address.getType(), address.getRelationId(), STATUS_DEFAULT);
-        if (!addressDefaultOptional.isPresent()) {
-            logger.debug("address default not found");
-            return addressDetailDtos;
+        if (addressDefaultOptional.isPresent()) {
+            Address addressDefault = addressDefaultOptional.get();
+            addressDefault.setStatus(STATUS_ACTIVE);
+            addressDefault.setUpdatedBy(addressDefault.createdBy);
+            addressDefault.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+            // save default to active first
+            addressDefault = addressRepository.save(addressDefault);
+        }else{
+            logger.info("address default not found for relation id = "+address.getRelationId()+" type = "+address.getType());
         }
-        Address addressDefault = addressDefaultOptional.get();
-        addressDefault.setStatus(STATUS_ACTIVE);
-        addressDefault.setUpdatedBy(addressDefault.createdBy);
-        addressDefault.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
-        // save default to active first
-        addressDefault = addressRepository.save(addressDefault);
+
         // save active to default
         address = addressRepository.save(address);
         List<Address> addresses = addressRepository.findAllByTypeAndRelationIdAndStatusIsNot(address.getType(), address.getCreatedBy(), STATUS_DELETED);
         if (addresses == null || addresses.size() == 0) {
-            logger.debug("Empty user Address");
+            logger.info("Empty user Address");
             return addressDetailDtos;
         }
         for (Address addressNew : addresses) {
@@ -511,7 +512,7 @@ public class AddressServiceImpl implements AddressService {
                 addressDetailDtoNew.setCityName(cityParentSingle.getRajaongkir().getResults().getCity_name());
                 addressDetailDtoNew.setProvinceName(cityParentSingle.getRajaongkir().getResults().getProvince());
             } catch (Exception ex) {
-                logger.debug("error get detail ex: " + ex.getMessage());
+                logger.info("error get detail ex: " + ex.getMessage());
             }
             addressDetailDtos.add(addressDetailDtoNew);
         }

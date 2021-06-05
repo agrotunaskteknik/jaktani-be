@@ -44,6 +44,7 @@ public class AddressController {
     @PostMapping(path = "/add/user")
     public Object addUserAddress(@RequestBody AddressDetailDto addressDetailDto) {
         addressDetailDto.setType(AddressServiceImpl.TYPE_USER);
+        addressDetailDto.setStatus(AddressServiceImpl.STATUS_DEFAULT);
         List<AddressDetailDto> addressDetailDtoList = addressService.getAllUserAddresses(addressDetailDto.getRelationId());
         for (AddressDetailDto address : addressDetailDtoList) {
             if (address.getStatus().equals(AddressServiceImpl.STATUS_DEFAULT)) {
@@ -57,6 +58,7 @@ public class AddressController {
     @PostMapping(path = "/add/shop")
     public Object addShopAddress(@RequestBody AddressDetailDto addressDetailDto) {
         addressDetailDto.setType(AddressServiceImpl.TYPE_SHOP);
+        addressDetailDto.setStatus(AddressServiceImpl.STATUS_DEFAULT);
         List<AddressDetailDto> addressDetailDtoList = addressService.getAllShopAddresses(addressDetailDto.getRelationId());
         for (AddressDetailDto address : addressDetailDtoList) {
             if (address.getStatus().equals(AddressServiceImpl.STATUS_DEFAULT)) {

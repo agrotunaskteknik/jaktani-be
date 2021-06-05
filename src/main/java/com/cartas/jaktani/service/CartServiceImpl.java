@@ -1213,6 +1213,7 @@ public class CartServiceImpl implements CartService {
     public List<OrderDetailDto> orderStatusByUserID(Long userID) {
         List<OrderDetailDto> orderDetailDto = new ArrayList<>();
         List<Order> orderList = orderRepository.findByStatusIsNotAndCustomerId(0, userID);
+        HashMap<Long, UserDto> mapUserByID = new HashMap<>();
         for (Order order : orderList) {
             // if waiting for payment then check if already updated (this function can be replaced if there are cron or listener to change status from midtrans)
             if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT)) {
@@ -1250,8 +1251,8 @@ public class CartServiceImpl implements CartService {
                         }
                         orderResp.setDetailWaybill(addressService.getWaybillDetail(order.getResiCode(), order.getCourier()));
                     } catch (Exception ex) {
-                        logger.info("waybill error info : "+ex.getMessage());
-                        logger.error("waybill error error : "+ex.getMessage());
+                        logger.info("waybill error info : " + ex.getMessage());
+                        logger.error("waybill error error : " + ex.getMessage());
                         System.out.println("waybill error " + ex.getMessage());
                     }
                 }
@@ -1267,11 +1268,27 @@ public class CartServiceImpl implements CartService {
                     shopData.setAddressDetailDto(defaultShopDto);
                     orderResp.setShop(shopData);
                 }
+                orderResp = setOrderPaymentDetail(order, orderResp);
+                // check map for user detail, if not exist then fetch it from db
+                if (mapUserByID.isEmpty() || !mapUserByID.containsKey(cartItem.getUserID())) {
+                    UserDto userDto = getUserDetail(cartItem.getUserID());
+                    mapUserByID.put(cartItem.getUserID(), userDto);
+                    logger.debug(userDto.toString());
+                }
 
+                orderResp.setUserDto(mapUserByID.get(cartItem.getUserID()));
                 orderDetailDto.add(orderResp);
             }
         }
         return orderDetailDto;
+    }
+
+    public OrderDetailDto setOrderPaymentDetail(Order order, OrderDetailDto orderResp) {
+        orderResp.setVaNumber(order.getVaNumber());
+        orderResp.setBank(order.getPaymentType());
+        orderResp.setCourier(order.getCourier());
+        orderResp.setService(order.getService());
+        return orderResp;
     }
 
     @Override
@@ -1334,6 +1351,7 @@ public class CartServiceImpl implements CartService {
                 }
 
                 orderResp.setUserDto(mapUserByID.get(cartItem.getUserID()));
+                orderResp = setOrderPaymentDetail(order, orderResp);
                 orderDetailDto.add(orderResp);
             }
         }
