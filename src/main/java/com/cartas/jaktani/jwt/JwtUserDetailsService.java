@@ -43,7 +43,7 @@ public class JwtUserDetailsService implements UserDetailsService {
             if (user.isPresent()) {
                 return new User(user.get().getUsername(), user.get().getPassword(), new ArrayList<>());
             }
-            logger.debug("User not found with username: " + username);
+            logger.info("User not found with username: " + username);
             throw new UsernameNotFoundException("User not found with username: " + username);
         }
     }
@@ -52,7 +52,7 @@ public class JwtUserDetailsService implements UserDetailsService {
         if (!otpRequest.getEmail().trim().equals("") || !otpRequest.getUsername().trim().equals("")) {
             Optional<Users> user = userRepository.findByUsernameOrEmailAndStatus(otpRequest.getUsername(), otpRequest.getEmail(), UserServiceImpl.USER_STATUS_ACTIVE);
             if (user.isPresent()) {
-                logger.debug("Username/Email tersebut sudah terdaftar");
+                logger.info("Username/Email tersebut sudah terdaftar");
                 throw new ResourceNotFoundException("Username/Email tersebut sudah terdaftar");
             }
             String messageBodyRegister = "Halo! Terimakasih telah melakukan pendaftaran akun\n" +
@@ -78,7 +78,7 @@ public class JwtUserDetailsService implements UserDetailsService {
         if (!email.trim().equals("") || !username.trim().equals("")) {
             Optional<Users> user = userRepository.findByUsernameOrEmailAndStatus(username, email, UserServiceImpl.USER_STATUS_ACTIVE);
             if (!user.isPresent()) {
-                logger.debug("Maaf, akun dengan username/email tersebut tidak terdaftar");
+                logger.info("Maaf, akun dengan username/email tersebut tidak terdaftar");
                 throw new ResourceNotFoundException("Maaf, akun dengan username/email tersebut tidak terdaftar");
             }
             Users userModel = user.get();
@@ -135,26 +135,26 @@ public class JwtUserDetailsService implements UserDetailsService {
             newThread.start();
         } catch (Exception e) {
             e.printStackTrace();
-            logger.debug("Error caught : " + e.getMessage());
+            logger.info("Error caught : " + e.getMessage());
         }
 
     }
 
     public OTP validateOTP(UserDto userDto) throws Exception {
         if (null == userDto || userDto.getEmail().trim().equalsIgnoreCase("")) {
-            logger.debug("Empty Field");
+            logger.info("Empty Field");
             throw new ResourceNotFoundException("empty field");
         }
         Optional<OTP> otp = otpRepository.findByOtpCode(userDto.getOtp());
         if (!otp.isPresent()) {
-            logger.debug("OTP not found email : "+ userDto.getEmail());
+            logger.info("OTP not found email : "+ userDto.getEmail());
             throw new ResourceNotFoundException("otp not found");
 
         }
         OTP otpModel = otp.get();
         // if email is not the same then throw error
         if (!otpModel.getEmail().equalsIgnoreCase(userDto.getEmail())) {
-            logger.debug("OTP is wrong email : "+ userDto.getEmail());
+            logger.info("OTP is wrong email : "+ userDto.getEmail());
             throw new ResourceNotFoundException("Kode verifikasi yang Anda masukkan salah");
         }
         return otpModel;

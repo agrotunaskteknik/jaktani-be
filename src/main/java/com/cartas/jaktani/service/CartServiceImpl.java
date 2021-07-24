@@ -21,6 +21,7 @@ import java.util.*;
 public class CartServiceImpl implements CartService {
     Logger logger = LoggerFactory.getLogger(CartServiceImpl.class);
 
+    final static Integer CART_SHOP_CLOSE = 10;
     final static String INVALID_PARAM = "Invalid request param";
     final static String FAILED_SAVE_CART_DB = "Failed save cart db failed";
     final static String INVALID_CART_ID_NOT_FOUND_DB = "Cart ID not found in DB";
@@ -100,14 +101,14 @@ public class CartServiceImpl implements CartService {
 
     public String insertData(CartCache cache) {
         cache.setId(staticKey + cache.getUserID());
-        System.out.println(cache);
+        logger.info(cache.toString());
         cache = cacheRepository.save(cache);
         return cache.toString();
     }
 
     public String insertMultiData(MultiCartCache cache) {
         cache.setId(staticKey + cache.getUserID());
-        System.out.println(cache);
+        logger.info(cache.toString());
         cache = multiCacheRepository.save(cache);
         return cache.toString();
     }
@@ -121,17 +122,17 @@ public class CartServiceImpl implements CartService {
     public MultiCartCache getByCacheId(String userID) {
         MultiCartCache multiCartCache = new MultiCartCache();
         String cacheKey = staticKey + userID;
-        System.out.println(cacheKey);
+        logger.info(cacheKey);
 //        getAllDatas();
         Optional<MultiCartCache> multiCartCacheOptional = multiCacheRepository.findById(cacheKey);
         if (multiCartCacheOptional.isPresent()) {
-            System.out.println(multiCartCache);
+            logger.info(multiCartCache.toString());
             return multiCartCacheOptional.get();
         }
-        System.out.println("null for multi cache = " + cacheKey);
+        logger.info("null for multi cache = " + cacheKey);
         Optional<CartCache> retrievedStudent = cacheRepository.findById(cacheKey);
         if (!retrievedStudent.isPresent()) {
-            System.out.println("null for cache = " + cacheKey);
+            logger.info("null for cache = " + cacheKey);
             return null;
         }
         multiCartCache.setUserID(Long.parseLong(userID));
@@ -217,7 +218,7 @@ public class CartServiceImpl implements CartService {
         saveCartParam.setProductID(param.getProductID());
         saveCartParam.setShopID(param.getShopID());
         saveCartParam.setQuantity(param.getQuantity());
-        saveCartParam.setPrice(1000L);
+        saveCartParam.setPrice(product.get().getPrice().longValue());
         saveCartParam.setNotes(param.getNotes());
         saveCartParam.setStatus(CART_STATUS_CART_PAGE);
         Optional<CartItem> cartDB = cartRepository.findByProductIDAndStatusAndUserID(param.getProductID(), CART_STATUS_CART_PAGE, param.getUserID());
@@ -372,7 +373,7 @@ public class CartServiceImpl implements CartService {
         saveCartParam.setProductID(param.getProductID());
         saveCartParam.setShopID(param.getShopID());
         saveCartParam.setQuantity(param.getQuantity());
-        saveCartParam.setPrice(1000L);
+        saveCartParam.setPrice(product.get().getPrice().longValue());
         saveCartParam.setStatus(CART_STATUS_CART_PAGE);
         saveCartParam.setId(cartDB.get().getId());
         saveCartParam.setNotes(param.getNotes());
@@ -389,7 +390,7 @@ public class CartServiceImpl implements CartService {
                     saveCartResponse.getProductID(), saveCartResponse.getPrice(), saveCartResponse.getStatus(), saveCartResponse.getQuantity(),
                     saveCartResponse.getTransactionID(), saveCartResponse.getNotes());
             String insertCache = insertData(cartCache);
-            System.out.println("insertCache = " + insertCache);
+            logger.info("insertCache = " + insertCache);
             response.setMessage(SUCCESS_UPDATE_CART);
             response.setStatus(STATUS_OK);
             return response;
@@ -405,7 +406,7 @@ public class CartServiceImpl implements CartService {
     public CartListResponse cartList(CartListDtoRequest cartListDtoRequest) {
         CartListResponse cartListResponse = new CartListResponse();
         if (cartListDtoRequest == null || cartListDtoRequest.getUserID() == 0) {
-            logger.debug("Empty Param");
+            logger.info("Empty Param");
             cartListResponse.setErrorMessage(FAILED_CART_LIST);
             cartListResponse.setStatus(STATUS_NOT_OK);
             return cartListResponse;
@@ -423,7 +424,7 @@ public class CartServiceImpl implements CartService {
 //            shopMap.put(data.getShopID(), shop);
 //        }
         if (cartItemList.size() == 0) {
-            logger.debug("Cart List Empty, userID = " + cartListDtoRequest.getUserID());
+            logger.info("Cart List Empty, userID = " + cartListDtoRequest.getUserID());
             cartListResponse.setShopGroupUnavailable(new ArrayList<>());
             cartListResponse.setShopGroupAvailable(new ArrayList<>());
             cartListResponse.setErrorMessage(SUCCESS_CART_LIST_EMPTY);
@@ -442,7 +443,7 @@ public class CartServiceImpl implements CartService {
                 productMap.put(product.getProductId().longValue(), product);
             }
 
-            Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.STATUS_DELETED);
+            Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.SHOP_STATUS_DELETED);
             shop.ifPresent(value -> shopMap.put(value.getId().longValue(), value));
         }
 
@@ -456,7 +457,7 @@ public class CartServiceImpl implements CartService {
                 product = productMap.get(cartItem.getProductID());
             } else {
                 // product not found the continue
-                logger.debug("Product not found for product_id : " + cartItem.getProductID());
+                logger.info("Product not found for product_id : " + cartItem.getProductID());
                 continue;
             }
             CartDetails cartDetail = new CartDetails();
@@ -476,7 +477,7 @@ public class CartServiceImpl implements CartService {
             ShopGroupData shopGroupData = new ShopGroupData();
             if (shopMap.get(cartDetail.getVWProductDto().getShopId().longValue()) != null) {
                 shopGroupData.setShop(shopMap.get(cartDetail.getVWProductDto().getShopId().longValue()));
-                if (shopGroupData.getShop().getStatus() == 2) {
+                if (shopGroupData.getShop().getStatus().equals(CART_SHOP_CLOSE)) {
                     shopGroupData.setTickerMessage("Toko tutup");
                     // unavailable, get from map, and put it
                     ShopGroupData shopGroupData1 = shopGroupUnavailableMap.get(cartDetail.getVWProductDto().getShopId().longValue());
@@ -493,7 +494,7 @@ public class CartServiceImpl implements CartService {
                 }
             } else {
                 // shop not found the continue
-                logger.debug("Product not found for shop_id : " + cartDetail.getVWProductDto().getShopId());
+                logger.info("Product not found for shop_id : " + cartDetail.getVWProductDto().getShopId());
                 continue;
             }
 
@@ -551,7 +552,7 @@ public class CartServiceImpl implements CartService {
         safDtoResponse.setGroupAddress(groupAddresses);
 
         if (cartListDtoRequest == null || cartListDtoRequest.getUserID() == 0) {
-            logger.debug("Empty Param");
+            logger.info("Empty Param");
             safDtoResponse.setErrorMessage(FAILED_CART_LIST);
             safDtoResponse.setStatus(STATUS_NOT_OK);
             return safDtoResponse;
@@ -576,7 +577,7 @@ public class CartServiceImpl implements CartService {
         }
 
         if (cartItemList.size() == 0) {
-            logger.debug("Cart List Empty, userID = " + cartListDtoRequest.getUserID());
+            logger.info("Cart List Empty, userID = " + cartListDtoRequest.getUserID());
             safDtoResponse.setErrorMessage(SUCCESS_CART_LIST_EMPTY);
             safDtoResponse.setStatus(STATUS_OK);
             return safDtoResponse;
@@ -593,7 +594,7 @@ public class CartServiceImpl implements CartService {
                 productMap.put(product.getProductId().longValue(), product);
             }
 
-            Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.STATUS_DELETED);
+            Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.SHOP_STATUS_DELETED);
             shop.ifPresent(value -> shopMap.put(value.getId().longValue(), value));
         }
 
@@ -607,7 +608,7 @@ public class CartServiceImpl implements CartService {
                 product = productMap.get(cartItem.getProductID());
             } else {
                 // product not found the continue
-                logger.debug("Product not found for product_id : " + cartItem.getProductID());
+                logger.info("Product not found for product_id : " + cartItem.getProductID());
                 continue;
             }
             CartDetails cartDetail = new CartDetails();
@@ -627,7 +628,7 @@ public class CartServiceImpl implements CartService {
             ShopGroupData shopGroupData = new ShopGroupData();
             if (shopMap.get(cartDetail.getVWProductDto().getShopId().longValue()) != null) {
                 shopGroupData.setShop(shopMap.get(cartDetail.getVWProductDto().getShopId().longValue()));
-                if (shopGroupData.getShop().getStatus() == 2) {
+                if (shopGroupData.getShop().getStatus().equals(CART_SHOP_CLOSE)) {
                     shopGroupData.setTickerMessage("Toko tutup");
                     // unavailable, get from map, and put it
                     ShopGroupData shopGroupData1 = shopGroupUnavailableMap.get(cartDetail.getVWProductDto().getShopId().longValue());
@@ -644,7 +645,7 @@ public class CartServiceImpl implements CartService {
                 }
             } else {
                 // shop not found the continue
-                logger.debug("Product not found for shop_id : " + cartDetail.getVWProductDto().getShopId());
+                logger.info("Product not found for shop_id : " + cartDetail.getVWProductDto().getShopId());
                 continue;
             }
 
@@ -694,6 +695,7 @@ public class CartServiceImpl implements CartService {
                 groupShopDto.setSpId(0L);
                 groupShopDto.setQty(cd.getQuantity());
                 groupShopDto.setVwProductDto(cd.getVWProductDto());
+                groupShopDto.setNotes(cd.getNotes());
                 groupShops.add(groupShopDto);
             }
             groupAddress.setGroupShop(groupShops);
@@ -708,7 +710,7 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CheckoutDtoResponse checkout(CheckoutDtoRequest cartListDtoRequest) throws IOException {
+    public CheckoutDtoResponse checkout(CheckoutDtoRequest checkoutDtoRequest) throws IOException {
         CheckoutDtoResponse response = new CheckoutDtoResponse();
         CheckoutDtoData data = new CheckoutDtoData();
         List<CheckoutProductData> productList = new ArrayList<>();
@@ -717,19 +719,19 @@ public class CartServiceImpl implements CartService {
         List<String> tickers = new ArrayList<>();
         List<GroupAddress> groupAddresses = new ArrayList<>();
 
-        if (cartListDtoRequest == null || cartListDtoRequest.getUserId() == 0) {
-            logger.debug("Empty Param");
+        if (checkoutDtoRequest == null || checkoutDtoRequest.getUserId() == 0) {
+            logger.info("Empty Param");
             response.setErrorMessage(FAILED_CART_LIST);
             response.setStatus(STATUS_NOT_OK);
             return response;
         }
         HashMap<Long, CheckoutShopProduct> checkoutShopProductByCartId = new HashMap<>();
-        for (CheckoutShopProduct checkoutShopProduct : cartListDtoRequest.getShopProducts()) {
+        for (CheckoutShopProduct checkoutShopProduct : checkoutDtoRequest.getShopProducts()) {
             checkoutShopProductByCartId.put(checkoutShopProduct.getCartId(), checkoutShopProduct);
         }
 
         // get cache for comparison
-        MultiCartCache multiCartCache = getByCacheId(cartListDtoRequest.getUserId().toString());
+        MultiCartCache multiCartCache = getByCacheId(checkoutDtoRequest.getUserId().toString());
         List<CartItem> cartItemList = new ArrayList<>();
         if (null != multiCartCache.getCartCacheList() && multiCartCache.getCartCacheList().size() > 0) {
             for (CartCache cache : multiCartCache.getCartCacheList()) {
@@ -747,7 +749,7 @@ public class CartServiceImpl implements CartService {
             }
         }
         if (cartItemList.size() == 0) {
-            logger.debug("Cart List Empty, userID = " + cartListDtoRequest.getUserId());
+            logger.info("Cart List Empty, userID = " + checkoutDtoRequest.getUserId());
             response.setErrorMessage(SUCCESS_CART_LIST_EMPTY);
             response.setStatus(STATUS_OK);
             return response;
@@ -762,7 +764,7 @@ public class CartServiceImpl implements CartService {
             Optional<CartItem> cartItemOptional = cartRepository.findByIdAndStatusAndUserID(cartItem.getId(),
                     CART_STATUS_CART_PAGE, cartItem.getUserID());
             if (!cartItemOptional.isPresent()) {
-                logger.debug("Cart id not found in db");
+                logger.info("Cart id not found in db");
                 response.setErrorMessage(FAILED_CART_LIST);
                 response.setStatus(STATUS_NOT_OK);
                 return response;
@@ -774,7 +776,7 @@ public class CartServiceImpl implements CartService {
                 productMap.put(product.getProductId().longValue(), product);
             }
 
-            Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.STATUS_DELETED);
+            Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.SHOP_STATUS_DELETED);
             shop.ifPresent(value -> shopMap.put(value.getId().longValue(), value));
         }
 
@@ -788,7 +790,7 @@ public class CartServiceImpl implements CartService {
                 product = productMap.get(cartItem.getProductID());
             } else {
                 // product not found the continue
-                logger.debug("Product not found for product_id : " + cartItem.getProductID());
+                logger.info("Product not found for product_id : " + cartItem.getProductID());
                 continue;
             }
             CartDetails cartDetail = new CartDetails();
@@ -808,7 +810,7 @@ public class CartServiceImpl implements CartService {
             ShopGroupData shopGroupData = new ShopGroupData();
             if (shopMap.get(cartDetail.getVWProductDto().getShopId().longValue()) != null) {
                 shopGroupData.setShop(shopMap.get(cartDetail.getVWProductDto().getShopId().longValue()));
-                if (shopGroupData.getShop().getStatus() == 2) {
+                if (shopGroupData.getShop().getStatus().equals(CART_SHOP_CLOSE)) {
                     shopGroupData.setTickerMessage("Toko tutup");
                     // unavailable, get from map, and put it
                     ShopGroupData shopGroupData1 = shopGroupUnavailableMap.get(cartDetail.getVWProductDto().getShopId().longValue());
@@ -825,7 +827,7 @@ public class CartServiceImpl implements CartService {
                 }
             } else {
                 // shop not found the continue
-                logger.debug("Product not found for shop_id : " + cartDetail.getVWProductDto().getShopId());
+                logger.info("Product not found for shop_id : " + cartDetail.getVWProductDto().getShopId());
                 continue;
             }
 
@@ -864,8 +866,16 @@ public class CartServiceImpl implements CartService {
                 CheckoutProductData productData = new CheckoutProductData();
                 grossAmount += cartDetails.getPrice();
                 CheckoutShopProduct checkoutShopProduct = checkoutShopProductByCartId.get(cartDetails.getId());
+                Long size = 0L;
+                if (cartDetails.getVWProductDto().getSize() != null && !cartDetails.getVWProductDto().getSize().trim().equalsIgnoreCase("")) {
+                    try {
+                        size = Long.parseLong(cartDetails.getVWProductDto().getSize());
+                    } catch (Exception ex) {
+                        logger.error("error parse = " + cartDetails.getVWProductDto().getSize());
+                    }
+                }
                 CostParent costParent = addressService.getCostByCityId(checkoutShopProduct.getOriginCityId().toString(), checkoutShopProduct.getDestincationCityId().toString(),
-                        cartDetails.getVWProductDto().getSize().longValue(), checkoutShopProduct.getCourier());
+                        size, checkoutShopProduct.getCourier());
                 for (CostResult costResult : costParent.getRajaongkir().getResults()) {
                     if (costResult.getCode().trim().equalsIgnoreCase(checkoutShopProduct.getCourier())) {
                         for (CostResultDetail costResultDetail : costResult.getCosts()) {
@@ -885,23 +895,24 @@ public class CartServiceImpl implements CartService {
                 }
             }
             checkoutParameterResponse.setGrossAmount(grossAmount);
-            checkoutParameterResponse.setCustomerId(cartListDtoRequest.getUserId());
+            checkoutParameterResponse.setCustomerId(checkoutDtoRequest.getUserId());
         }
         // save gross amount and get order id
         Order order = new Order();
-        order.setCustomerId(cartListDtoRequest.getUserId());
+        order.setCustomerId(checkoutDtoRequest.getUserId());
         order.setGrossAmount(checkoutParameterResponse.getGrossAmount());
-        if (cartListDtoRequest.getShopProducts().size() != 0) {
-            order.setShopId(cartListDtoRequest.getShopProducts().get(0).getShopId());
+        if (checkoutDtoRequest.getShopProducts().size() != 0) {
+            order.setShopId(checkoutDtoRequest.getShopProducts().get(0).getShopId());
         }
         order.setStatus(ORDER_STATUS_WAITING_PAYMENT_METHOD);
         order.setQuantity(cartItemList.get(0).getQuantity().intValue());
-        order.setCustAddress(Integer.valueOf(cartListDtoRequest.getAddressId()));
+        order.setCustAddress(Integer.valueOf(checkoutDtoRequest.getAddressId()));
         order.setShopId(cartItemList.get(0).getShopID());
-        order.setCourier(cartListDtoRequest.getShopProducts().get(0).getCourier());
+        order.setCourier(checkoutDtoRequest.getShopProducts().get(0).getCourier());
+        order.setService(checkoutDtoRequest.getShopProducts().get(0).getService());
         order = orderRepository.save(order);
 
-        System.out.println("order = " + order);
+        logger.info("order = " + order);
 
         for (CartItem cartItem : cartItemFromDB) {
             // update cart db
@@ -909,8 +920,21 @@ public class CartServiceImpl implements CartService {
             cartItemUpdate.setStatus(CART_STATUS_CHECKOUT);
             cartItemUpdate.setTransactionID(order.getId());
             cartItemUpdate.setUpdatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
+            // set courier, service, shop address id, user address id
+            if (checkoutShopProductByCartId.containsKey(cartItemUpdate.getId())) {
+                try {
+                    CheckoutShopProduct checkoutShopProductData = checkoutShopProductByCartId.get(cartItemUpdate.getId());
+                    cartItemUpdate.setCourier(checkoutShopProductData.getCourier());
+                    cartItemUpdate.setService(checkoutShopProductData.getService());
+                    cartItemUpdate.setAddressID(checkoutDtoRequest.getUserId());
+                    cartItemUpdate.setShopAddressID(checkoutShopProductData.getShopAddressID());
+                } catch (Exception ex) {
+                    logger.error("error when update cart resi etc : " + ex.getMessage());
+                }
+            }
+
             cartItemUpdate = cartRepository.save(cartItemUpdate);
-            System.out.println("cartItemUpdate = " + cartItemUpdate);
+            logger.info("cartItemUpdate = " + cartItemUpdate);
 
             // update decrease product stock
             Optional<Product> optionalProduct = productRepository.findById(cartItem.getProductID().intValue());
@@ -966,7 +990,7 @@ public class CartServiceImpl implements CartService {
 
             // Get response body
             String jsonString = Objects.requireNonNull(response.body()).string();
-            System.out.println(jsonString);
+            logger.info(jsonString);
             PaymentChargeMidResponse entity = gson.fromJson(jsonString, PaymentChargeMidResponse.class);
             List<VaNumberDto> vaNumberDtos = new ArrayList<>();
             for (VaNumber vaNumber : entity.getVa_numbers()) {
@@ -995,10 +1019,10 @@ public class CartServiceImpl implements CartService {
                     order.setStatus(ORDER_STATUS_WAITING_PAYMENT);
                     order = orderRepository.save(order);
                     paymentChargeRequest.setUserID(order.getCustomerId().intValue());
-                    System.out.println("order = " + order);
+                    logger.info("order = " + order);
                 }
             } catch (Exception ex) {
-                System.out.println("error : " + ex);
+                logger.info("error : " + ex);
             }
 
 
@@ -1021,7 +1045,7 @@ public class CartServiceImpl implements CartService {
         // update order
         Optional<Order> orderOptional = orderRepository.findById(Long.parseLong(paymentChargeRequest.getOrderId()));
         if (!orderOptional.isPresent()) {
-            logger.debug("order id : " + paymentChargeRequest.getOrderId() + " is not found!");
+            logger.info("order id : " + paymentChargeRequest.getOrderId() + " is not found!");
             return new PaymentChargeDtoResponse();
         }
 
@@ -1056,7 +1080,7 @@ public class CartServiceImpl implements CartService {
 
             // Get response body
             String jsonString = Objects.requireNonNull(response.body()).string();
-            System.out.println(jsonString);
+            logger.info(jsonString);
             CallbackVAXendit entity = gson.fromJson(jsonString, CallbackVAXendit.class);
             String transactionTimeInMilis = Utils.getCalendar().getTimeInMillis() + "";
             Double grossAmountDouble = Double.parseDouble(entity.getExpected_amount().toString());
@@ -1074,9 +1098,9 @@ public class CartServiceImpl implements CartService {
                 order.setStatus(ORDER_STATUS_WAITING_PAYMENT);
                 order = orderRepository.save(order);
                 paymentChargeRequest.setUserID(order.getCustomerId().intValue());
-                System.out.println("order = " + order);
+                logger.info("order = " + order);
             } catch (Exception ex) {
-                logger.debug("error pas set order : " + ex.getMessage());
+                logger.info("error pas set order : " + ex.getMessage());
             }
 
             List<VaNumberDto> vaNumberDtos = new ArrayList<>();
@@ -1111,7 +1135,7 @@ public class CartServiceImpl implements CartService {
 
             // Get response body
             String jsonString = Objects.requireNonNull(response.body()).string();
-            System.out.println(jsonString);
+            logger.info(jsonString);
             PaymentChargeMidResponse entity = gson.fromJson(jsonString, PaymentChargeMidResponse.class);
             List<VaNumberDto> vaNumberDtos = new ArrayList<>();
             for (VaNumber vaNumber : entity.getVa_numbers()) {
@@ -1141,7 +1165,7 @@ public class CartServiceImpl implements CartService {
         PaymentChargeDtoResponse responseDto;
         Optional<Order> orderOptional = orderRepository.findById(Long.parseLong(orderId));
         if (!orderOptional.isPresent()) {
-            logger.debug("empty payment status for order id : " + orderId);
+            logger.info("empty payment status for order id : " + orderId);
             return new PaymentChargeDtoResponse();
         }
 
@@ -1180,7 +1204,7 @@ public class CartServiceImpl implements CartService {
                 order.setStatus(ORDER_STATUS_PAYMENT_SETTLED);
                 order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
                 orderRepository.save(order);
-                logger.debug("Success Update to Settlement: order id : " + orderId);
+                logger.info("Success Update to Settlement: order id : " + orderId);
             }
         }
     }
@@ -1204,7 +1228,7 @@ public class CartServiceImpl implements CartService {
                 order.setStatus(ORDER_STATUS_PAYMENT_SETTLED);
                 order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
                 orderRepository.save(order);
-                logger.debug("Success Update to Settlement: order id : " + orderId);
+                logger.info("Success Update to Settlement: order id : " + orderId);
             }
         }
     }
@@ -1214,13 +1238,14 @@ public class CartServiceImpl implements CartService {
         List<OrderDetailDto> orderDetailDto = new ArrayList<>();
         List<Order> orderList = orderRepository.findByStatusIsNotAndCustomerId(0, userID);
         HashMap<Long, UserDto> mapUserByID = new HashMap<>();
+        HashMap<Integer, AddressDetailDto> mapDefaultAddressDetailByShopID = new HashMap<>();
         for (Order order : orderList) {
             // if waiting for payment then check if already updated (this function can be replaced if there are cron or listener to change status from midtrans)
             if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT)) {
                 try {
                     paymentCheckStatus(order.getId().toString());
                 } catch (Exception ex) {
-                    System.out.println("Exception check status order : " + ex.getMessage());
+                    logger.info("Exception check status order : " + ex.getMessage());
                 }
                 Optional<Order> orderChanged = orderRepository.findById(order.getId());
                 if (orderChanged.isPresent()) {
@@ -1233,8 +1258,9 @@ public class CartServiceImpl implements CartService {
             for (CartItem cartItem : cartItemOptional) {
                 // get shop detail by product shop id
                 VwProductDetails product = vwProductDetailsService.findByProductIdProductDetails(cartItem.getProductID().intValue());
+                product.setQuantity(cartItem.getQuantity());
                 // get shipping detail by cart item detail
-                Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.STATUS_DELETED);
+                Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.SHOP_STATUS_DELETED);
                 OrderDetailDto orderResp = new OrderDetailDto();
                 orderResp.setIconImg("");
                 String statusTitle = getStatusTitleByStatusId(order.getStatus());
@@ -1243,17 +1269,24 @@ public class CartServiceImpl implements CartService {
                 orderResp.setOrderTotal(order.getGrossAmount());
                 orderResp.setOrderTotalAmount(order.getQuantity().longValue());
                 orderResp.setOrderID(order.getId());
+                orderResp.setNotes(cartItem.getNotes());
                 // get detail waybill
                 if (order.getStatus().equals(ORDER_STATUS_SHIPPING)) {
                     try {
                         if (order.getId() == 1057L) {
                             logger.info("isi resi code = " + order.getResiCode() + " couriernya : " + order.getCourier());
                         }
-                        orderResp.setDetailWaybill(addressService.getWaybillDetail(order.getResiCode(), order.getCourier()));
+                        String resiCode = order.getResiCode();
+                        String courier = order.getCourier();
+                        if (cartItem.getResiCode() != null && !cartItem.getResiCode().trim().equalsIgnoreCase("")) {
+                            resiCode = cartItem.getResiCode();
+                        }
+                        if (cartItem.getCourier() != null && !cartItem.getCourier().trim().equalsIgnoreCase("")) {
+                            courier = cartItem.getCourier();
+                        }
+                        orderResp.setDetailWaybill(addressService.getWaybillDetail(resiCode, courier));
                     } catch (Exception ex) {
                         logger.info("waybill error info : " + ex.getMessage());
-                        logger.error("waybill error error : " + ex.getMessage());
-                        System.out.println("waybill error " + ex.getMessage());
                     }
                 }
                 Timestamp orderDate = Utils.getTimeStamp(1L);
@@ -1264,16 +1297,20 @@ public class CartServiceImpl implements CartService {
                 orderResp.setProduct(product);
                 if (shop.isPresent()) {
                     Shop shopData = shop.get();
-                    AddressDetailDto defaultShopDto = addressService.getShopDefaultAddress(shopData.getId());
-                    shopData.setAddressDetailDto(defaultShopDto);
+                    if (mapDefaultAddressDetailByShopID.isEmpty() || !mapDefaultAddressDetailByShopID.containsKey(shopData.getId())) {
+                        AddressDetailDto defaultShopDto = addressService.getShopDefaultAddress(shopData.getId());
+                        mapDefaultAddressDetailByShopID.put(shopData.getId(), defaultShopDto);
+                    }
+                    shopData.setAddressDetailDto(mapDefaultAddressDetailByShopID.get(shopData.getId()));
+
                     orderResp.setShop(shopData);
                 }
-                orderResp = setOrderPaymentDetail(order, orderResp);
+                orderResp = setOrderPaymentDetail(order, orderResp, cartItem);
                 // check map for user detail, if not exist then fetch it from db
                 if (mapUserByID.isEmpty() || !mapUserByID.containsKey(cartItem.getUserID())) {
                     UserDto userDto = getUserDetail(cartItem.getUserID());
                     mapUserByID.put(cartItem.getUserID(), userDto);
-                    logger.debug(userDto.toString());
+                    logger.info(userDto.toString());
                 }
 
                 orderResp.setUserDto(mapUserByID.get(cartItem.getUserID()));
@@ -1283,11 +1320,31 @@ public class CartServiceImpl implements CartService {
         return orderDetailDto;
     }
 
-    public OrderDetailDto setOrderPaymentDetail(Order order, OrderDetailDto orderResp) {
+    public OrderDetailDto setOrderPaymentDetail(Order order, OrderDetailDto orderResp, CartItem cartItem) {
         orderResp.setVaNumber(order.getVaNumber());
         orderResp.setBank(order.getPaymentType());
         orderResp.setCourier(order.getCourier());
         orderResp.setService(order.getService());
+        if (cartItem.getCourier() != null && !cartItem.getCourier().trim().equalsIgnoreCase("")) {
+            orderResp.setCourier(cartItem.getCourier());
+        }
+        if (cartItem.getService() != null && !cartItem.getService().trim().equalsIgnoreCase("")) {
+            orderResp.setService(cartItem.getService());
+        }
+        return orderResp;
+    }
+
+    public OrderDetailListProductDto setOrderListProductPaymentDetail(Order order, OrderDetailListProductDto orderResp, CartItem cartItem) {
+        orderResp.setVaNumber(order.getVaNumber());
+        orderResp.setBank(order.getPaymentType());
+        orderResp.setCourier(order.getCourier());
+        orderResp.setService(order.getService());
+        if (cartItem.getCourier() != null && !cartItem.getCourier().trim().equalsIgnoreCase("")) {
+            orderResp.setCourier(cartItem.getCourier());
+        }
+        if (cartItem.getService() != null && !cartItem.getService().trim().equalsIgnoreCase("")) {
+            orderResp.setService(cartItem.getService());
+        }
         return orderResp;
     }
 
@@ -1301,13 +1358,14 @@ public class CartServiceImpl implements CartService {
         }
         List<Order> orderList = orderRepository.findByIdIn(orderIDs);
         HashMap<Long, UserDto> mapUserByID = new HashMap<>();
+        HashMap<Integer, AddressDetailDto> mapDefaultAddressDetailByShopID = new HashMap<>();
         for (Order order : orderList) {
             // if waiting for payment then check if already updated (this function can be replaced if there are cron or listener to change status from midtrans)
             if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT)) {
                 try {
                     paymentCheckStatus(order.getId().toString());
                 } catch (Exception ex) {
-                    System.out.println("Exception check status order : " + ex.getMessage());
+                    logger.info("Exception check status order : " + ex.getMessage());
                 }
                 Optional<Order> orderChanged = orderRepository.findById(order.getId());
                 if (orderChanged.isPresent()) {
@@ -1320,8 +1378,9 @@ public class CartServiceImpl implements CartService {
             for (CartItem cartItem : cartItemOptional) {
                 // get shop detail by product shop id
                 VwProductDetails product = vwProductDetailsService.findByProductIdProductDetails(cartItem.getProductID().intValue());
+                product.setQuantity(cartItem.getQuantity());
                 // get shipping detail by cart item detail
-                Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.STATUS_DELETED);
+                Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.SHOP_STATUS_DELETED);
                 OrderDetailDto orderResp = new OrderDetailDto();
                 orderResp.setIconImg("");
                 String statusTitle = getStatusTitleByStatusId(order.getStatus());
@@ -1329,17 +1388,41 @@ public class CartServiceImpl implements CartService {
                 orderResp.setOrderStatus(order.getStatus());
                 orderResp.setOrderTotal(order.getGrossAmount());
                 orderResp.setOrderTotalAmount(order.getQuantity().longValue());
+                orderResp.setNotes(cartItem.getNotes());
                 Timestamp orderDate = Utils.getTimeStamp(1L);
                 if (order.getCreatedDate() != null) {
                     orderDate = order.getCreatedDate();
                 }
                 orderResp.setOrderTransactionDateString(orderDate.toString());
                 orderResp.setOrderID(order.getId());
+                // get detail waybill
+                if (order.getStatus().equals(ORDER_STATUS_SHIPPING)) {
+                    try {
+                        if (order.getId() == 1057L) {
+                            logger.info("isi resi code = " + order.getResiCode() + " couriernya : " + order.getCourier());
+                        }
+                        String resiCode = order.getResiCode();
+                        String courier = order.getCourier();
+                        if (cartItem.getResiCode() != null && !cartItem.getResiCode().trim().equalsIgnoreCase("")) {
+                            resiCode = cartItem.getResiCode();
+                        }
+                        if (cartItem.getCourier() != null && !cartItem.getCourier().trim().equalsIgnoreCase("")) {
+                            courier = cartItem.getCourier();
+                        }
+                        orderResp.setDetailWaybill(addressService.getWaybillDetail(resiCode, courier));
+                    } catch (Exception ex) {
+                        logger.info("waybill error info : " + ex.getMessage());
+                    }
+                }
                 orderResp.setProduct(product);
                 if (shop.isPresent()) {
                     Shop shopData = shop.get();
-                    AddressDetailDto defaultShopDto = addressService.getShopDefaultAddress(shopData.getId());
-                    shopData.setAddressDetailDto(defaultShopDto);
+                    if (mapDefaultAddressDetailByShopID.isEmpty() || !mapDefaultAddressDetailByShopID.containsKey(shopData.getId())) {
+                        AddressDetailDto defaultShopDto = addressService.getShopDefaultAddress(shopData.getId());
+                        mapDefaultAddressDetailByShopID.put(shopData.getId(), defaultShopDto);
+                    }
+                    shopData.setAddressDetailDto(mapDefaultAddressDetailByShopID.get(shopData.getId()));
+
                     orderResp.setShop(shopData);
                 }
 
@@ -1347,11 +1430,11 @@ public class CartServiceImpl implements CartService {
                 if (mapUserByID.isEmpty() || !mapUserByID.containsKey(cartItem.getUserID())) {
                     UserDto userDto = getUserDetail(cartItem.getUserID());
                     mapUserByID.put(cartItem.getUserID(), userDto);
-                    logger.debug(userDto.toString());
+                    logger.info(userDto.toString());
                 }
 
                 orderResp.setUserDto(mapUserByID.get(cartItem.getUserID()));
-                orderResp = setOrderPaymentDetail(order, orderResp);
+                orderResp = setOrderPaymentDetail(order, orderResp, cartItem);
                 orderDetailDto.add(orderResp);
             }
         }
@@ -1414,7 +1497,7 @@ public class CartServiceImpl implements CartService {
     public void sellerVerifyOrder(VerifyOrderShippingRequest request) {
         if (!request.getStatus().equals(ORDER_VERIFY_STATUS_CONFIRM)
                 && !request.getStatus().equals(ORDER_VERIFY_STATUS_REJECT)) {
-            logger.debug("status not found");
+            logger.info("status not found");
             return;
         }
         Optional<Order> orderOptional = orderRepository.findById(request.getOrderID());
@@ -1442,6 +1525,19 @@ public class CartServiceImpl implements CartService {
             order.setResiCode(request.getResiCode());
             order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
             orderRepository.save(order);
+
+            // update resi code by cart id
+            List<CartItem> cartItemList = cartRepository.findByStatusAndUserIDAndTransactionID(CART_STATUS_CHECKOUT, order.getCustomerId(), order.getId());
+            for (CartItem cartItem : cartItemList) {
+                if (cartItem.getShopID().equals(request.getShopID())) {
+                    cartItem.setResiCode(request.getResiCode());
+                    try {
+                        cartRepository.save(cartItem);
+                    } catch (Exception ex) {
+                        logger.error("error when save cart resi = " + ex.getMessage());
+                    }
+                }
+            }
         }
     }
 
@@ -1528,7 +1624,7 @@ public class CartServiceImpl implements CartService {
             saveCartParam.setProductID(param.getProductID());
             saveCartParam.setShopID(param.getShopID());
             saveCartParam.setQuantity(param.getQuantity());
-            saveCartParam.setPrice(1000L);
+            saveCartParam.setPrice(product.get().getPrice().longValue());
             saveCartParam.setStatus(CART_STATUS_CART_PAGE);
             saveCartParam.setId(cartDB.get().getId());
             saveCartParam.setNotes(param.getNotes());
@@ -1557,7 +1653,7 @@ public class CartServiceImpl implements CartService {
         multiCartCache.setCartCacheList(cartCacheList);
         multiCartCache.setUserID(userID);
         String insertCache = insertMultiData(multiCartCache);
-        System.out.println("insertMultiData = " + insertCache);
+        logger.info("insertMultiData = " + insertCache);
         response.setMessage(SUCCESS_UPDATE_CART);
         response.setStatus(STATUS_OK);
         return response;
@@ -1601,7 +1697,7 @@ public class CartServiceImpl implements CartService {
             String messageSubjectRegister = "Menunggu Pembayaran " + paymentChargeRequest.getBank().toUpperCase() + " untuk pembayaran dengan order id " + paymentChargeRequest.getOrderId();
             sentEmail(user.get().getEmail(), messageBodyRegister, messageSubjectRegister);
         } else {
-            logger.debug("Username/Email tidak ditemukan");
+            logger.info("Username/Email tidak ditemukan");
         }
     }
 
@@ -1640,7 +1736,7 @@ public class CartServiceImpl implements CartService {
             String messageSubjectRegister = "Checkout Pesanan dengan " + kodeBank.toUpperCase() + " Berhasil tanggal " + dateTimeString;
             sentEmail(user.get().getEmail(), messageBodyRegister, messageSubjectRegister);
         } else {
-            logger.debug("Username/Email tidak ditemukan");
+            logger.info("Username/Email tidak ditemukan");
         }
     }
 
@@ -1669,7 +1765,7 @@ public class CartServiceImpl implements CartService {
             String messageSubjectRegister = "Pesanan Selesai: " + productName;
             sentEmail(user.get().getEmail(), messageBodyRegister, messageSubjectRegister);
         } else {
-            logger.debug("Username/Email tidak ditemukan");
+            logger.info("Username/Email tidak ditemukan");
         }
     }
 
@@ -1685,7 +1781,7 @@ public class CartServiceImpl implements CartService {
             newThread.start();
         } catch (Exception e) {
             e.printStackTrace();
-            logger.debug("Error caught : " + e.getMessage());
+            logger.info("Error caught : " + e.getMessage());
         }
 
     }
@@ -1695,7 +1791,7 @@ public class CartServiceImpl implements CartService {
         // get order by order id and update the status
         Optional<Order> optionalOrder = orderRepository.findById(Long.parseLong(callbackFVA.getExternal_id()));
         if (!optionalOrder.isPresent()) {
-            logger.debug("empty order id for : " + callbackFVA.getExternal_id());
+            logger.info("empty order id for : " + callbackFVA.getExternal_id());
             return order;
         }
         order = optionalOrder.get();
@@ -1705,7 +1801,7 @@ public class CartServiceImpl implements CartService {
             order.setTransactionID(callbackFVA.getPayment_id());
             order.setTransactionStatus(MIDTRANS_STATUS_SETTLEMENT);
             orderRepository.save(order);
-            logger.debug("Success Update to Settlement: order id : " + order.getId());
+            logger.info("Success Update to Settlement: order id : " + order.getId());
             List<CartItem> cartItems = cartRepository.findByStatusAndUserIDAndTransactionID(CART_STATUS_CHECKOUT, order.getCustomerId(), order.getId());
             HashMap<Long, Product> productByID = new HashMap<>();
             for (CartItem item : cartItems) {
@@ -1727,19 +1823,19 @@ public class CartServiceImpl implements CartService {
                 .addHeader("Authorization", XENDIT_BASIC_AUTH)  // add request headers
                 .addHeader("content-type", "application/json")
                 .build();
-        logger.debug("url xendit : " + urlHitVerifyXendit);
+        logger.info("url xendit : " + urlHitVerifyXendit);
 
         try (Response response = httpClient.newCall(request).execute()) {
 
             if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-            logger.debug("success callback verify");
+            logger.info("success callback verify");
             // Get response body
             String jsonString = Objects.requireNonNull(response.body()).string();
-            logger.debug(jsonString);
+            logger.info(jsonString);
             CallbackVerifyFVA entity = gson.fromJson(jsonString, CallbackVerifyFVA.class);
-            logger.debug(entity.toString());
+            logger.info(entity.toString());
         } catch (Exception ex) {
-            logger.debug("error when execute verify payment");
+            logger.info("error when execute verify payment");
         }
     }
 
@@ -1752,7 +1848,7 @@ public class CartServiceImpl implements CartService {
         RequestBody body = RequestBody.create(JSON, json);
         String urlSimulatePayment = XENDIT_URL + XENDIT_FVA_SIMULATE_PAYMENT;
         urlSimulatePayment = urlSimulatePayment.replace("{external_id}", orderID);
-        logger.debug("debug url simulate payment = " + urlSimulatePayment);
+        logger.info("debug url simulate payment = " + urlSimulatePayment);
         logger.info("info url simulate payment = " + urlSimulatePayment);
         logger.error("error url simulate payment = " + urlSimulatePayment);
         Request request = new Request.Builder()
@@ -1768,11 +1864,103 @@ public class CartServiceImpl implements CartService {
 
             // Get response body
             String jsonString = Objects.requireNonNull(response.body()).string();
-            System.out.println(jsonString);
+            logger.info(jsonString);
             return gson.fromJson(jsonString, SimulatePaymentFVA.class);
         } catch (Exception ex) {
-            logger.debug("failed simulate payment for order id = " + orderID);
+            logger.info("failed simulate payment for order id = " + orderID);
         }
         return resp;
+    }
+
+    @Override
+    public OrderDetailListProductDto invoiceByOrderID(Long orderID) {
+        OrderDetailListProductDto orderDetailDto = new OrderDetailListProductDto();
+        Optional<CartItem> cartItemList = cartRepository.findFirstByStatusIsNotAndTransactionID(CART_STATUS_DELETED, orderID);
+        if (!cartItemList.isPresent()) {
+            logger.info("invoiceByOrderID, empty for order id : " + orderID);
+            return orderDetailDto;
+        }
+        Optional<Order> orderOptional = orderRepository.findById(orderID);
+        HashMap<Long, UserDto> mapUserByID = new HashMap<>();
+        HashMap<Integer, AddressDetailDto> mapDefaultAddressDetailByShopID = new HashMap<>();
+        if (orderOptional.isPresent()) {
+            Order order = orderOptional.get();
+            // if waiting for payment then check if already updated (this function can be replaced if there are cron or listener to change status from midtrans)
+            if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT)) {
+                try {
+                    paymentCheckStatus(order.getId().toString());
+                } catch (Exception ex) {
+                    logger.info("Exception check status order : " + ex.getMessage());
+                }
+                Optional<Order> orderChanged = orderRepository.findById(order.getId());
+                if (orderChanged.isPresent()) {
+                    order = orderChanged.get();
+                }
+            }
+            // get product id by order id from cart
+            List<CartItem> cartItemOptional = cartRepository.findByStatusAndUserIDAndTransactionID(CART_STATUS_CHECKOUT, order.getCustomerId(), order.getId());
+            // get product detail by product id
+
+            List<VwProductDetails> productDetails = new ArrayList<>();
+            String resiCode = "";
+            String courier = "";
+            Long shopID = 0L;
+            Long userID = 0L;
+            CartItem cartItemOne = new CartItem();
+            for (CartItem cartItem : cartItemOptional) {
+                // get shop detail by product shop id
+                VwProductDetails product = vwProductDetailsService.findByProductIdProductDetails(cartItem.getProductID().intValue());
+                product.setQuantity(cartItem.getQuantity());
+                product.setNotes(cartItem.getNotes());
+                productDetails.add(product);
+                resiCode = cartItem.getResiCode();
+                courier = cartItem.getCourier();
+                shopID = cartItem.getShopID();
+                userID = cartItem.getUserID();
+                cartItemOne = cartItem;
+            }
+            OrderDetailListProductDto orderResp = new OrderDetailListProductDto();
+            orderResp.setProduct(productDetails);
+            orderResp.setIconImg("");
+            String statusTitle = getStatusTitleByStatusId(order.getStatus());
+            orderResp.setOrderStatusTitle(statusTitle);
+            orderResp.setOrderStatus(order.getStatus());
+            orderResp.setOrderTotal(order.getGrossAmount());
+            orderResp.setOrderTotalAmount(order.getQuantity().longValue());
+            Timestamp orderDate = Utils.getTimeStamp(1L);
+            if (order.getCreatedDate() != null) {
+                orderDate = order.getCreatedDate();
+            }
+            orderResp.setOrderTransactionDateString(orderDate.toString());
+            orderResp.setOrderID(order.getId());
+            // get detail waybill
+            if (order.getStatus().equals(ORDER_STATUS_SHIPPING)) {
+                try {
+                    orderResp.setDetailWaybill(addressService.getWaybillDetail(resiCode, courier));
+                } catch (Exception ex) {
+                    logger.info("waybill error info : " + ex.getMessage());
+                }
+            }
+            // get shipping detail by cart item detail
+            Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(shopID.intValue(), ShopServiceImpl.SHOP_STATUS_DELETED);
+            if (shop.isPresent()) {
+                Shop shopData = shop.get();
+                AddressDetailDto defaultShopDto = addressService.getShopDefaultAddress(shopData.getId());
+                mapDefaultAddressDetailByShopID.put(shopData.getId(), defaultShopDto);
+                shopData.setAddressDetailDto(mapDefaultAddressDetailByShopID.get(shopData.getId()));
+
+                orderResp.setShop(shopData);
+            }
+
+            // check map for user detail, if not exist then fetch it from db
+            UserDto userDto = getUserDetail(userID);
+            mapUserByID.put(userID, userDto);
+            logger.info(userDto.toString());
+
+            orderResp.setUserDto(mapUserByID.get(userID));
+            orderResp = setOrderListProductPaymentDetail(order, orderResp, cartItemOne);
+            return orderResp;
+        }
+        return orderDetailDto;
     }
 }

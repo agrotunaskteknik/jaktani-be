@@ -24,17 +24,17 @@ public class PhotoServiceImpl implements PhotoService {
     public byte[] getPhoto(String urlPath) {
         List<Photo> photoList = photoRepository.findAllByUrlPath(urlPath);
         if (photoList == null || photoList.size() == 0) {
-            logger.debug("Image not found from repository");
+            logger.info("Image not found from repository");
             return null;
         }
         String imageFilePath = photoList.get(0).getImageFilePath();
         if (imageFilePath == null || imageFilePath.trim().equalsIgnoreCase("")) {
-            logger.debug("Image from repository is empty");
+            logger.info("Image from repository is empty");
         }
         try {
             File initialFileImage = new File(imageFilePath);
             if (!initialFileImage.exists()) {
-                logger.debug("initialFileImage Path not found");
+                logger.info("initialFileImage Path not found");
                 return null;
             }
             InputStream in = new FileInputStream(initialFileImage);

@@ -10,11 +10,13 @@ public class CheckoutShopProduct {
     private String courier;
     private Long originCityId;
     private Long destincationCityId;
+    private Long shopAddressID;
 
     public CheckoutShopProduct() {
     }
 
-    public CheckoutShopProduct(Long cartId, Long productId, Long shopId, Long spId, Long shippingId, String service, String courier, Long originCityId, Long destincationCityId) {
+
+    public CheckoutShopProduct(Long cartId, Long productId, Long shopId, Long spId, Long shippingId, String service, String courier, Long originCityId, Long destincationCityId, Long shopAddressID) {
         this.cartId = cartId;
         this.productId = productId;
         this.shopId = shopId;
@@ -24,6 +26,7 @@ public class CheckoutShopProduct {
         this.courier = courier;
         this.originCityId = originCityId;
         this.destincationCityId = destincationCityId;
+        this.shopAddressID = shopAddressID;
     }
 
     public Long getCartId() {
@@ -98,6 +101,14 @@ public class CheckoutShopProduct {
         this.destincationCityId = destincationCityId;
     }
 
+    public Long getShopAddressID() {
+        return shopAddressID;
+    }
+
+    public void setShopAddressID(Long shopAddressID) {
+        this.shopAddressID = shopAddressID;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("CheckoutShopProduct{");
@@ -110,6 +121,7 @@ public class CheckoutShopProduct {
         sb.append(", courier='").append(courier).append('\'');
         sb.append(", originCityId=").append(originCityId);
         sb.append(", destincationCityId=").append(destincationCityId);
+        sb.append(", shopAddressID=").append(shopAddressID);
         sb.append('}');
         return sb.toString();
     }

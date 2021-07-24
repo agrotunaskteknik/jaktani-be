@@ -14,4 +14,5 @@ public interface UserService {
     UserDto editPasswordByUserID(Long userID, UserDto inputUser);
     byte[] getKtpFile(String urlPath);
     byte[] getProfileFile(String urlPath);
+    UserDto getUserByGoogleID(String googleID);
 }

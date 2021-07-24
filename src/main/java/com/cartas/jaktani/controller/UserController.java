@@ -42,7 +42,7 @@ public class UserController {
             LoginResponse loginResponse = new LoginResponse("", "OK", "Success get user", user, new JwtResponse());
             return ResponseEntity.ok().body(new ParentResponse(loginResponse));
         } catch (Exception e) {
-            logger.debug("Caught error : " + e.getMessage());
+            logger.info("Caught error : " + e.getMessage());
             return ResponseEntity.badRequest().body(new ParentResponse(new CommonResponse("Maaf terjadi gangguan", "NOT_OK", "")));
         }
     }
@@ -59,7 +59,7 @@ public class UserController {
             LoginResponse loginResponse = new LoginResponse("", "OK", "Success add user!", user, new JwtResponse());
             return ResponseEntity.ok().body(new ParentResponse(loginResponse));
         } catch (Exception e) {
-            logger.debug("Caught error : " + e.getMessage());
+            logger.info("Caught error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
@@ -82,7 +82,7 @@ public class UserController {
             LoginResponse loginResponse = new LoginResponse("", "OK", "Success edit profile!", user, new JwtResponse());
             return ResponseEntity.ok().body(new ParentResponse(loginResponse));
         } catch (Exception e) {
-            logger.debug("Caught error : " + e.getMessage());
+            logger.info("Caught error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
@@ -106,7 +106,7 @@ public class UserController {
             ParentResponse parentResponse = new ParentResponse(loginResponse);
             return ResponseEntity.ok().body(parentResponse);
         } catch (Exception e) {
-            logger.debug("Caught error : " + e.getMessage());
+            logger.info("Caught error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }

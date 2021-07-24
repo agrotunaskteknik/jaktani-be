@@ -40,6 +40,21 @@ public class CartItem {
     @Column(name = "updated_time")
     private Timestamp updatedTime;
 
+    @Column(name = "resi_code")
+    private String resiCode;
+
+    @Column(name = "courier")
+    private String courier;
+
+    @Column(name = "service")
+    private String service;
+
+    @Column(name = "shop_address_id")
+    private Long shopAddressID;
+
+    @Column(name = "address_id")
+    private Long addressID;
+
     public CartItem() {
     }
 
@@ -131,20 +146,65 @@ public class CartItem {
         this.updatedTime = updatedTime;
     }
 
+    public String getResiCode() {
+        return resiCode;
+    }
+
+    public void setResiCode(String resiCode) {
+        this.resiCode = resiCode;
+    }
+
+    public String getCourier() {
+        return courier;
+    }
+
+    public void setCourier(String courier) {
+        this.courier = courier;
+    }
+
+    public String getService() {
+        return service;
+    }
+
+    public void setService(String service) {
+        this.service = service;
+    }
+
+    public Long getShopAddressID() {
+        return shopAddressID;
+    }
+
+    public void setShopAddressID(Long shopAddressID) {
+        this.shopAddressID = shopAddressID;
+    }
+
+    public Long getAddressID() {
+        return addressID;
+    }
+
+    public void setAddressID(Long addressID) {
+        this.addressID = addressID;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("CartItem{");
         sb.append("id=").append(id);
         sb.append(", userID=").append(userID);
-        sb.append(", shopId=").append(shopID);
+        sb.append(", shopID=").append(shopID);
         sb.append(", productID=").append(productID);
         sb.append(", price=").append(price);
         sb.append(", status=").append(status);
         sb.append(", quantity=").append(quantity);
         sb.append(", transactionID=").append(transactionID);
-        sb.append(", notes=").append(notes);
+        sb.append(", notes='").append(notes).append('\'');
         sb.append(", createdTime=").append(createdTime);
         sb.append(", updatedTime=").append(updatedTime);
+        sb.append(", resiCode='").append(resiCode).append('\'');
+        sb.append(", courier='").append(courier).append('\'');
+        sb.append(", service='").append(service).append('\'');
+        sb.append(", shopAddressID=").append(shopAddressID);
+        sb.append(", addressID=").append(addressID);
         sb.append('}');
         return sb.toString();
     }

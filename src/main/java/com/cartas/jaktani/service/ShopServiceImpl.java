@@ -3,7 +3,6 @@ package com.cartas.jaktani.service;
 import com.cartas.jaktani.dto.AddressDetailDto;
 import com.cartas.jaktani.dto.ShopDto;
 import com.cartas.jaktani.dto.UserDto;
-import com.cartas.jaktani.model.Photo;
 import com.cartas.jaktani.model.Shop;
 import com.cartas.jaktani.model.Users;
 import com.cartas.jaktani.repository.ShopRepository;
@@ -48,8 +47,10 @@ import javax.transaction.Transactional;
 public class ShopServiceImpl implements ShopService {
     Logger logger = LoggerFactory.getLogger(ShopServiceImpl.class);
 
-    Integer STATUS_READY = 1;
-    static Integer STATUS_DELETED = 0;
+    Integer SHOP_STATUS_READY = 1;
+    static Integer SHOP_STATUS_DELETED = 0;
+    static Integer SHOP_STATUS_ACCEPTED_BY_AGRO = 2;
+    static Integer SHOP_STATUS_REJECTED_BY_AGRO = 3;
     Integer ADD_TYPE = 1;
     Integer EDIT_TYPE = 2;
     Integer USER_TYPE_SHOP_OWNER = 2;
@@ -66,7 +67,7 @@ public class ShopServiceImpl implements ShopService {
     @Override
     public Object getShopByID(Integer id) {
         Shop shopResp = new Shop();
-        Optional<Shop> shop = repository.findByIdAndStatusIsNot(id, STATUS_DELETED);
+        Optional<Shop> shop = repository.findByIdAndStatusIsNot(id, SHOP_STATUS_DELETED);
         if (!shop.isPresent()) {
             response.setResponseCode("FAILED");
             response.setResponseMessage("Data not found");
@@ -88,7 +89,7 @@ public class ShopServiceImpl implements ShopService {
     @Override
     public Object getShopByUserID(Integer userId) {
         Shop shopResp = new Shop();
-        Optional<Shop> shop = repository.findByUserIDAndStatusIsNot(userId, STATUS_DELETED);
+        Optional<Shop> shop = repository.findByUserIDAndStatusIsNot(userId, SHOP_STATUS_DELETED);
         if (!shop.isPresent()) {
             response.setResponseCode("FAILED");
             response.setResponseMessage("Data not found");
@@ -109,7 +110,7 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     public Shop getShopObjectByUserID(Integer userId) {
-        Optional<Shop> shop = repository.findByUserIDAndStatusIsNot(userId, STATUS_DELETED);
+        Optional<Shop> shop = repository.findByUserIDAndStatusIsNot(userId, SHOP_STATUS_DELETED);
         if (!shop.isPresent()) {
             response.setResponseCode("FAILED");
             response.setResponseMessage("Data not found");
@@ -122,7 +123,7 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     public Object getShopByName(String name) {
-        Optional<Shop> shop = repository.findFirstByNameAndStatusIsNot(name, STATUS_DELETED);
+        Optional<Shop> shop = repository.findFirstByNameAndStatusIsNot(name, SHOP_STATUS_DELETED);
         if (!shop.isPresent()) {
             response.setResponseCode("FAILED");
             response.setResponseMessage("Data not found");
@@ -135,7 +136,7 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     public Object getAllShops() {
-        List<Shop> shops = repository.findAllShopByAndStatusIsNot(STATUS_DELETED);
+        List<Shop> shops = repository.findAllShopByAndStatusIsNot(SHOP_STATUS_DELETED);
         List<Shop> shopList = new ArrayList<>();
         if (shops != null) {
             shopList = shops;
@@ -155,7 +156,7 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     public Object deleteShopByID(Integer id) {
-        Optional<Shop> shop = repository.findByIdAndStatusIsNot(id, STATUS_DELETED);
+        Optional<Shop> shop = repository.findByIdAndStatusIsNot(id, SHOP_STATUS_DELETED);
         if (!shop.isPresent()) {
             response.setResponseCode("FAILED");
             response.setResponseMessage("Data not found");
@@ -163,7 +164,7 @@ public class ShopServiceImpl implements ShopService {
         }
 
         try {
-            shop.get().setStatus(STATUS_DELETED);
+            shop.get().setStatus(SHOP_STATUS_DELETED);
             repository.save(shop.get());
         } catch (Exception e) {
             response.setResponseCode("ERROR");
@@ -178,7 +179,7 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     public Object updateShopStatusByID(Integer id, Integer status) {
-        Optional<Shop> shop = repository.findByIdAndStatusIsNot(id, STATUS_DELETED);
+        Optional<Shop> shop = repository.findByIdAndStatusIsNot(id, SHOP_STATUS_DELETED);
         if (!shop.isPresent()) {
             response.setResponseCode("FAILED");
             response.setResponseMessage("Data not found");
@@ -209,14 +210,14 @@ public class ShopServiceImpl implements ShopService {
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
         }
 
-        Optional<Shop> isExistShop = repository.findFirstByNameAndStatusIsNot(shop.getName(), STATUS_DELETED);
+        Optional<Shop> isExistShop = repository.findFirstByNameAndStatusIsNot(shop.getName(), SHOP_STATUS_DELETED);
         if (isExistShop.isPresent()) {
             response.setResponseCode("FAILED");
             response.setResponseMessage("Shop name alrady exist");
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
         }
 
-        Optional<Shop> shopByUserId = repository.findByUserIDAndStatusIsNot(shop.getUserID(), STATUS_DELETED);
+        Optional<Shop> shopByUserId = repository.findByUserIDAndStatusIsNot(shop.getUserID(), SHOP_STATUS_DELETED);
         if (shopByUserId.isPresent()) {
             response.setResponseCode("FAILED");
             response.setResponseMessage("You already have a shop!");
@@ -228,7 +229,7 @@ public class ShopServiceImpl implements ShopService {
             entity.setAddress(shop.getAddress());
             entity.setDescription(shop.getDescription());
             entity.setUserID(shop.getUserID());
-            entity.setStatus(STATUS_READY);
+            entity.setStatus(SHOP_STATUS_READY);
             entity.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
             entity.setPriority(2);
             entity.setLatitude(shop.getLatitude());
@@ -257,14 +258,14 @@ public class ShopServiceImpl implements ShopService {
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
         }
 
-        Optional<Shop> shopById = repository.findByIdAndStatusIsNot(shop.getId(), STATUS_DELETED);
+        Optional<Shop> shopById = repository.findByIdAndStatusIsNot(shop.getId(), SHOP_STATUS_DELETED);
         if (!shopById.isPresent()) {
             response.setResponseCode("FAILED");
             response.setResponseMessage("Shop is not exist");
             return new ResponseEntity<String>(JSONUtil.createJSON(response), HttpStatus.BAD_REQUEST);
         }
 
-        Optional<Shop> isExistShop = repository.findFirstByNameAndIdIsNotAndStatusIsNot(shop.getName(), shop.getId(), STATUS_DELETED);
+        Optional<Shop> isExistShop = repository.findFirstByNameAndIdIsNotAndStatusIsNot(shop.getName(), shop.getId(), SHOP_STATUS_DELETED);
         if (isExistShop.isPresent()) {
             response.setResponseCode("FAILED");
             response.setResponseMessage("Shop name alrady exist");
@@ -296,19 +297,19 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     public byte[] getLogoFile(String urlPath) {
-        Optional<Shop> shop = repository.findFirstByLogoUrlPathAndStatusIsNot(urlPath, STATUS_DELETED);
+        Optional<Shop> shop = repository.findFirstByLogoUrlPathAndStatusIsNot(urlPath, SHOP_STATUS_DELETED);
         if (!shop.isPresent()) {
-            logger.debug("Image logo not found from repository");
+            logger.info("Image logo not found from repository");
             return null;
         }
         String imageFilePath = shop.get().getLogoFilePath();
         if (imageFilePath == null || imageFilePath.trim().equalsIgnoreCase("")) {
-            logger.debug("Image logo from repository is empty");
+            logger.info("Image logo from repository is empty");
         }
         try {
             File initialFileImage = new File(imageFilePath);
             if (!initialFileImage.exists()) {
-                logger.debug("initialFileImage logo Path not found");
+                logger.info("initialFileImage logo Path not found");
                 return null;
             }
             InputStream in = new FileInputStream(initialFileImage);
@@ -321,7 +322,7 @@ public class ShopServiceImpl implements ShopService {
 
     @Transactional
     void updateUserDatasAndPhotos(UserDto userDto) {
-        logger.debug("Start Update User Data : " + userDto.getId());
+        logger.info("Start Update User Data : " + userDto.getId());
         Optional<Users> users = userRepository.findById(userDto.getId());
         Users entity = users.get();
         entity.setKtpNumber(userDto.getKtpNumber());
@@ -332,7 +333,7 @@ public class ShopServiceImpl implements ShopService {
                 File directory = new File(userDto.getProfileFilePath());
                 boolean fileDeleted = directory.delete();
                 if (fileDeleted) {
-                    logger.debug("success delete file : " + userDto.getProfileFilePath());
+                    logger.info("success delete file : " + userDto.getProfileFilePath());
                 }
             }
 
@@ -341,12 +342,12 @@ public class ShopServiceImpl implements ShopService {
                 File directory = new File(userDto.getKtpFilePath());
                 boolean fileDeleted = directory.delete();
                 if (fileDeleted) {
-                    logger.debug("success delete file : " + userDto.getKtpFilePath());
+                    logger.info("success delete file : " + userDto.getKtpFilePath());
                 }
             }
 
             //Save Profile Photos
-            logger.debug("start save profile photos : " + userDto.getProfileFilePath());
+            logger.info("start save profile photos : " + userDto.getProfileFilePath());
             Long timeInMilis = Utils.getCalendar().getTimeInMillis();
             String pathFolder = "img/profile/" + userDto.getId() + "/";
             String imageFileName = userDto.getId() + "_" + timeInMilis + ".jpg";
@@ -355,7 +356,7 @@ public class ShopServiceImpl implements ShopService {
             if (!directory.exists()) {
                 boolean created = directory.mkdirs();
                 if (created) {
-                    logger.debug("success create profile folder");
+                    logger.info("success create profile folder");
                 }
             }
 
@@ -367,7 +368,7 @@ public class ShopServiceImpl implements ShopService {
                 Files.write(destinationFile, decodedImg);
                 rawBase64 = null;
             } catch (Exception ex) {
-                logger.debug(ex.getMessage());
+                logger.info(ex.getMessage());
 
             }
 
@@ -379,7 +380,7 @@ public class ShopServiceImpl implements ShopService {
                 entity.setProfileUrlPathHome(compressImagePath);
                 entity.setProfileFilePathHome(pathFolder + compressImagePath);
             } catch (Exception ex) {
-                logger.debug("error : " + ex.getMessage());
+                logger.info("error : " + ex.getMessage());
             }
 
             //Save Ktp Photos
@@ -390,7 +391,7 @@ public class ShopServiceImpl implements ShopService {
             if (!directoryKtp.exists()) {
                 boolean created = directoryKtp.mkdirs();
                 if (created) {
-                    logger.debug("success create ktp folder");
+                    logger.info("success create ktp folder");
                 }
             }
 
@@ -402,7 +403,7 @@ public class ShopServiceImpl implements ShopService {
                 Files.write(destinationFile, decodedImg);
                 rawBase64 = null;
             } catch (Exception ex) {
-                logger.debug(ex.getMessage());
+                logger.info(ex.getMessage());
 
             }
 
@@ -414,15 +415,15 @@ public class ShopServiceImpl implements ShopService {
                 entity.setKtpUrlPathHome(compressImagePath);
                 entity.setKtpFilePathHome(pathFolder + compressImagePath);
             } catch (Exception ex) {
-                logger.debug("error : " + ex.getMessage());
+                logger.info("error : " + ex.getMessage());
             }
             userRepository.save(entity);
 
         } catch (Exception ex) {
             logger.error("error save user datas and photos: " + userDto.getId());
-            logger.debug(ex.getMessage());
+            logger.info(ex.getMessage());
         }
-        logger.debug("Success Update User Data : " + userDto.getId());
+        logger.info("Success Update User Data : " + userDto.getId());
     }
 
     @Transactional
@@ -432,7 +433,7 @@ public class ShopServiceImpl implements ShopService {
             File directory = new File(shop.getLogoFilePath());
             boolean fileDeleted = directory.delete();
             if (fileDeleted) {
-                logger.debug("success delete file : " + shop.getLogoFilePath());
+                logger.info("success delete file : " + shop.getLogoFilePath());
             }
         }
 
@@ -444,7 +445,7 @@ public class ShopServiceImpl implements ShopService {
         if (!directory.exists()) {
             boolean created = directory.mkdirs();
             if (created) {
-                logger.debug("success create folder");
+                logger.info("success create folder");
             }
         }
 
@@ -455,7 +456,7 @@ public class ShopServiceImpl implements ShopService {
                     .decode(base64ReplaceNewline.getBytes(StandardCharsets.UTF_8));
             Files.write(destinationFile, decodedImg);
         } catch (Exception ex) {
-            logger.debug(ex.getMessage());
+            logger.info(ex.getMessage());
 
         }
 
@@ -467,10 +468,10 @@ public class ShopServiceImpl implements ShopService {
             shop.setLogoUrlPathHome(compressImagePath);
             shop.setLogoFilePathHome(pathFolder + compressImagePath);
         } catch (Exception ex) {
-            logger.debug("error : " + ex.getMessage());
+            logger.info("error : " + ex.getMessage());
         }
         repository.save(shop);
-        logger.debug("info : save logo success");
+        logger.info("info : save logo success");
     }
 
     private Boolean validateRequest(ShopDto shop, Integer type) {

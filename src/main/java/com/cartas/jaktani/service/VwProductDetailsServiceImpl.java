@@ -26,12 +26,18 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
 
     BaseResponse response = new BaseResponse();
 
-    @Autowired private VwProductDetailsRepository repository;
-    @Autowired private ProductTypeRepository productTypeRepo;
-    @Autowired private DocumentRepository documentRepo;
-    @Autowired private TypeRepository typeRepository;
-    @Autowired private TypeGroupRepository typeGroupRepository;
-    @Autowired private PhotoRepository photoRepository;
+    @Autowired
+    private VwProductDetailsRepository repository;
+    @Autowired
+    private ProductTypeRepository productTypeRepo;
+    @Autowired
+    private DocumentRepository documentRepo;
+    @Autowired
+    private TypeRepository typeRepository;
+    @Autowired
+    private TypeGroupRepository typeGroupRepository;
+    @Autowired
+    private PhotoRepository photoRepository;
 
 
     @Override
@@ -60,7 +66,7 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
                         productTypeList.add(productType);
                     }
                 }*/
-                
+
                 if (productDetails.getYoutubeLink() != null && productDetails.getYoutubeLink() != "") {
                     YouTubeHelper youTubeHelper = new YouTubeHelper();
                     String youtubeId = youTubeHelper.extractVideoIdFromUrl(productDetails.getYoutubeLink());
@@ -98,7 +104,7 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
                 for (Photo photo : photoList) {
                     photo.setParentUrl("http://jaktani.com/photo/getImageByUniqueKey/");
                 }
-                
+
                 if (productDetails.getYoutubeLink() != null && productDetails.getYoutubeLink() != "") {
                     YouTubeHelper youTubeHelper = new YouTubeHelper();
                     String youtubeId = youTubeHelper.extractVideoIdFromUrl(productDetails.getYoutubeLink());
@@ -130,7 +136,7 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
         if (findProductDetails != null && findProductDetails.size() > 0) {
             for (VwProductDetails productDetails : findProductDetails) {
                 List<Document> documentList = documentRepo.findAllByRefferenceIdAndTypeAndStatusIsNot(productDetails.getProductId(), PRODUCT_DOC_TYPE, STATUS_DELETED);
-               
+
                 if (productDetails.getYoutubeLink() != null && productDetails.getYoutubeLink() != "") {
                     YouTubeHelper youTubeHelper = new YouTubeHelper();
                     String youtubeId = youTubeHelper.extractVideoIdFromUrl(productDetails.getYoutubeLink());
@@ -160,22 +166,43 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
         Pageable pageable = PageRequest.of(paramRequestDto.getPageNumber(), paramRequestDto.getPageSize());
         try {
             List<VwProductDetails> findProductDetails = null;
-            if (paramRequestDto.getShopId() != null && paramRequestDto.getCategoryId() != null && keySearch != null) {
-                findProductDetails = repository.findAllByShopIdAndCategoryIdAndKeySearch(pageable, paramRequestDto.getShopId(), paramRequestDto.getCategoryId(), keySearch);
-            } else if (paramRequestDto.getCategoryId() != null && keySearch != null) {
-                findProductDetails = repository.findAllByCategoryIdAndKeySearch(pageable, paramRequestDto.getCategoryId(), keySearch);
-            } else if (paramRequestDto.getShopId() != null && keySearch != null) {
-                findProductDetails = repository.findAllByShopIdAndKeySearch(pageable, paramRequestDto.getShopId(), keySearch);
-            } else if (paramRequestDto.getShopId() != null && paramRequestDto.getCategoryId() != null) {
-                findProductDetails = repository.findAllByShopIdAndCategoryId(pageable, paramRequestDto.getShopId(), paramRequestDto.getCategoryId());
-            } else if (paramRequestDto.getShopId() != null) {
-                findProductDetails = repository.findAllByShopId(pageable, paramRequestDto.getShopId());
-            } else if (paramRequestDto.getCategoryId() != null) {
-                findProductDetails = repository.findAllByCategoryId(pageable, paramRequestDto.getCategoryId());
-            } else if (keySearch != null) {
-                findProductDetails = repository.findAllWithKeySearch(pageable, keySearch);
+
+            if (paramRequestDto.getShowMitraOnly() != null && paramRequestDto.getShowMitraOnly()) {
+                if (paramRequestDto.getShopId() != null && paramRequestDto.getCategoryId() != null && keySearch != null) {
+                    findProductDetails = repository.findAllByShopIdAndCategoryIdAndKeySearchMitra(pageable, paramRequestDto.getShopId(), paramRequestDto.getCategoryId(), keySearch);
+                } else if (paramRequestDto.getCategoryId() != null && keySearch != null) {
+                    findProductDetails = repository.findAllByCategoryIdAndKeySearchMitra(pageable, paramRequestDto.getCategoryId(), keySearch);
+                } else if (paramRequestDto.getShopId() != null && keySearch != null) {
+                    findProductDetails = repository.findAllByShopIdAndKeySearchMitra(pageable, paramRequestDto.getShopId(), keySearch);
+                } else if (paramRequestDto.getShopId() != null && paramRequestDto.getCategoryId() != null) {
+                    findProductDetails = repository.findAllByShopIdAndCategoryIdMitra(pageable, paramRequestDto.getShopId(), paramRequestDto.getCategoryId());
+                } else if (paramRequestDto.getShopId() != null) {
+                    findProductDetails = repository.findAllByShopIdMitra(pageable, paramRequestDto.getShopId());
+                } else if (paramRequestDto.getCategoryId() != null) {
+                    findProductDetails = repository.findAllByCategoryIdMitra(pageable, paramRequestDto.getCategoryId());
+                } else if (keySearch != null) {
+                    findProductDetails = repository.findAllWithKeySearchMitra(pageable, keySearch);
+                } else {
+                    findProductDetails = repository.findAllWithPagingMitra(pageable);
+                }
             } else {
-                findProductDetails = repository.findAllWithPaging(pageable);
+                if (paramRequestDto.getShopId() != null && paramRequestDto.getCategoryId() != null && keySearch != null) {
+                    findProductDetails = repository.findAllByShopIdAndCategoryIdAndKeySearch(pageable, paramRequestDto.getShopId(), paramRequestDto.getCategoryId(), keySearch);
+                } else if (paramRequestDto.getCategoryId() != null && keySearch != null) {
+                    findProductDetails = repository.findAllByCategoryIdAndKeySearch(pageable, paramRequestDto.getCategoryId(), keySearch);
+                } else if (paramRequestDto.getShopId() != null && keySearch != null) {
+                    findProductDetails = repository.findAllByShopIdAndKeySearch(pageable, paramRequestDto.getShopId(), keySearch);
+                } else if (paramRequestDto.getShopId() != null && paramRequestDto.getCategoryId() != null) {
+                    findProductDetails = repository.findAllByShopIdAndCategoryId(pageable, paramRequestDto.getShopId(), paramRequestDto.getCategoryId());
+                } else if (paramRequestDto.getShopId() != null) {
+                    findProductDetails = repository.findAllByShopId(pageable, paramRequestDto.getShopId());
+                } else if (paramRequestDto.getCategoryId() != null) {
+                    findProductDetails = repository.findAllByCategoryId(pageable, paramRequestDto.getCategoryId());
+                } else if (keySearch != null) {
+                    findProductDetails = repository.findAllWithKeySearch(pageable, keySearch);
+                } else {
+                    findProductDetails = repository.findAllWithPaging(pageable);
+                }
             }
 
             if (findProductDetails != null && findProductDetails.size() > 0) {
@@ -190,17 +217,17 @@ public class VwProductDetailsServiceImpl implements VwProductDetailsService {
 //                        documentList.add(documentFront);
 //                    }
 
-                    if(productDetails.getTypeId()!=null) {
-                    	Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productDetails.getTypeId(), STATUS_DELETED);
+                    if (productDetails.getTypeId() != null) {
+                        Optional<Type> type = typeRepository.findByIdAndStatusIsNot(productDetails.getTypeId(), STATUS_DELETED);
                         if (type.isPresent()) {
-                        	productDetails.setTypeName(type.get().getName());
+                            productDetails.setTypeName(type.get().getName());
                         }
                     }
-                    
-                    if(productDetails.getTypeGroupId()!=null) {
-                    	Optional<TypeGroup> typeGroup = typeGroupRepository.findByIdAndStatusIsNot(productDetails.getTypeGroupId(), STATUS_DELETED);
+
+                    if (productDetails.getTypeGroupId() != null) {
+                        Optional<TypeGroup> typeGroup = typeGroupRepository.findByIdAndStatusIsNot(productDetails.getTypeGroupId(), STATUS_DELETED);
                         if (typeGroup.isPresent()) {
-                        	productDetails.setTypeGroupName(typeGroup.get().getName());
+                            productDetails.setTypeGroupName(typeGroup.get().getName());
                         }
                     }
                     if (productDetails.getYoutubeLink() != null && productDetails.getYoutubeLink() != "") {

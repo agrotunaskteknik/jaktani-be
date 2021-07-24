@@ -11,8 +11,6 @@ import java.util.Optional;
 @Repository
 public interface AddressRepository extends JpaRepository<Address, Integer> {
     Optional<Address> findByIdAndStatusIsNot(Integer id, Integer status);
-    Optional<Address> findByTypeAndRelationIdAndStatusIsNot(Integer type, Integer relationId, Integer status);
-    Optional<Address> findByStatus(Integer status);
     Optional<Address> findByTypeAndRelationIdAndStatusIs(Integer type, Integer relationId, Integer status);
     List<Address> findAllByTypeAndRelationIdAndStatusIsNot(Integer type, Integer relationId, Integer status);
 }

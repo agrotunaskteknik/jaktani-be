@@ -2,6 +2,8 @@ package com.cartas.jaktani.controller;
 
 import com.cartas.jaktani.dto.*;
 import com.cartas.jaktani.service.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +14,8 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "/api/order")
 public class OrderController {
+    Logger logger = LoggerFactory.getLogger(OrderController.class);
+
     @Autowired
     CartService cartService;
 
@@ -21,7 +25,7 @@ public class OrderController {
             List<OrderDetailDto> response = cartService.orderStatusByUserID(userID);
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
-            System.out.println("orderTransactionList Caught Error : " + e.getMessage());
+            logger.info("orderTransactionList Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
@@ -32,7 +36,7 @@ public class OrderController {
             List<OrderDetailDto> response = cartService.orderStatusByShopID(shopID);
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
-            System.out.println("shopOrderList Caught Error : " + e.getMessage());
+            logger.info("shopOrderList Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
@@ -47,7 +51,7 @@ public class OrderController {
             cartService.sellerVerifyOrder(request);
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
-            System.out.println("sellerVerifyOrder Caught Error : " + e.getMessage());
+            logger.info("sellerVerifyOrder Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
@@ -65,7 +69,7 @@ public class OrderController {
             cartService.sellerVerifyOrderShipping(request);
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
-            System.out.println("sellerVerifyOrderShipping Caught Error : " + e.getMessage());
+            logger.info("sellerVerifyOrderShipping Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
@@ -80,7 +84,7 @@ public class OrderController {
             cartService.sellerVerifyOrderSent(request);
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
-            System.out.println("sellerVerifyOrderSent Caught Error : " + e.getMessage());
+            logger.info("sellerVerifyOrderSent Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
@@ -95,10 +99,20 @@ public class OrderController {
             cartService.sellerVerifyReview(request);
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
-            System.out.println("sellerVerifyReview Caught Error : " + e.getMessage());
+            logger.info("sellerVerifyReview Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
 
+    @RequestMapping(value = "/seller/invoice-by-order-id", method = RequestMethod.GET)
+    public ResponseEntity<?> invoiceByOrderID(@RequestParam(value = "order_id") Long orderID) {
+        try {
+            OrderDetailListProductDto response = cartService.invoiceByOrderID(orderID);
+            return ResponseEntity.ok().body(new ParentResponse(response));
+        } catch (Exception e) {
+            logger.info("invoiceByOrderID Caught Error : " + e.getMessage());
+            return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
+        }
+    }
 
 }

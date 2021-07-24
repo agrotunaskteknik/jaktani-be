@@ -29,6 +29,7 @@ public class TokenServiceImpl implements TokenService {
         savedToken.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
         savedToken.setLastRequest(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
         savedToken.setDeviceID(deviceID);
+        savedToken.setRefreshToken("");
         savedToken.setUserID(userDto.getId());
         //if there any saved token with user id then update it
         if (tokenOptional.isPresent()) {

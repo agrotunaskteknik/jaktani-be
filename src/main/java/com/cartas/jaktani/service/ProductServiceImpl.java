@@ -286,7 +286,7 @@ public class ProductServiceImpl implements ProductService {
             File directory = new File(photo.getImageFilePath());
             boolean fileDeleted = directory.delete();
             if (fileDeleted) {
-                logger.debug("success delete file : " + photo.getImageFilePath());
+                logger.info("success delete file : " + photo.getImageFilePath());
             }
         }
         for (DocumentDto documentDto : documentDtoList) {
@@ -298,7 +298,7 @@ public class ProductServiceImpl implements ProductService {
             if (!directory.exists()) {
                 boolean created = directory.mkdirs();
                 if (created) {
-                    logger.debug("success create folder");
+                    logger.info("success create folder");
                 }
             }
             try {
@@ -308,7 +308,7 @@ public class ProductServiceImpl implements ProductService {
                         .decode(base64ReplaceNewline.getBytes(StandardCharsets.UTF_8));
                 Files.write(destinationFile, decodedImg);
             } catch (Exception ex) {
-                logger.debug(ex.getMessage());
+                logger.info(ex.getMessage());
 
             }
             Photo savedPhoto = new Photo();
@@ -323,7 +323,7 @@ public class ProductServiceImpl implements ProductService {
                 savedPhoto.setUrlPathHome(compressImagePath);
                 savedPhoto.setImageFilePathHome(pathFolder + compressImagePath);
             } catch (Exception ex) {
-                logger.debug("error : " + ex.getMessage());
+                logger.info("error : " + ex.getMessage());
             }
             photoRepository.save(savedPhoto);
         }

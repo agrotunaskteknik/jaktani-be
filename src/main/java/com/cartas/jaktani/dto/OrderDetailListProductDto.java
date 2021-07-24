@@ -1,12 +1,13 @@
 package com.cartas.jaktani.dto;
 
+
 import com.cartas.jaktani.model.Shop;
 import com.cartas.jaktani.model.VwProductDetails;
 
 import java.util.List;
 
-public class OrderDetailDto {
-    private VwProductDetails product;
+public class OrderDetailListProductDto {
+    private List<VwProductDetails> product;
     private Shop shop;
     private String orderStatusTitle;
     private Integer orderStatus;
@@ -21,12 +22,11 @@ public class OrderDetailDto {
     private String bank;
     private String courier;
     private String service;
-    private String notes;
 
-    public OrderDetailDto() {
+    public OrderDetailListProductDto() {
     }
 
-    public OrderDetailDto(VwProductDetails product, Shop shop, String orderStatusTitle, Integer orderStatus, String iconImg, String orderTransactionDateString, Long orderTotal, Long orderTotalAmount, Long orderID, RajaOngkirWaybillResponseDto detailWaybill, UserDto userDto, String vaNumber, String bank, String courier, String service, String notes) {
+    public OrderDetailListProductDto(List<VwProductDetails> product, Shop shop, String orderStatusTitle, Integer orderStatus, String iconImg, String orderTransactionDateString, Long orderTotal, Long orderTotalAmount, Long orderID, RajaOngkirWaybillResponseDto detailWaybill, UserDto userDto, String vaNumber, String bank, String courier, String service) {
         this.product = product;
         this.shop = shop;
         this.orderStatusTitle = orderStatusTitle;
@@ -42,14 +42,13 @@ public class OrderDetailDto {
         this.bank = bank;
         this.courier = courier;
         this.service = service;
-        this.notes = notes;
     }
 
-    public VwProductDetails getProduct() {
+    public List<VwProductDetails> getProduct() {
         return product;
     }
 
-    public void setProduct(VwProductDetails product) {
+    public void setProduct(List<VwProductDetails> product) {
         this.product = product;
     }
 
@@ -165,14 +164,6 @@ public class OrderDetailDto {
         this.service = service;
     }
 
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("OrderDetailDto{");
@@ -191,8 +182,8 @@ public class OrderDetailDto {
         sb.append(", bank='").append(bank).append('\'');
         sb.append(", courier='").append(courier).append('\'');
         sb.append(", service='").append(service).append('\'');
-        sb.append(", notes='").append(notes).append('\'');
         sb.append('}');
         return sb.toString();
     }
 }
+

@@ -4,7 +4,7 @@ import com.cartas.jaktani.dto.UserDto;
 import com.cartas.jaktani.model.Users;
 
 public class UserWrapper {
-    public static Users wrapDtoToModel(UserDto userDto){
+    public static Users wrapDtoToModel(UserDto userDto) {
         Users user = new Users();
         user.setId(userDto.getId());
         user.setFullName(userDto.getFullName());
@@ -15,11 +15,12 @@ public class UserWrapper {
         user.setStatus(userDto.getStatus());
         user.setGender(userDto.getGender());
         user.setMobilePhoneNumber(userDto.getMobilePhoneNumber());
+        user.setUserIDGoogle(userDto.getGoogleUserID());
         user.setBirthDate(userDto.getBirthDate());
         return user;
     }
 
-    public static UserDto wrapModelToDto(Users user){
+    public static UserDto wrapModelToDto(Users user) {
         UserDto userDto = new UserDto();
         userDto.setId(user.getId());
         userDto.setFullName(user.getFullName());
@@ -31,6 +32,7 @@ public class UserWrapper {
         userDto.setGender(user.getGender());
         userDto.setMobilePhoneNumber(user.getMobilePhoneNumber());
         userDto.setBirthDate(user.getBirthDate());
+        userDto.setGoogleUserID(user.getUserIDGoogle());
         return userDto;
     }
 }

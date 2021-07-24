@@ -72,10 +72,10 @@ public class SendMail {
 //            System.out.println("sending...");
             // Send message
             Transport.send(message);
-            logger.debug("Sent message successfully....");
+            logger.info("Sent message successfully....");
         } catch (MessagingException mex) {
             mex.printStackTrace();
-            logger.debug("Failed send message");
+            logger.info("Failed send message");
             throw new ResourceNotFoundException("Failed send message");
         }
 

@@ -49,20 +49,20 @@ public class Order {
     @Column(name = "quantity")
     private Integer quantity;
 
-    @Column(name = "resi_code")
-    private String resiCode;
-
     @Column(name = "customer_address")
     private Integer custAddress;
 
     @Column(name = "shop_address")
     private Integer shopAddress;
 
-    @Column(name = "courier")
-    private String courier;
-
     @Column(name = "weight")
     private Integer weight;
+
+    @Column(name = "resi_code")
+    private String resiCode;
+
+    @Column(name = "courier")
+    private String courier;
 
     @Column(name = "service")
     private String service;

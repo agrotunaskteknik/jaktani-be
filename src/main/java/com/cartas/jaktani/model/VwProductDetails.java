@@ -37,7 +37,7 @@ public class VwProductDetails {
    	public Double productRattingAverage;
 
     @Column(name = "size")
-   	public BigDecimal size;
+   	public String size;
     
     @Column(name = "sold")
     private Integer sold;
@@ -120,7 +120,29 @@ public class VwProductDetails {
 	List<Photo> photoList;
 
 	@Transient
+	private Long quantity;
+
+	@Transient
+	private String notes;
+
+	@Transient
 	private String tickerMessage;
+
+	public String getNotes() {
+		return notes;
+	}
+
+	public void setNotes(String notes) {
+		this.notes = notes;
+	}
+
+	public Long getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(Long quantity) {
+		this.quantity = quantity;
+	}
 
 	public String getTickerMessage() {
 		return tickerMessage;
@@ -202,11 +224,11 @@ public class VwProductDetails {
 		this.productRattingAverage = productRattingAverage;
 	}
 
-	public BigDecimal getSize() {
+	public String getSize() {
 		return size;
 	}
 
-	public void setSize(BigDecimal size) {
+	public void setSize(String size) {
 		this.size = size;
 	}
 

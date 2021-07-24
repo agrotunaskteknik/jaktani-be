@@ -9,7 +9,6 @@ import java.util.List;
 
 @Repository
 public interface PhotoRepository extends JpaRepository<Photo, Integer> {
-    List<Photo> findAllByRefferenceId(Integer refferenceId);
     List<Photo> findAllByUrlPath(String urlPath);
     List<Photo> findAllByRefferenceIdAndStatusIsNot(Integer refferenceId, Integer status);
 

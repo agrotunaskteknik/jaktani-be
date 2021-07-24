@@ -8,7 +8,5 @@ import java.util.List;
 
 @Repository
 public interface ProductTypeRepository extends JpaRepository<ProductType, Integer> {
-	ProductType findFirstByProductIdAndTypeId(Integer productId, Integer typeId);
-    ProductType findFirstByProductIdAndTypeIdAndStatusIsNot(Integer productId, Integer typeId, Integer status);
     List<ProductType> findAllByProductIdAndStatusIsNot(Integer productId, Integer status);
 }

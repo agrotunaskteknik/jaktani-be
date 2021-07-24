@@ -80,6 +80,9 @@ public class Users {
 	@Column(name = "profile_url_path_home")
     public String profileUrlPathHome;
 
+    @Column(name = "user_id_google")
+    public String userIDGoogle;
+
     public Users() {
     }
 
@@ -271,5 +274,12 @@ public class Users {
 	public void setProfileUrlPathHome(String profileUrlPathHome) {
 		this.profileUrlPathHome = profileUrlPathHome;
 	}
-    
+
+    public String getUserIDGoogle() {
+        return userIDGoogle;
+    }
+
+    public void setUserIDGoogle(String userIDGoogle) {
+        this.userIDGoogle = userIDGoogle;
+    }
 }

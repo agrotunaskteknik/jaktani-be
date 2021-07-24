@@ -24,7 +24,7 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
-	
+
     @Autowired
     private UserRepository userRepository;
 
@@ -38,23 +38,45 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder;
 
     @Override
+    public UserDto getUserByGoogleID(String googleID) {
+        Optional<Users> user = userRepository.findFirstByUserIDGoogleAndStatus(googleID, USER_STATUS_ACTIVE);
+        return user.map(UserWrapper::wrapModelToDto).orElse(null);
+    }
+
+    @Override
     public UserDto addUser(UserDto userDto) {
+        logger.info("userDTO : " + userDto.toString());
         if (null == userDto || userDto.getFullName().trim().equalsIgnoreCase("") || userDto.getUsername().trim().equalsIgnoreCase("")
                 || userDto.getPassword().trim().equalsIgnoreCase("") || userDto.getEmail().trim().equalsIgnoreCase("")) {
             return null;
         }
+        logger.info("set_userDTO");
         userDto.setType(USER_TYPE_DEFAULT);
         userDto.setStatus(USER_STATUS_ACTIVE);
         Users userSaved = UserWrapper.wrapDtoToModel(userDto);
         userSaved.setCreatedBy(USER_TYPE_DEFAULT);
         userSaved.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
         userSaved.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        logger.info("userDTO : " + userDto.toString());
         // check if user already exist or not
         Optional<Users> usersOptional = userRepository.findByUsernameOrEmailAndStatus(userDto.getUsername(), userDto.getEmail(), USER_STATUS_ACTIVE);
-        if (usersOptional.isPresent()) {
+        if (usersOptional.isPresent() && (userDto.getGoogleUserID() == null || userDto.getGoogleUserID().trim().equalsIgnoreCase(""))) {
             return null;
         }
+        logger.info("user_not_exist");
+        // check if it is google id sign in by google user id
+        if (userDto.getGoogleUserID() != null && userDto.getGoogleUserID().trim().equalsIgnoreCase("")) {
+            Optional<Users> userByGoogle = userRepository.findFirstByUserIDGoogleAndStatus(userDto.getGoogleUserID().trim(), USER_STATUS_ACTIVE);
+            if (userByGoogle.isPresent()) {
+                logger.info("user_google_id_already_exist");
+                return UserWrapper.wrapModelToDto(userByGoogle.get());
+            }
+            userSaved.setUserIDGoogle(userDto.getGoogleUserID());
+        }
+
+        logger.info("try_to_save_user");
         Users user = userRepository.save(userSaved);
+        logger.info("success_save_user");
 
         return UserWrapper.wrapModelToDto(user);
     }
@@ -125,7 +147,7 @@ public class UserServiceImpl implements UserService {
         if (null == inputUser || inputUser.getPassword().trim().equalsIgnoreCase("") || inputUser.getEmail().trim().equalsIgnoreCase("")) {
             return null;
         }
-        inputUser = fillNullValue(inputUser,userOptional.get());
+        inputUser = fillNullValue(inputUser, userOptional.get());
         Users userSaved = UserWrapper.wrapDtoToModel(inputUser);
         userSaved.setCreatedBy(userOptional.get().getCreatedBy());
         userSaved.setCreatedTime(userOptional.get().getCreatedTime());
@@ -137,47 +159,22 @@ public class UserServiceImpl implements UserService {
 
         return UserWrapper.wrapModelToDto(user);
     }
-    
+
     @Override
     public byte[] getKtpFile(String urlPath) {
-    	Optional<Users> userEntity = userRepository.findFirstByKtpUrlPathAndStatusIsNot(urlPath, USER_STATUS_DELETED);
+        Optional<Users> userEntity = userRepository.findFirstByKtpUrlPathAndStatusIsNot(urlPath, USER_STATUS_DELETED);
         if (!userEntity.isPresent()) {
-            logger.debug("Image Ktp not found from repository");
+            logger.info("Image Ktp not found from repository");
             return null;
         }
         String imageFilePath = userEntity.get().getKtpFilePath();
         if (imageFilePath == null || imageFilePath.trim().equalsIgnoreCase("")) {
-            logger.debug("Image Ktp from repository is empty");
+            logger.info("Image Ktp from repository is empty");
         }
         try {
             File initialFileImage = new File(imageFilePath);
             if (!initialFileImage.exists()) {
-                logger.debug("initialFileImage Ktp Path not found");
-                return null;
-            }
-            InputStream in = new FileInputStream(initialFileImage);
-            return IOUtils.toByteArray(in);
-        } catch (Exception ex) {
-            logger.error(ex.getMessage());
-        }
-        return null;
-    }
-    
-    @Override
-    public byte[] getProfileFile(String urlPath) {
-    	Optional<Users> userEntity = userRepository.findFirstByProfileUrlPathAndStatusIsNot(urlPath, USER_STATUS_DELETED);
-        if (!userEntity.isPresent()) {
-            logger.debug("Image Profile not found from repository");
-            return null;
-        }
-        String imageFilePath = userEntity.get().getProfileFilePath();
-        if (imageFilePath == null || imageFilePath.trim().equalsIgnoreCase("")) {
-            logger.debug("Image Profile from repository is empty");
-        }
-        try {
-            File initialFileImage = new File(imageFilePath);
-            if (!initialFileImage.exists()) {
-                logger.debug("initialFileImage Profile Path not found");
+                logger.info("initialFileImage Ktp Path not found");
                 return null;
             }
             InputStream in = new FileInputStream(initialFileImage);
@@ -188,35 +185,60 @@ public class UserServiceImpl implements UserService {
         return null;
     }
 
-    public static UserDto fillNullValue(UserDto userDto, Users user){
-        if(userDto.getId() == null || userDto.getId() == 0){
+    @Override
+    public byte[] getProfileFile(String urlPath) {
+        Optional<Users> userEntity = userRepository.findFirstByProfileUrlPathAndStatusIsNot(urlPath, USER_STATUS_DELETED);
+        if (!userEntity.isPresent()) {
+            logger.info("Image Profile not found from repository");
+            return null;
+        }
+        String imageFilePath = userEntity.get().getProfileFilePath();
+        if (imageFilePath == null || imageFilePath.trim().equalsIgnoreCase("")) {
+            logger.info("Image Profile from repository is empty");
+        }
+        try {
+            File initialFileImage = new File(imageFilePath);
+            if (!initialFileImage.exists()) {
+                logger.info("initialFileImage Profile Path not found");
+                return null;
+            }
+            InputStream in = new FileInputStream(initialFileImage);
+            return IOUtils.toByteArray(in);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage());
+        }
+        return null;
+    }
+
+    public static UserDto fillNullValue(UserDto userDto, Users user) {
+        if (userDto.getId() == null || userDto.getId() == 0) {
             userDto.setId(user.getId());
         }
-        if(userDto.getStatus() == null || userDto.getStatus() == 0){
+        if (userDto.getStatus() == null || userDto.getStatus() == 0) {
             userDto.setStatus(user.getStatus());
         }
-        if(userDto.getType() == null || userDto.getType() == 0){
+        if (userDto.getType() == null || userDto.getType() == 0) {
             userDto.setType(user.getType());
         }
-        if(userDto.getUsername() == null || userDto.getUsername().trim().equalsIgnoreCase("")){
+        if (userDto.getUsername() == null || userDto.getUsername().trim().equalsIgnoreCase("")) {
             userDto.setUsername(user.getUsername());
         }
-        if(userDto.getEmail() == null || userDto.getEmail().trim().equalsIgnoreCase("")){
+        if (userDto.getEmail() == null || userDto.getEmail().trim().equalsIgnoreCase("")) {
             userDto.setEmail(user.getEmail());
         }
-        if(userDto.getPassword() == null || userDto.getPassword().trim().equalsIgnoreCase("")){
+        if (userDto.getPassword() == null || userDto.getPassword().trim().equalsIgnoreCase("")) {
             userDto.setPassword(user.getPassword());
         }
-        if(userDto.getFullName() == null || userDto.getFullName().trim().equalsIgnoreCase("")){
+        if (userDto.getFullName() == null || userDto.getFullName().trim().equalsIgnoreCase("")) {
             userDto.setFullName(user.getFullName());
         }
-        if(userDto.getMobilePhoneNumber() == null || userDto.getMobilePhoneNumber().trim().equalsIgnoreCase("")){
+        if (userDto.getMobilePhoneNumber() == null || userDto.getMobilePhoneNumber().trim().equalsIgnoreCase("")) {
             userDto.setMobilePhoneNumber(user.getMobilePhoneNumber());
         }
-        if(userDto.getGender() == null || userDto.getGender() == 0){
+        if (userDto.getGender() == null || userDto.getGender() == 0) {
             userDto.setGender(user.getGender());
         }
-        if(userDto.getBirthDate() == null){
+        if (userDto.getBirthDate() == null) {
             userDto.setBirthDate(user.getBirthDate());
         }
         return userDto;

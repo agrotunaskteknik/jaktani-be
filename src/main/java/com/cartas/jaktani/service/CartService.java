@@ -35,11 +35,13 @@ public interface CartService {
 
     List<OrderDetailDto> orderStatusByShopID(Long shopID);
 
-    public void sellerVerifyOrder(VerifyOrderShippingRequest request);
+    void sellerVerifyOrder(VerifyOrderShippingRequest request);
 
-    public void sellerVerifyOrderShipping(VerifyOrderShippingRequest request);
+    void sellerVerifyOrderShipping(VerifyOrderShippingRequest request);
 
-    public void sellerVerifyOrderSent(VerifyOrderShippingRequest request);
+    void sellerVerifyOrderSent(VerifyOrderShippingRequest request);
 
-    public void sellerVerifyReview(VerifyOrderShippingRequest request);
+    void sellerVerifyReview(VerifyOrderShippingRequest request);
+
+    OrderDetailListProductDto invoiceByOrderID(Long orderID);
 }

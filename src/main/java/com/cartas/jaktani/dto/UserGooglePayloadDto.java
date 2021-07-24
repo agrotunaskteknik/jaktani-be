@@ -8,12 +8,12 @@ public class UserGooglePayloadDto {
     private String locale;
     private String familyName;
     private String givenName;
-    private Long googleUserID;
+    private String googleUserID;
 
     public UserGooglePayloadDto() {
     }
 
-    public UserGooglePayloadDto(String email, boolean emailVerified, String name, String pictureUrl, String locale, String familyName, String givenName, Long googleUserID) {
+    public UserGooglePayloadDto(String email, boolean emailVerified, String name, String pictureUrl, String locale, String familyName, String givenName, String googleUserID) {
         this.email = email;
         this.emailVerified = emailVerified;
         this.name = name;
@@ -24,11 +24,11 @@ public class UserGooglePayloadDto {
         this.googleUserID = googleUserID;
     }
 
-    public Long getGoogleUserID() {
+    public String getGoogleUserID() {
         return googleUserID;
     }
 
-    public void setGoogleUserID(Long googleUserID) {
+    public void setGoogleUserID(String googleUserID) {
         this.googleUserID = googleUserID;
     }
 

@@ -20,6 +20,7 @@ public class UserDto {
     public String mobilePhoneNumber;
     public Date birthDate;
     public String otp;
+    public String googleUserID;
 
     public String ktpNumber;
     public String ktpFilePath;
@@ -38,6 +39,35 @@ public class UserDto {
     public AddressDetailDto userShopAddress;
 
     public Shop shop;
+
+    public UserDto(Integer id, String fullName, String username, Integer type, String password, String email, Integer status, Integer gender, String mobilePhoneNumber, Date birthDate, String otp, String googleUserID, String ktpNumber, String ktpFilePath, String ktpUrlPath, String ktpFilePathHome, String ktpUrlPathHome, String ktpBase64, String profileFilePath, String profileUrlPath, String profileFilePathHome, String profileUrlPathHome, String profileBase64, AddressDetailDto userAddress, AddressDetailDto userShopAddress, Shop shop) {
+        this.id = id;
+        this.fullName = fullName;
+        this.username = username;
+        this.type = type;
+        this.password = password;
+        this.email = email;
+        this.status = status;
+        this.gender = gender;
+        this.mobilePhoneNumber = mobilePhoneNumber;
+        this.birthDate = birthDate;
+        this.otp = otp;
+        this.googleUserID = googleUserID;
+        this.ktpNumber = ktpNumber;
+        this.ktpFilePath = ktpFilePath;
+        this.ktpUrlPath = ktpUrlPath;
+        this.ktpFilePathHome = ktpFilePathHome;
+        this.ktpUrlPathHome = ktpUrlPathHome;
+        this.ktpBase64 = ktpBase64;
+        this.profileFilePath = profileFilePath;
+        this.profileUrlPath = profileUrlPath;
+        this.profileFilePathHome = profileFilePathHome;
+        this.profileUrlPathHome = profileUrlPathHome;
+        this.profileBase64 = profileBase64;
+        this.userAddress = userAddress;
+        this.userShopAddress = userShopAddress;
+        this.shop = shop;
+    }
 
     public String getOtp() {
         return otp;
@@ -140,8 +170,15 @@ public class UserDto {
     public void setBirthDate(Date birthDate) {
         this.birthDate = birthDate;
     }
-    
-    
+
+    @JsonProperty("google_user_id")
+    public String getGoogleUserID() {
+        return googleUserID;
+    }
+
+    public void setGoogleUserID(String googleUserID) {
+        this.googleUserID = googleUserID;
+    }
 
     public String getKtpNumber() {
 		return ktpNumber;
@@ -269,6 +306,7 @@ public class UserDto {
         sb.append(", mobilePhoneNumber='").append(mobilePhoneNumber).append('\'');
         sb.append(", birthDate=").append(birthDate);
         sb.append(", otp='").append(otp).append('\'');
+        sb.append(", googleUserID='").append(googleUserID).append('\'');
         sb.append(", ktpNumber='").append(ktpNumber).append('\'');
         sb.append(", ktpFilePath='").append(ktpFilePath).append('\'');
         sb.append(", ktpUrlPath='").append(ktpUrlPath).append('\'');

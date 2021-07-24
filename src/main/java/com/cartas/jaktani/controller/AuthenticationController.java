@@ -39,7 +39,7 @@ public class AuthenticationController {
 
     @PostMapping(path = "/callback_fva")
     public Object callbackFVA(@RequestBody CallbackFVA callbackFVA) {
-        logger.debug("called callback_fva");
+        logger.info("called callback_fva");
         callbackFVAS.add(callbackFVA);
 
         cartService.verifyCallBackFVA(callbackFVA);
@@ -198,6 +198,17 @@ public class AuthenticationController {
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
             System.out.println("sellerVerifyOrderShipping Caught Error : " + e.getMessage());
+            return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
+        }
+    }
+
+    @RequestMapping(value = "/seller/invoice-by-order-id", method = RequestMethod.GET)
+    public ResponseEntity<?> invoiceByOrderID(@RequestParam(value = "order_id") Long orderID) {
+        try {
+            OrderDetailListProductDto response = cartService.invoiceByOrderID(orderID);
+            return ResponseEntity.ok().body(new ParentResponse(response));
+        } catch (Exception e) {
+            logger.info("invoiceByOrderID Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }

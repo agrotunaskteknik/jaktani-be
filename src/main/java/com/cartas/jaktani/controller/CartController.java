@@ -24,7 +24,7 @@ public class CartController {
             AddToCartDtoResponse response = cartService.addToCart(addToCartDtoRequest);
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
-            logger.debug("add_to_cart Caught Error : " + e.getMessage());
+            logger.info("add_to_cart Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
@@ -36,7 +36,7 @@ public class CartController {
             AddToCartDtoResponse response = cartService.getCounter(userIDLong);
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
-            logger.debug("cart_counter Caught Error : " + e.getMessage());
+            logger.info("cart_counter Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
@@ -47,7 +47,7 @@ public class CartController {
             CommonResponse response = cartService.removeCart(removeCartDto);
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
-            logger.debug("remove_cart Caught Error : " + e.getMessage());
+            logger.info("remove_cart Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
@@ -58,7 +58,7 @@ public class CartController {
             CommonResponse response = cartService.updateCart(addToCartDtoRequest);
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
-            logger.debug("update_cart Caught Error : " + e.getMessage());
+            logger.info("update_cart Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
@@ -69,7 +69,7 @@ public class CartController {
             CommonResponse response = cartService.updateCartV2(addToCartDtoRequest);
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
-            logger.debug("update_cart Caught Error : " + e.getMessage());
+            logger.info("update_cart Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
@@ -81,7 +81,7 @@ public class CartController {
             CartListResponse response = cartService.cartList(new CartListDtoRequest(userIDLong));
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
-            logger.debug("cart_list Caught Error : " + e.getMessage());
+            logger.info("cart_list Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
@@ -93,7 +93,7 @@ public class CartController {
             SAFDtoResponse response = cartService.shipmentAddressForm(new CartListDtoRequest(userIDLong));
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
-            logger.debug("shipment_address_form Caught Error : " + e.getMessage());
+            logger.info("shipment_address_form Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
@@ -104,7 +104,7 @@ public class CartController {
             CheckoutDtoResponse response = cartService.checkout(checkoutDtoRequest);
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
-            logger.debug("checkout Caught Error : " + e.getMessage());
+            logger.info("checkout Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
@@ -115,7 +115,7 @@ public class CartController {
             PaymentChargeDtoResponse response = cartService.paymentCharge(paymentChargeRequest);
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
-            logger.debug("paymentCharge Caught Error : " + e.getMessage());
+            logger.info("paymentCharge Caught Error : " + e.getMessage());
             return ResponseEntity.ok().body(new ParentResponse(new CommonResponse(e.getMessage(), "NOT_OK", "")));
         }
     }
