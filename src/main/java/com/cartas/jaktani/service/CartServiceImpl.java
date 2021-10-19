@@ -66,7 +66,7 @@ public class CartServiceImpl implements CartService {
     final static String XENDIT_CALLBACK_VA = "/callback_virtual_accounts";
     final static String XENDIT_FVA_SIMULATE_PAYMENT = "callback_virtual_accounts/external_id={external_id}/simulate_payment";
     final static String XENDIT_VERIFY_CALLBACK_VA = "/callback_virtual_account_payments/payment_id={{payment_id}}";
-    final static String XENDIT_BASIC_AUTH = "Basic eG5kX3Byb2R1Y3Rpb25fa080ZXRGaGt1R1Nzem94N1JvRENSSFE4WFhjSnhPOHVucHhjcmcxZXBOR2cwVlQ4MWdiYmhhRWxtdE51TTo=";
+    final static String XENDIT_BASIC_AUTH = "Basic eG5kX3Byb2R1Y3Rpb25fUVRXcEdLckR0UGJoQlE2aE9uTktTOHdXekltOU92dU44YnpFYWNnQ0Zib1VYYm92MW1hR3NVRDFQbnNMOg==";
 
     // one instance, reuse
     private final OkHttpClient httpClient = new OkHttpClient();
@@ -1791,7 +1791,7 @@ public class CartServiceImpl implements CartService {
         // get order by order id and update the status
         Optional<Order> optionalOrder = orderRepository.findById(Long.parseLong(callbackFVA.getExternal_id()));
         if (!optionalOrder.isPresent()) {
-            logger.info("empty order id for : " + callbackFVA.getExternal_id());
+            logger.info("empty_order_id_for : " + callbackFVA.getExternal_id());
             return order;
         }
         order = optionalOrder.get();
@@ -1801,7 +1801,7 @@ public class CartServiceImpl implements CartService {
             order.setTransactionID(callbackFVA.getPayment_id());
             order.setTransactionStatus(MIDTRANS_STATUS_SETTLEMENT);
             orderRepository.save(order);
-            logger.info("Success Update to Settlement: order id : " + order.getId());
+            logger.info("success_update_to_settlement:_order_id : " + order.getId());
             List<CartItem> cartItems = cartRepository.findByStatusAndUserIDAndTransactionID(CART_STATUS_CHECKOUT, order.getCustomerId(), order.getId());
             HashMap<Long, Product> productByID = new HashMap<>();
             for (CartItem item : cartItems) {
@@ -1823,19 +1823,19 @@ public class CartServiceImpl implements CartService {
                 .addHeader("Authorization", XENDIT_BASIC_AUTH)  // add request headers
                 .addHeader("content-type", "application/json")
                 .build();
-        logger.info("url xendit : " + urlHitVerifyXendit);
+        logger.info("url_xendit : " + urlHitVerifyXendit);
 
         try (Response response = httpClient.newCall(request).execute()) {
 
             if (!response.isSuccessful()) throw new IOException("Unexpected code " + response);
-            logger.info("success callback verify");
+            logger.info("success_callback_verify");
             // Get response body
             String jsonString = Objects.requireNonNull(response.body()).string();
             logger.info(jsonString);
             CallbackVerifyFVA entity = gson.fromJson(jsonString, CallbackVerifyFVA.class);
             logger.info(entity.toString());
         } catch (Exception ex) {
-            logger.info("error when execute verify payment");
+            logger.info("error_when_execute_verify_payment");
         }
     }
 

@@ -39,7 +39,7 @@ public class AuthenticationController {
 
     @PostMapping(path = "/callback_fva")
     public Object callbackFVA(@RequestBody CallbackFVA callbackFVA) {
-        logger.info("called callback_fva");
+        logger.info("called callback_fva info");
         callbackFVAS.add(callbackFVA);
 
         cartService.verifyCallBackFVA(callbackFVA);
