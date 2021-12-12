@@ -67,6 +67,8 @@ public class CartServiceImpl implements CartService {
     final static String XENDIT_FVA_SIMULATE_PAYMENT = "callback_virtual_accounts/external_id={external_id}/simulate_payment";
     final static String XENDIT_VERIFY_CALLBACK_VA = "/callback_virtual_account_payments/payment_id={{payment_id}}";
     final static String XENDIT_BASIC_AUTH = "Basic eG5kX3Byb2R1Y3Rpb25fUVRXcEdLckR0UGJoQlE2aE9uTktTOHdXekltOU92dU44YnpFYWNnQ0Zib1VYYm92MW1hR3NVRDFQbnNMOg==";
+    public static String XENDIT_PAYMENT_COMPLETED = "COMPLETED";
+    public static String XENDIT_PAYMENT_ACTIVE = "ACTIVE";
 
     // one instance, reuse
     private final OkHttpClient httpClient = new OkHttpClient();
@@ -1060,12 +1062,18 @@ public class CartServiceImpl implements CartService {
                 "    \"external_id\": \"{{orderID}}\",\n" +
                 "    \"bank_code\": \"{{bank}}\",\n" +
                 "    \"name\": \"{{fullName}}\",\n" +
+                "    \"is_closed\": \"{{isClosed}}\",\n" +
                 "    \"expected_amount\": {{grossAmount}}\n" +
                 "}";
-        json = json.replace("{{fullName}}", userFullName);
+        json = json.replace("{{fullName}}", "test-user-1");
         json = json.replace("{{orderID}}", paymentChargeRequest.getOrderId());
         json = json.replace("{{grossAmount}}", paymentChargeRequest.getGrossAmount());
         json = json.replace("{{bank}}", paymentChargeRequest.getBank().toUpperCase());
+        if (paymentChargeRequest.getBank().equalsIgnoreCase("bca")) {
+            json = json.replace("{{isClosed}}", "true");
+        } else {
+            json = json.replace("{{isClosed}}", "false");
+        }
         RequestBody body = RequestBody.create(JSON, json);
         Request request = new Request.Builder()
                 .url(XENDIT_URL + XENDIT_CALLBACK_VA)
@@ -1788,14 +1796,27 @@ public class CartServiceImpl implements CartService {
 
     public Order verifyCallBackFVA(CallbackFVA callbackFVA) {
         Order order = new Order();
+        Long externalID = 0L;
+        try{
+            externalID = Long.parseLong(callbackFVA.getExternal_id());
+        }catch (Exception ex){
+            logger.info("error_external_id : " + callbackFVA.getExternal_id());
+            return order;
+        }
         // get order by order id and update the status
-        Optional<Order> optionalOrder = orderRepository.findById(Long.parseLong(callbackFVA.getExternal_id()));
+        Optional<Order> optionalOrder = orderRepository.findById(externalID);
         if (!optionalOrder.isPresent()) {
             logger.info("empty_order_id_for : " + callbackFVA.getExternal_id());
             return order;
         }
         order = optionalOrder.get();
-        if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT)) {
+        String paymentStatus = XENDIT_PAYMENT_ACTIVE;
+        try{
+            paymentStatus = callbackFVA.getStatus();
+        }catch (Exception ex){
+            logger.info("error_get_payment_status : " + callbackFVA.getStatus());
+        }
+        if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT) && paymentStatus.equalsIgnoreCase(XENDIT_PAYMENT_COMPLETED)) {
             order.setStatus(ORDER_STATUS_PAYMENT_SETTLED);
             order.setUpdatedDate(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
             order.setTransactionID(callbackFVA.getPayment_id());

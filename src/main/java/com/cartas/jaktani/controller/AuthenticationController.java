@@ -40,6 +40,23 @@ public class AuthenticationController {
     @PostMapping(path = "/callback_fva")
     public Object callbackFVA(@RequestBody CallbackFVA callbackFVA) {
         logger.info("called callback_fva info");
+        if (null == callbackFVAS || callbackFVAS.size() == 0) {
+            callbackFVAS = new ArrayList<>();
+        }
+        callbackFVAS.add(callbackFVA);
+
+        cartService.verifyCallBackFVA(callbackFVA);
+
+        return callbackFVAS;
+    }
+
+    @PostMapping(path = "/callback_fva_paid")
+    public Object callbackFVAPaid(@RequestBody CallbackFVA callbackFVA) {
+        logger.info("called callback_fva_paid info");
+        if (null == callbackFVAS || callbackFVAS.size() == 0) {
+            callbackFVAS = new ArrayList<>();
+        }
+        callbackFVA.setStatus(CartServiceImpl.XENDIT_PAYMENT_COMPLETED);
         callbackFVAS.add(callbackFVA);
 
         cartService.verifyCallBackFVA(callbackFVA);

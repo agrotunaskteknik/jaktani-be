@@ -13,11 +13,12 @@ public class CallbackFVA {
     private String transaction_timestamp;
     private String merchant_code;
     private String id;
+    private String status;
 
     public CallbackFVA() {
     }
 
-    public CallbackFVA(String updated, String created, String payment_id, String callback_virtual_account_id, String owner_id, String external_id, String account_number, String bank_code, float amount, String transaction_timestamp, String merchant_code, String id) {
+    public CallbackFVA(String updated, String created, String payment_id, String callback_virtual_account_id, String owner_id, String external_id, String account_number, String bank_code, float amount, String transaction_timestamp, String merchant_code, String id, String status) {
         this.updated = updated;
         this.created = created;
         this.payment_id = payment_id;
@@ -30,6 +31,7 @@ public class CallbackFVA {
         this.transaction_timestamp = transaction_timestamp;
         this.merchant_code = merchant_code;
         this.id = id;
+        this.status = status;
     }
 
     public String getUpdated() {
@@ -128,6 +130,14 @@ public class CallbackFVA {
         this.id = id;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("CallbackFVA{");
@@ -143,6 +153,7 @@ public class CallbackFVA {
         sb.append(", transaction_timestamp='").append(transaction_timestamp).append('\'');
         sb.append(", merchant_code='").append(merchant_code).append('\'');
         sb.append(", id='").append(id).append('\'');
+        sb.append(", status='").append(status).append('\'');
         sb.append('}');
         return sb.toString();
     }
