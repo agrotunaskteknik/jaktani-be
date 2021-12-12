@@ -1058,23 +1058,23 @@ public class CartServiceImpl implements CartService {
         }
 
         PaymentChargeDtoResponse responseDto;
-        String json = "{\n" +
+        String bodyJson = "{\n" +
                 "    \"external_id\": \"{{orderID}}\",\n" +
                 "    \"bank_code\": \"{{bank}}\",\n" +
                 "    \"name\": \"{{fullName}}\",\n" +
-                "    \"is_closed\": \"{{isClosed}}\",\n" +
+                "    \"is_closed\": {{isClosed}},\n" +
                 "    \"expected_amount\": {{grossAmount}}\n" +
                 "}";
-        json = json.replace("{{fullName}}", "test-user-1");
-        json = json.replace("{{orderID}}", paymentChargeRequest.getOrderId());
-        json = json.replace("{{grossAmount}}", paymentChargeRequest.getGrossAmount());
-        json = json.replace("{{bank}}", paymentChargeRequest.getBank().toUpperCase());
+        bodyJson = bodyJson.replace("{{fullName}}", userFullName);
+        bodyJson = bodyJson.replace("{{orderID}}", paymentChargeRequest.getOrderId());
+        bodyJson = bodyJson.replace("{{grossAmount}}", paymentChargeRequest.getGrossAmount());
+        bodyJson = bodyJson.replace("{{bank}}", paymentChargeRequest.getBank().toUpperCase());
         if (paymentChargeRequest.getBank().equalsIgnoreCase("bca")) {
-            json = json.replace("{{isClosed}}", "true");
+            bodyJson = bodyJson.replace("{{isClosed}}", "true");
         } else {
-            json = json.replace("{{isClosed}}", "false");
+            bodyJson = bodyJson.replace("{{isClosed}}", "false");
         }
-        RequestBody body = RequestBody.create(JSON, json);
+        RequestBody body = RequestBody.create(JSON, bodyJson);
         Request request = new Request.Builder()
                 .url(XENDIT_URL + XENDIT_CALLBACK_VA)
                 .post(body)
@@ -1124,6 +1124,10 @@ public class CartServiceImpl implements CartService {
             }
             emailForPaymentRequest(paymentChargeRequest, responseDto, cartItems, productByID);
             return responseDto;
+        }
+        catch (Exception ex){
+            logger.info("error pas hit xendit : " + ex.getMessage());
+            return new PaymentChargeDtoResponse();
         }
     }
 
