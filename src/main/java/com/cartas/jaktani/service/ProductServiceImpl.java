@@ -139,7 +139,7 @@ public class ProductServiceImpl implements ProductService {
         try {
             entity.setShopId(product.getShopId());
             entity.setName(product.getName());
-            entity.setDescription(product.getName());
+            entity.setDescription(product.getDescription());
             entity.setStatus(STATUS_DEFAULT);
             entity.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
             entity.setStock(product.getStock());
@@ -191,7 +191,7 @@ public class ProductServiceImpl implements ProductService {
         try {
             entity = productById.get();
             entity.setName(product.getName());
-            entity.setDescription(product.getName());
+            entity.setDescription(product.getDescription());
             entity.setStatus(STATUS_DEFAULT);
             entity.setCreatedTime(Utils.getTimeStamp(Utils.getCalendar().getTimeInMillis()));
             entity.setStock(product.getStock());
