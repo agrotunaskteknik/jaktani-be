@@ -37,7 +37,7 @@ public interface CartService {
 
     void sellerVerifyOrder(VerifyOrderShippingRequest request);
 
-    void sellerVerifyOrderShipping(VerifyOrderShippingRequest request);
+    List<VerifyOrderShipping> sellerVerifyOrderShipping(VerifyOrderShippingRequest request);
 
     void sellerVerifyOrderSent(VerifyOrderShippingRequest request);
 

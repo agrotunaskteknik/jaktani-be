@@ -59,14 +59,13 @@ public class OrderController {
     @RequestMapping(value = "/seller/verify_order_shipping", method = RequestMethod.POST)
     public ResponseEntity<?> sellerVerifyOrderShipping(@RequestBody VerifyOrderShippingRequest request) {
         try {
-            List<OrderDetailDto> response = new ArrayList<>();
             if (request.getResiCode().trim().equalsIgnoreCase("")) {
                 return ResponseEntity.ok().body(new ParentResponse(new CommonResponse("Empty ResiCode", "NOT_OK", "")));
             }
             if (request.getOrderID().equals(0L)) {
                 return ResponseEntity.ok().body(new ParentResponse(new CommonResponse("Empty OrderID", "NOT_OK", "")));
             }
-            cartService.sellerVerifyOrderShipping(request);
+            List<VerifyOrderShipping> response = cartService.sellerVerifyOrderShipping(request);
             return ResponseEntity.ok().body(new ParentResponse(response));
         } catch (Exception e) {
             logger.info("sellerVerifyOrderShipping Caught Error : " + e.getMessage());

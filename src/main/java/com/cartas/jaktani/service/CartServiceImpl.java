@@ -1124,8 +1124,7 @@ public class CartServiceImpl implements CartService {
             }
             emailForPaymentRequest(paymentChargeRequest, responseDto, cartItems, productByID);
             return responseDto;
-        }
-        catch (Exception ex){
+        } catch (Exception ex) {
             logger.info("error pas hit xendit : " + ex.getMessage());
             return new PaymentChargeDtoResponse();
         }
@@ -1270,6 +1269,10 @@ public class CartServiceImpl implements CartService {
             for (CartItem cartItem : cartItemOptional) {
                 // get shop detail by product shop id
                 VwProductDetails product = vwProductDetailsService.findByProductIdProductDetails(cartItem.getProductID().intValue());
+                if (product == null || product.getProductId() == null || product.getProductId().equals(0)) {
+                    logger.info("[orderStatusByUserID] empty product for id : " + cartItem.getProductID().intValue());
+                    continue;
+                }
                 product.setQuantity(cartItem.getQuantity());
                 // get shipping detail by cart item detail
                 Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.SHOP_STATUS_DELETED);
@@ -1390,6 +1393,10 @@ public class CartServiceImpl implements CartService {
             for (CartItem cartItem : cartItemOptional) {
                 // get shop detail by product shop id
                 VwProductDetails product = vwProductDetailsService.findByProductIdProductDetails(cartItem.getProductID().intValue());
+                if (product == null || product.getProductId() == null || product.getProductId().equals(0)) {
+                    logger.info("[orderStatusByShopID] empty product for id : " + cartItem.getProductID().intValue());
+                    continue;
+                }
                 product.setQuantity(cartItem.getQuantity());
                 // get shipping detail by cart item detail
                 Optional<Shop> shop = shopRepository.findByIdAndStatusIsNot(cartItem.getShopID().intValue(), ShopServiceImpl.SHOP_STATUS_DELETED);
@@ -1529,8 +1536,9 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public void sellerVerifyOrderShipping(VerifyOrderShippingRequest request) {
+    public List<VerifyOrderShipping> sellerVerifyOrderShipping(VerifyOrderShippingRequest request) {
         Optional<Order> orderOptional = orderRepository.findById(request.getOrderID());
+        List<VerifyOrderShipping> respList = new ArrayList<>();
         if (orderOptional.isPresent()) {
             Order order = orderOptional.get();
             order.setStatus(ORDER_STATUS_SHIPPING);
@@ -1545,12 +1553,17 @@ public class CartServiceImpl implements CartService {
                     cartItem.setResiCode(request.getResiCode());
                     try {
                         cartRepository.save(cartItem);
+                        VerifyOrderShipping resp = new VerifyOrderShipping();
+                        resp.setOrderID(cartItem.getTransactionID());
+                        resp.setNoResi(cartItem.getResiCode());
+                        respList.add(resp);
                     } catch (Exception ex) {
                         logger.error("error when save cart resi = " + ex.getMessage());
                     }
                 }
             }
         }
+        return respList;
     }
 
     @Override
@@ -1801,9 +1814,9 @@ public class CartServiceImpl implements CartService {
     public Order verifyCallBackFVA(CallbackFVA callbackFVA) {
         Order order = new Order();
         Long externalID = 0L;
-        try{
+        try {
             externalID = Long.parseLong(callbackFVA.getExternal_id());
-        }catch (Exception ex){
+        } catch (Exception ex) {
             logger.info("error_external_id : " + callbackFVA.getExternal_id());
             return order;
         }
@@ -1815,9 +1828,9 @@ public class CartServiceImpl implements CartService {
         }
         order = optionalOrder.get();
         String paymentStatus = XENDIT_PAYMENT_ACTIVE;
-        try{
+        try {
             paymentStatus = callbackFVA.getStatus();
-        }catch (Exception ex){
+        } catch (Exception ex) {
             logger.info("error_get_payment_status : " + callbackFVA.getStatus());
         }
         if (order.getStatus().equals(ORDER_STATUS_WAITING_PAYMENT) && paymentStatus.equalsIgnoreCase(XENDIT_PAYMENT_COMPLETED)) {
@@ -1935,6 +1948,10 @@ public class CartServiceImpl implements CartService {
             for (CartItem cartItem : cartItemOptional) {
                 // get shop detail by product shop id
                 VwProductDetails product = vwProductDetailsService.findByProductIdProductDetails(cartItem.getProductID().intValue());
+                if (product == null || product.getProductId() == null || product.getProductId().equals(0)) {
+                    logger.info("[invoiceByOrderID] empty product for id : " + cartItem.getProductID().intValue());
+                    continue;
+                }
                 product.setQuantity(cartItem.getQuantity());
                 product.setNotes(cartItem.getNotes());
                 productDetails.add(product);
